@@ -134,7 +134,8 @@ export default function HomeFeatureSection() {
       <div className="wrap">
         <div className="home-feature__header">
           <h2 className="home-feature__title">
-            클래식 공연을 발견하고, 즐기고, 기록하다
+            <span className="home-feature__title-desktop">클래식 공연을 발견하고, 즐기고, 기록하다</span>
+            <span className="home-feature__title-mobile">클래식 공연을 발견하고,<br />즐기고, 기록하다</span>
           </h2>
           <p className="home-feature__subtitle">
             Da Capo에서 당신만의 클래식 경험을 이어가세요

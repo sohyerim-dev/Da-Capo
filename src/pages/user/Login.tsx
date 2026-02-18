@@ -12,7 +12,7 @@ export default function Login() {
   const from = (location.state as { from?: string })?.from ?? "/";
 
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
-  const [autoLogin, setAutoLogin] = useState(true);
+  const [autoLogin, setAutoLogin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 

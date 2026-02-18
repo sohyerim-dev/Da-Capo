@@ -21,4 +21,10 @@
     height: 100%;
     object-fit: cover;
   }
+
+  @media (max-width: 1200px) {
+    height: auto;
+    aspect-ratio: 16 / 9;
+    margin-top: 0;
+  }
 }

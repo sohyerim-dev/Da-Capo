@@ -4,6 +4,11 @@
   align-items: center;
   background: #f6f3ec;
 
+  @media (max-width: 1200px) {
+    height: auto;
+    padding: 60px 0;
+  }
+
   .wrap {
     width: 85%;
   }
@@ -21,6 +26,7 @@
     justify-content: center;
     gap: clamp(12px, 3vw, 50px);
     margin-bottom: 36px;
+    flex-wrap: wrap;
   }
 
   &__tab {
@@ -51,6 +57,17 @@
     justify-content: center;
     gap: clamp(16px, 4vw, 70px);
     margin-bottom: 32px;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+
+    &--loading {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    @media (max-width: 1200px) {
+      flex-wrap: wrap;
+      gap: 16px;
+    }
   }
 
   &__card {
@@ -61,6 +78,18 @@
     flex-direction: column;
     gap: 10px;
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+    }
+
+    @media (max-width: 1200px) {
+      flex: 0 0 calc(50% - 8px);
+      max-width: none;
+    }
 
     &-img {
       width: 100%;
@@ -84,6 +113,10 @@
       overflow: hidden;
       text-overflow: ellipsis;
       word-break: keep-all;
+
+      @media (max-width: 1200px) {
+        font-size: 14px;
+      }
     }
 
     &-sub {
@@ -100,6 +133,17 @@
     align-items: center;
     gap: clamp(10px, 2vw, 24px);
     padding-top: 24px;
+
+    @media (max-width: 1200px) {
+      justify-content: flex-start;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      padding-bottom: 4px;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
   }
 
   &__sub-item {
@@ -114,6 +158,8 @@
     align-items: center;
     gap: 4px;
     transition: color 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
 
     &--active {
       color: #161616;
@@ -137,11 +183,33 @@
     }
   }
 
+  /* 스켈레톤 */
+  @keyframes home-skeleton-shimmer {
+    0% { background-color: #d5d2cb; }
+    50% { background-color: #e0ddd6; }
+    100% { background-color: #d5d2cb; }
+  }
+
+  &__skeleton {
+    flex: 1 1 0;
+    max-width: 300px;
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    animation: home-skeleton-shimmer 1.5s ease-in-out infinite;
+
+    @media (max-width: 1200px) {
+      flex: 0 0 calc(50% - 8px);
+      max-width: none;
+    }
+  }
+
   &__more {
     font-size: 13px;
     color: #888888;
     text-decoration: none;
     transition: color 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
 
     &:hover {
       color: #161616;

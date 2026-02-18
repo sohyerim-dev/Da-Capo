@@ -84,4 +84,37 @@
     display: block;
     background: #c8c8c8;
   }
+
+  @media (max-width: 1200px) {
+    height: auto;
+    padding: 60px 0;
+
+    &__section-title {
+      font-size: 18px;
+      margin-bottom: 24px;
+    }
+
+    &__header {
+      align-items: flex-start;
+    }
+
+    &__header-left {
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+      align-items: stretch;
+    }
+
+    &__title {
+      font-size: 18px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &__image {
+      height: 220px;
+    }
+  }
 }

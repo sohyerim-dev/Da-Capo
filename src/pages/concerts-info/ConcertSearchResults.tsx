@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 import { supabase } from "../../lib/supabase";
 
 interface Concert {
@@ -64,12 +65,12 @@ export default function ConcertSearchResults({ query }: Props) {
       </p>
       <div className="concert-info__cards">
         {concerts.map((concert) => (
-          <div key={concert.id} className="concert-info__card">
+          <Link key={concert.id} to={`/concert-info/${concert.id}`} className="concert-info__card">
             <div className="concert-info__card-img">
               <img src={concert.poster} alt={concert.title} />
             </div>
             <p className="concert-info__card-title">{concert.title}</p>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

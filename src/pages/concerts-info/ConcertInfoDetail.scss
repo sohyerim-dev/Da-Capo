@@ -1,0 +1,199 @@
+.concert-detail {
+  min-height: calc(100vh - 147px);
+  background: #f6f3ec;
+  padding: 60px 0 80px;
+
+  @media (max-width: 1200px) {
+    padding-top: 60px;
+  }
+
+  .wrap {
+    width: 85%;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  &__back {
+    display: inline-block;
+    font-size: 14px;
+    color: #888;
+    text-decoration: none;
+    margin-bottom: 36px;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #161616;
+    }
+  }
+
+  &__top {
+    display: flex;
+    gap: 52px;
+    margin-bottom: 60px;
+    align-items: flex-start;
+
+    @media (max-width: 1200px) {
+      flex-direction: column;
+      gap: 32px;
+    }
+  }
+
+  &__poster {
+    flex-shrink: 0;
+    width: 260px;
+
+    @media (max-width: 1200px) {
+      width: 100%;
+      max-width: 260px;
+      margin: 0 auto;
+    }
+
+    img {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+    }
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__status {
+    display: inline-block;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+
+    &--ongoing {
+      background: #161616;
+      color: #fafafa;
+    }
+
+    &--upcoming {
+      background: transparent;
+      border: 1px solid #161616;
+      color: #161616;
+    }
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #161616;
+    line-height: 1.5;
+    margin: 0 0 28px;
+    letter-spacing: -0.02em;
+    word-break: keep-all;
+  }
+
+  &__meta {
+    margin: 0 0 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__meta-row {
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
+
+    dt {
+      flex-shrink: 0;
+      width: 80px;
+      color: #888;
+      font-weight: 500;
+    }
+
+    dd {
+      color: #161616;
+      margin: 0;
+      word-break: keep-all;
+      line-height: 1.6;
+    }
+  }
+
+  &__tickets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__ticket-btn {
+    display: inline-block;
+    padding: 10px 24px;
+    border-radius: 999px;
+    border: 1.5px solid #161616;
+    background: #161616;
+    color: #fafafa;
+    font-size: 14px;
+    font-family: inherit;
+    text-decoration: none;
+    transition:
+      background 0.2s,
+      color 0.2s;
+
+    &:hover {
+      background: transparent;
+      color: #161616;
+    }
+  }
+
+  /* 출연진 / 제작진 / 소개 섹션 */
+  &__section {
+    padding: 36px 0;
+    border-top: 1px solid #ddd;
+  }
+
+  &__section-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #161616;
+    margin: 0 0 16px;
+  }
+
+  &__section-text {
+    font-size: 15px;
+    color: #333;
+    line-height: 1.8;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: keep-all;
+  }
+
+  /* 소개 이미지 */
+  &__intro-images {
+    padding-top: 36px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    img {
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
+      display: block;
+      border-radius: 8px;
+    }
+  }
+
+  /* 스켈레톤 */
+  &__skeleton {
+    height: 500px;
+    border-radius: 8px;
+    background: #e0ddd6;
+  }
+
+  &__empty {
+    text-align: center;
+    color: #888;
+    font-size: 15px;
+    padding: 80px 0;
+  }
+}

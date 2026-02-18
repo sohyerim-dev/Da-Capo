@@ -119,4 +119,37 @@
     text-align: center;
     word-break: keep-all;
   }
+
+  @media (max-width: 1200px) {
+    height: auto;
+    padding: 60px 0;
+
+    &__section-title {
+      font-size: 18px;
+      margin-bottom: 24px;
+    }
+
+    &__title {
+      font-size: 18px;
+    }
+
+    &__concerts {
+      gap: 20px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    &__poster {
+      width: 150px;
+      height: 200px;
+    }
+
+    &__caption {
+      font-size: 13px;
+    }
+  }
 }
