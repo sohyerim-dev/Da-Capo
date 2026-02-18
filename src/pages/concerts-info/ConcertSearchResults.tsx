@@ -27,7 +27,7 @@ export default function ConcertSearchResults({ query }: Props) {
       const { data, error } = await supabase
         .from("concerts")
         .select("id, title, poster, venue, start_date, end_date, status")
-        .ilike("title", `%${query}%`)
+        .or(`title.ilike.%${query}%,synopsis.ilike.%${query}%,performers.ilike.%${query}%`)
         .in("status", ["공연예정", "공연중"])
         .order("start_date", { ascending: true })
         .limit(40);

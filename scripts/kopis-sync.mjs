@@ -81,8 +81,27 @@ async function fetchWindow(stdate, eddate) {
   return concerts;
 }
 
+// 공연 상세 API 호출 (줄거리, 출연진)
+async function fetchDetail(mt20id) {
+  const url = `${KOPIS_BASE}/${mt20id}?service=${KOPIS_API_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const xml = await res.text();
+  const parsed = parser.parse(xml);
+  const db = parsed?.dbs?.db;
+  if (!db) return null;
+  return Array.isArray(db) ? db[0] : db;
+}
+
+// styurls.styurl → 배열로 정규화
+function parseIntroImages(detail) {
+  const raw = detail?.styurls?.styurl;
+  if (!raw) return null;
+  return Array.isArray(raw) ? raw : [raw];
+}
+
 // KOPIS 응답 → Supabase 행 변환
-function toRow(item) {
+function toRow(item, detail) {
   return {
     id: item.mt20id,
     title: item.prfnm,
@@ -94,6 +113,9 @@ function toRow(item) {
     venue: item.fcltynm,
     area: item.area,
     open_run: item.openrun,
+    synopsis: detail?.sty ?? null,
+    performers: detail?.prfcast ?? null,
+    intro_images: parseIntroImages(detail),
     synced_at: new Date().toISOString(),
   };
 }
@@ -103,7 +125,7 @@ async function main() {
   const windows = getDateWindows();
   console.log(`날짜 구간: ${windows.length}개`);
 
-  const allRows = [];
+  const listItems = [];
   const seen = new Set();
 
   for (const { stdate, eddate } of windows) {
@@ -112,8 +134,20 @@ async function main() {
     for (const item of items) {
       if (!seen.has(item.mt20id)) {
         seen.add(item.mt20id);
-        allRows.push(toRow(item));
+        listItems.push(item);
       }
+    }
+  }
+
+  console.log(`총 ${listItems.length}건 - 상세 정보 수집 중...`);
+
+  const allRows = [];
+  for (let i = 0; i < listItems.length; i++) {
+    const item = listItems[i];
+    const detail = await fetchDetail(item.mt20id);
+    allRows.push(toRow(item, detail));
+    if ((i + 1) % 50 === 0) {
+      console.log(`  상세 ${i + 1}/${listItems.length} 완료`);
     }
   }
 
