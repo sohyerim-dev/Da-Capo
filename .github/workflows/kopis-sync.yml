@@ -1,0 +1,30 @@
+name: KOPIS 공연 데이터 동기화
+
+on:
+  schedule:
+    - cron: "0 16 * * *" # 매일 새벽 1시 KST (UTC 16:00)
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: KOPIS 동기화 실행
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          KOPIS_API_KEY: ${{ secrets.KOPIS_API_KEY }}
+        run: node scripts/kopis-sync.mjs
