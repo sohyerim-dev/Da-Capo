@@ -100,6 +100,14 @@ function parseIntroImages(detail) {
   return Array.isArray(raw) ? raw : [raw];
 }
 
+// relates.relate → [{name, url}] 배열로 정규화
+function parseTicketSites(detail) {
+  const raw = detail?.relates?.relate;
+  if (!raw) return null;
+  const list = Array.isArray(raw) ? raw : [raw];
+  return list.map((r) => ({ name: r.relatenm, url: r.relateurl }));
+}
+
 // KOPIS 응답 → Supabase 행 변환
 function toRow(item, detail) {
   return {
@@ -116,6 +124,12 @@ function toRow(item, detail) {
     synopsis: detail?.sty ?? null,
     performers: detail?.prfcast ?? null,
     intro_images: parseIntroImages(detail),
+    schedule: detail?.dtguidance ?? null,
+    producer: detail?.entrpsnmP ?? null,
+    ticket_price: detail?.pcseguidance ?? null,
+    crew: detail?.prfcrew ?? null,
+    age_limit: detail?.prfage ?? null,
+    ticket_sites: parseTicketSites(detail),
     synced_at: new Date().toISOString(),
   };
 }
