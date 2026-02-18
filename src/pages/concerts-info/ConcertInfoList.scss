@@ -1,0 +1,241 @@
+.concert-info {
+  min-height: calc(100vh - 147px);
+  background: #f6f3ec;
+  padding: 60px 0 80px;
+
+  .wrap {
+    width: 85%;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  &__title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #161616;
+    text-align: center;
+    margin-bottom: 32px;
+    letter-spacing: -0.02em;
+  }
+
+  /* 검색 */
+  &__search {
+    position: relative;
+    max-width: 480px;
+    margin: 0 auto 32px;
+  }
+
+  &__search-input {
+    width: 100%;
+    padding: 14px 52px 14px 20px;
+    border: 1.5px solid #ddd;
+    border-radius: 999px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+
+    &::placeholder {
+      color: #aaa;
+    }
+
+    &:focus {
+      border-color: #161616;
+    }
+  }
+
+  &__search-btn {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    display: flex;
+    align-items: center;
+    padding: 0;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  /* 대분류 탭 */
+  &__tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  &__tab {
+    padding: 8px 20px;
+    border-radius: 999px;
+    border: 1.5px solid #161616;
+    background: transparent;
+    color: #161616;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      color 0.2s;
+
+    &--active {
+      background: #161616;
+      color: #fafafa;
+    }
+
+    &:hover:not(&--active) {
+      background: rgba(22, 22, 22, 0.06);
+    }
+  }
+
+  /* 소분류 */
+  &__sub-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 36px;
+    justify-content: center;
+  }
+
+  &__sub-arrow {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 0;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover:not(:disabled) {
+      color: #161616;
+    }
+
+    &:disabled {
+      color: #ccc;
+      cursor: default;
+    }
+  }
+
+  &__sub-list {
+    display: flex;
+    justify-content: center;
+    gap: clamp(12px, 2vw, 28px);
+    width: 560px;
+  }
+
+  &__sub-item {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0;
+    height: 20px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    transition: color 0.2s;
+
+    &--active {
+      color: #161616;
+      font-weight: 600;
+    }
+
+    &:hover:not(&--active) {
+      color: #333;
+    }
+  }
+
+  /* 카드 그리드 */
+  &__cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+
+    &-img {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      border-radius: 8px;
+      background: #d9d9d9;
+      overflow: hidden;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+    }
+
+    &-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #161616;
+      text-align: center;
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  /* 더보기 */
+  &__more-wrap {
+    display: flex;
+    justify-content: center;
+  }
+
+  &__more-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 32px;
+    border-radius: 999px;
+    border: 1.5px solid #161616;
+    background: transparent;
+    color: #161616;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      color 0.2s;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    &:hover {
+      background: #161616;
+      color: #fafafa;
+    }
+  }
+}

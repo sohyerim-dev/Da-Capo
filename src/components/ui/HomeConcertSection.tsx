@@ -304,9 +304,6 @@ export default function HomeConcertSection() {
               className={`home-concert__sub-item${activeSubIndex === i ? " home-concert__sub-item--active" : ""}`}
               onClick={() => { setActiveSubIndex(i); setCycleKey((k) => k + 1); }}
             >
-              {activeSubIndex === i && (
-                <span className="home-concert__sub-arrow">›</span>
-              )}
               {item.name}
             </button>
           ))}

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { supabase } from "@/lib/supabase";
 import type { LoginForm } from "@/types/user";
 import Button from "@/components/common/Button";
+import Input from "@/components/common/Input";
 import "./auth.scss";
 
 export default function Login() {
@@ -47,49 +48,44 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-box">
-        <h1 className="auth-title">로그인</h1>
+    <div className="auth-page auth-page--login">
+      <div className="auth-box auth-box--flat">
+        <img src="/images/logo-black.png" alt="Da Capo" className="auth-logo" />
+        <p className="auth-subtitle">오늘도 당신의 클래식이 시작됩니다</p>
         <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="auth-field">
-            <label>이메일</label>
-            <input
-              type="email"
-              name="email"
-              placeholder="이메일"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="auth-field">
-            <label>패스워드</label>
-            <input
-              type="password"
-              name="password"
-              placeholder="패스워드"
-              value={form.password}
-              onChange={handleChange}
-              autoComplete="new-password"
-              required
-            />
-          </div>
-          <label className="auth-autologin">
+          <Input
+            type="email"
+            name="email"
+            placeholder="아이디"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            type="password"
+            name="password"
+            placeholder="패스워드"
+            value={form.password}
+            onChange={handleChange}
+            autoComplete="new-password"
+            required
+          />
+          <label className="auth-autologin auth-autologin--right">
             <input
               type="checkbox"
               checked={autoLogin}
               onChange={(e) => setAutoLogin(e.target.checked)}
             />
-            로그인 상태 유지
+            자동 로그인
           </label>
           {error && <p className="auth-error">{error}</p>}
           <Button type="submit" fullWidth loading={loading}>
             로그인
           </Button>
+          <Button type="button" fullWidth onClick={() => navigate("/signup")}>
+            회원가입
+          </Button>
         </form>
-        <p className="auth-link">
-          계정이 없으신가요? <Link to="/signup">회원가입</Link>
-        </p>
       </div>
     </div>
   );

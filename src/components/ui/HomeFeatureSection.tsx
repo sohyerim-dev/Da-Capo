@@ -2,9 +2,12 @@ import { Link } from "react-router";
 import "./HomeFeatureSection.scss";
 
 const ConcertIcon = () => (
-  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" />
-    <polygon points="19,16 19,32 34,24" fill="currentColor" />
+  <svg
+    viewBox="0 0 256 256"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M232,104a8,8,0,0,0,8-8V64a16,16,0,0,0-16-16H32A16,16,0,0,0,16,64V96a8,8,0,0,0,8,8,24,24,0,0,1,0,48,8,8,0,0,0-8,8v32a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V160a8,8,0,0,0-8-8,24,24,0,0,1,0-48ZM32,167.2a40,40,0,0,0,0-78.4V64H88V192H32Zm192,0V192H104V64H224V88.8a40,40,0,0,0,0,78.4Z" />
   </svg>
 );
 
@@ -17,7 +20,7 @@ const MagazineIcon = () => (
       height="36"
       rx="3"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="3.5"
     />
     <line
       x1="16"
@@ -25,7 +28,7 @@ const MagazineIcon = () => (
       x2="32"
       y2="18"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="3.5"
       strokeLinecap="round"
     />
     <line
@@ -34,7 +37,7 @@ const MagazineIcon = () => (
       x2="32"
       y2="25"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="3.5"
       strokeLinecap="round"
     />
     <line
@@ -43,7 +46,7 @@ const MagazineIcon = () => (
       x2="24"
       y2="32"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="3.5"
       strokeLinecap="round"
     />
   </svg>
@@ -59,7 +62,7 @@ const NoteIcon = () => (
       height="38"
       rx="3"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="3"
     />
     {/* 책 척추(spine) */}
     <line
@@ -68,7 +71,7 @@ const NoteIcon = () => (
       x2="16"
       y2="44"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="3"
     />
     {/* 줄 */}
     <line
@@ -77,7 +80,7 @@ const NoteIcon = () => (
       x2="34"
       y2="16"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="3"
       strokeLinecap="round"
     />
     <line
@@ -86,7 +89,7 @@ const NoteIcon = () => (
       x2="34"
       y2="23"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="3"
       strokeLinecap="round"
     />
     <line
@@ -95,7 +98,7 @@ const NoteIcon = () => (
       x2="30"
       y2="30"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="3"
       strokeLinecap="round"
     />
   </svg>

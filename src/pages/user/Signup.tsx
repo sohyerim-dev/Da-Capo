@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { supabase } from "@/lib/supabase";
 import Button from "@/components/common/Button";
+import Input from "@/components/common/Input";
 import "./auth.scss";
 
 const DEFAULT_IMAGE =
@@ -121,54 +122,43 @@ export default function Signup() {
       <div className="auth-box">
         <h1 className="auth-title">회원가입</h1>
         <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="auth-field">
-            <label>이메일</label>
-            <input
-              type="email"
-              placeholder="이메일"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={handleEmailBlur}
-              required
-            />
-            {emailError && <p className="auth-field__error">{emailError}</p>}
-          </div>
-
-          <div className="auth-field">
-            <label>패스워드</label>
-            <input
-              type="password"
-              placeholder="패스워드 (6자 이상)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-          </div>
-
-          <div className="auth-field">
-            <label>닉네임</label>
-            <input
-              type="text"
-              placeholder="이름"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="auth-field">
-            <label>연락처</label>
-            <input
-              type="tel"
-              placeholder="010-0000-0000"
-              value={phone}
-              onChange={handlePhoneChange}
-              onBlur={handlePhoneBlur}
-              required
-            />
-            {phoneError && <p className="auth-field__error">{phoneError}</p>}
-          </div>
+          <Input
+            type="email"
+            label="이메일"
+            placeholder="이메일"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onBlur={handleEmailBlur}
+            error={emailError}
+            required
+          />
+          <Input
+            type="password"
+            label="패스워드"
+            placeholder="패스워드 (6자 이상)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+          />
+          <Input
+            type="text"
+            label="닉네임"
+            placeholder="이름"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            required
+          />
+          <Input
+            type="tel"
+            label="연락처"
+            placeholder="010-0000-0000"
+            value={phone}
+            onChange={handlePhoneChange}
+            onBlur={handlePhoneBlur}
+            error={phoneError}
+            required
+          />
 
           <div className="auth-terms">
             <label className="auth-terms__all">
