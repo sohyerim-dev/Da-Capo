@@ -4,12 +4,12 @@ import { supabase } from "../../lib/supabase";
 
 interface Concert {
   id: string;
-  title: string;
-  poster: string;
-  venue: string;
-  start_date: string;
-  end_date: string;
-  status: string;
+  title: string | null;
+  poster: string | null;
+  venue: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: string | null;
 }
 
 interface Props {
@@ -28,7 +28,7 @@ export default function ConcertSearchResults({ query }: Props) {
       const { data, error } = await supabase
         .from("concerts")
         .select("id, title, poster, venue, start_date, end_date, status")
-        .or(`title.ilike.%${query}%,synopsis.ilike.%${query}%,performers.ilike.%${query}%`)
+        .or(`title.ilike.%${query}%,synopsis.ilike.%${query}%,performers.ilike.%${query}%,producer.ilike.%${query}%,venue.ilike.%${query}%`)
         .in("status", ["공연예정", "공연중"])
         .order("start_date", { ascending: true })
         .limit(40);
@@ -43,7 +43,14 @@ export default function ConcertSearchResults({ query }: Props) {
   if (loading) {
     return (
       <div className="concert-info__search-results">
-        <p className="concert-info__search-empty">검색 중...</p>
+        <div className="concert-info__cards">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="concert-info__skeleton">
+              <div className="concert-info__skeleton-img" />
+              <div className="concert-info__skeleton-title" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -67,7 +74,7 @@ export default function ConcertSearchResults({ query }: Props) {
         {concerts.map((concert) => (
           <Link key={concert.id} to={`/concert-info/${concert.id}`} className="concert-info__card">
             <div className="concert-info__card-img">
-              <img src={concert.poster} alt={concert.title} />
+              <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
             </div>
             <p className="concert-info__card-title">{concert.title}</p>
           </Link>

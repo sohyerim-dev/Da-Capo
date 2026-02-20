@@ -1,0 +1,355 @@
+.mypage {
+  min-height: calc(100vh - 147px);
+  background-color: #f2ebe4;
+  padding: 48px 20px;
+
+  @media (max-width: 1200px) {
+    padding-top: 100px;
+  }
+
+  &__inner {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  // 프로필 카드
+  &__profile-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 32px;
+    background: #f2ebe4;
+    border: 1px solid #c8c0b6;
+    border-radius: 12px;
+  }
+
+  &__avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    background: none;
+
+    &:hover:not(:disabled) .mypage__avatar-overlay {
+      opacity: 1;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  &__avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__avatar-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  &__file-input {
+    display: none;
+  }
+
+  &__user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__nickname {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111;
+  }
+
+  &__email {
+    font-size: 14px;
+    color: #777;
+  }
+
+  &__image-error {
+    font-size: 12px;
+    color: #e53935;
+    margin-top: 4px;
+  }
+
+  // 섹션
+  &__section {
+    background: #f2ebe4;
+    border: 1px solid #c8c0b6;
+    border-radius: 12px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  &__section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #ddd6cc;
+    margin-bottom: 4px;
+  }
+
+  // 닉네임 중복확인
+  &__nickname-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__nickname-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+
+    .input-field {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  &__check-btn {
+    flex-shrink: 0;
+    padding: 12px 16px;
+    line-height: 1.5;
+    border: 1px solid #c8c0b6;
+    border-radius: 8px;
+    background: transparent;
+    color: #333;
+    font-size: 16px;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      border-color 0.2s,
+      color 0.2s;
+
+    &:hover:not(:disabled) {
+      border-color: #161616;
+    }
+
+    &:disabled {
+      color: #aaa;
+      cursor: not-allowed;
+    }
+  }
+
+  &__check-msg {
+    font-size: 12px;
+
+    &--ok {
+      color: #2e7d32;
+    }
+
+    &--err {
+      color: #e53935;
+    }
+  }
+
+  // 피드백 메시지
+  &__message {
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 6px;
+
+    &--success {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    &--error {
+      background: #ffebee;
+      color: #e53935;
+    }
+  }
+
+  &__save-row {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  // 클래식 노트 토글
+  &__toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  &__toggle-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: #111;
+    margin-bottom: 4px;
+  }
+
+  &__toggle-desc {
+    font-size: 13px;
+    color: #777;
+    line-height: 1.5;
+  }
+
+  &__toggle-status {
+    font-size: 13px;
+    color: #555;
+  }
+
+  &__toggle {
+    display: block;
+    position: relative;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+    cursor: pointer;
+
+    input[type="checkbox"] {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+
+      &:checked + .mypage__toggle-track {
+        background: #111;
+
+        &::after {
+          transform: translateX(20px);
+        }
+      }
+
+      &:disabled + .mypage__toggle-track {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    &-track {
+      position: absolute;
+      inset: 0;
+      background: #c8c0b6;
+      border-radius: 12px;
+      transition: background 0.2s;
+      cursor: pointer;
+
+      &::after {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border-radius: 50%;
+        top: 3px;
+        left: 3px;
+        transition: transform 0.2s;
+      }
+    }
+  }
+
+  // 계정 탈퇴
+  &__danger {
+    border: 1px solid #ffcdd2;
+    background: #f2ebe4;
+    border-radius: 12px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__danger-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e53935;
+  }
+
+  &__danger-desc {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.6;
+  }
+
+  &__danger-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  &__btn-danger {
+    padding: 7px 16px;
+    border: 1px solid #e53935;
+    background: transparent;
+    color: #e53935;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      color 0.2s;
+
+    &:hover {
+      background: #e53935;
+      color: #fff;
+    }
+  }
+
+  &__btn-cancel {
+    padding: 7px 16px;
+    border: 1px solid #c8c0b6;
+    background: transparent;
+    color: #555;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s;
+
+    &:hover {
+      border-color: #161616;
+    }
+  }
+
+  &__btn-danger-confirm {
+    padding: 10px 20px;
+    border: none;
+    background: #e53935;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #c62828;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}

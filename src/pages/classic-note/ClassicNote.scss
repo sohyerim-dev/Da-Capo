@@ -1,0 +1,781 @@
+.classic-note {
+  min-height: calc(100vh - 147px);
+  background: #f2ebe4;
+  padding: 60px 0 80px;
+
+  @media (max-width: 1200px) {
+    padding-top: 100px;
+  }
+
+  .wrap {
+    max-width: 960px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #161616;
+  }
+
+  &__public-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1.5px solid #ccc;
+    color: #aaa;
+    background: none;
+
+    &--on {
+      border-color: #161616;
+      color: #161616;
+    }
+  }
+
+  &__add-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fab95b;
+    color: #161616;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #333;
+      color: #fff;
+    }
+  }
+
+  // ─── react-calendar 커스텀 스타일 ───
+  &__calendar-wrap {
+    background: #fffef9;
+    border-radius: 16px;
+    border: 1px solid #e4ddd6;
+    border-top: 4px solid #fab95b;
+    padding-bottom: 50px;
+    margin-bottom: 48px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+  }
+
+  .react-calendar {
+    width: 100%;
+    padding: 24px 28px 0;
+    border: none;
+    font-family: inherit;
+    background: transparent;
+
+    &__navigation {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+
+      &__label {
+        font-size: 17px;
+        font-weight: 700;
+        color: #161616;
+        background: none;
+        border: none;
+        cursor: default;
+        flex: 1;
+        text-align: center;
+        pointer-events: none;
+      }
+
+      &__arrow {
+        background: none;
+        border: none;
+        font-size: 18px;
+        color: #999;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition:
+          color 0.2s,
+          background 0.2s;
+        flex-shrink: 0;
+
+        &:hover {
+          color: #161616;
+          background: #fab95b;
+        }
+      }
+
+      &__prev2-button,
+      &__next2-button {
+        display: none;
+      }
+    }
+
+    &__month-view {
+      &__weekdays {
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr);
+        border-top: 1px solid #e4ddd6;
+        border-left: 1px solid #e4ddd6;
+
+        &__weekday {
+          font-size: 12px;
+          font-weight: 600;
+          color: #999;
+          padding: 10px 0;
+          text-align: center;
+          border-right: 1px solid #e4ddd6;
+          border-bottom: 1px solid #e4ddd6;
+          letter-spacing: 0.03em;
+
+          abbr {
+            text-decoration: none;
+          }
+        }
+      }
+
+      &__days {
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr);
+        border-left: 1px solid #e4ddd6;
+
+        &__day {
+          &--neighboringMonth {
+            color: #bbb; // fallback
+          }
+        }
+      }
+    }
+
+    // 인접 월 날짜 — 두 클래스 조합으로 specificity 높임
+    &__tile.react-calendar__month-view__days__day--neighboringMonth {
+      color: #bbb;
+    }
+
+    &__tile {
+      position: relative;
+      height: 88px;
+      padding: 10px 12px 8px;
+      background: #fffef9;
+      border: none;
+      border-right: 1px solid #e4ddd6;
+      border-bottom: 1px solid #e4ddd6;
+      border-radius: 0;
+      font-size: 14px;
+      font-family: inherit;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 6px;
+
+      @media (max-width: 640px) {
+        height: auto;
+        min-height: 72px;
+        padding: 8px 4px 6px;
+      }
+
+      &:hover {
+        background: #f5efe4;
+      }
+
+      &--active,
+      &--hasActive {
+        background: #fffef9 !important;
+        color: #333 !important;
+      }
+
+      &--now {
+        abbr {
+          position: absolute;
+          top: 10px;
+          left: 12px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          background: #161616;
+          color: #fff;
+          font-weight: 700;
+          font-size: 13px;
+
+          @media (max-width: 640px) {
+            top: 8px;
+            left: 4px;
+          }
+        }
+      }
+    }
+  }
+
+  // 선택된 날짜
+  .classic-note__tile--selected {
+    background: #f0e8de !important;
+
+    abbr {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #161616;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+
+      @media (max-width: 640px) {
+        top: 8px;
+        left: 4px;
+      }
+    }
+  }
+
+  // 캘린더 타일 아이콘 묶음 (우하단)
+  &__tile-icons {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    display: flex;
+    gap: 2px;
+
+    @media (max-width: 640px) {
+      position: static;
+      margin-top: auto;
+      align-self: flex-end;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+  }
+
+  &__tile-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #161616;
+    transition:
+      background 0.2s,
+      color 0.2s;
+
+    &:hover {
+      background: #fab95b;
+      color: #161616;
+    }
+
+    &--bookmark {
+      color: #161616;
+    }
+
+    @media (max-width: 640px) {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  // ─── 월별 기록 목록 ───
+  &__month-list {
+    margin-top: 8px;
+    padding: 28px 24px 36px 28px;
+    background: #fffef9;
+    border-radius: 12px;
+    border: 1px solid #e4ddd6;
+    border-left: 4px solid #fab95b;
+    box-shadow: 2px 4px 16px rgba(0, 0, 0, 0.05);
+
+    @media (max-width: 640px) {
+      padding: 20px 16px 28px;
+    }
+  }
+
+  &__month-label {
+    font-size: 17px;
+    font-weight: 700;
+    color: #161616;
+    margin: 0 0 24px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid #c8bfb0;
+    letter-spacing: 0.01em;
+  }
+
+  &__group {
+    margin-bottom: 32px;
+  }
+
+  &__group-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #8a7055;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+    padding: 0 0 0 10px;
+    border-left: 3px solid #fab95b;
+  }
+
+  &__more-btn {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px 0;
+    background: none;
+    border: 1.5px dashed #ccc;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #161616;
+      color: #161616;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 40px 0;
+    color: #aaa;
+    font-size: 14px;
+  }
+
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+    border: none;
+  }
+
+  &__list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #ece8e2;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: rgba(250, 185, 91, 0.07);
+    }
+  }
+
+  &__list-date {
+    font-size: 13px;
+    color: #888;
+    flex-shrink: 0;
+    width: 60px;
+  }
+
+  &__list-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+
+    &--concert_record {
+      color: #161616;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+    }
+
+    &--free_writing {
+      color: #161616;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+    }
+
+    &--bookmark {
+      color: #e53935;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+    }
+  }
+  &__list-badge-text {
+    margin-left: 5px;
+  }
+
+  &__list-title {
+    font-size: 14px;
+    color: #161616;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__list-rating {
+    font-size: 12px;
+    color: #161616;
+    flex-shrink: 0;
+    letter-spacing: -1px;
+  }
+
+  // ─── 스켈레톤 ───
+  @keyframes skeleton-shimmer {
+    0% {
+      background-color: #e0ddd6;
+    }
+    50% {
+      background-color: #eceae4;
+    }
+    100% {
+      background-color: #e0ddd6;
+    }
+  }
+
+  &__list-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__skeleton-row {
+    height: 48px;
+    border-radius: 8px;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  // ─── 스켈레톤 (공개 노트) ───
+  &__public-skeleton-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  &__public-skeleton-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  &__public-skeleton-name {
+    width: 140px;
+    height: 22px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  &__public-skeleton-sub {
+    width: 100px;
+    height: 16px;
+    border-radius: 4px;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  &__public-skeleton-calendar {
+    width: 100%;
+    height: 560px;
+    border-radius: 16px;
+    margin-bottom: 48px;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  &__public-skeleton-label {
+    width: 160px;
+    height: 20px;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  &__public-skeleton-card {
+    height: 80px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  // ─── 공개 노트 뷰 ───
+  &__public-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  &__public-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid #e0ddd6;
+  }
+
+  &__public-user {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  &__public-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: #161616;
+    margin: 0;
+  }
+
+  &__public-sub {
+    font-size: 16px;
+    color: #888;
+    margin: 0;
+  }
+
+  &__public-section {
+    margin-bottom: 32px;
+  }
+
+  &__public-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #8a7055;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+    padding: 0 0 0 10px;
+    border-left: 3px solid #fab95b;
+  }
+
+  &__public-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__public-card {
+    background: #fffef9;
+    border: 1px solid #e4ddd6;
+    border-left: 3px solid #fab95b;
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+
+  &__public-card-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+
+    &:hover .classic-note__public-card-title {
+      text-decoration: underline;
+    }
+  }
+
+  &__public-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  &__public-card-date {
+    font-size: 13px;
+    color: #aaa;
+  }
+
+  &__public-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+
+    &--bookmark {
+      background: #fde8cc;
+      color: #8a5a1a;
+    }
+
+    &--record {
+      background: #d4e8d4;
+      color: #2e6b2e;
+    }
+
+    &--free {
+      background: #e8e4f8;
+      color: #4a3a8a;
+    }
+  }
+
+  &__public-card-concert {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    text-decoration: none;
+    margin-bottom: 6px;
+
+    &:hover {
+      color: #161616;
+      text-decoration: underline;
+    }
+  }
+
+  &__public-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #161616;
+    margin: 0 0 8px;
+
+    &:last-child { margin-bottom: 0; }
+
+    & + .classic-note__public-card-content {
+      border-top: 1px solid #e8e4dc;
+      padding-top: 10px;
+      margin-top: 4px;
+    }
+  }
+
+  &__public-card-content {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.7;
+    margin-top: 8px;
+    max-height: 120px;
+    overflow: hidden;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(transparent, #fffef9);
+    }
+
+    &--expanded {
+      max-height: none;
+
+      &::after {
+        display: none;
+      }
+    }
+  }
+
+  &__public-card-expand-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    padding: 8px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #161616;
+    }
+  }
+
+  &__public-empty {
+    text-align: center;
+    padding: 60px 0;
+    color: #aaa;
+    font-size: 15px;
+  }
+
+  &__public-blocked {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 80px 0;
+    text-align: center;
+  }
+
+  &__public-blocked-icon {
+    color: #ccc;
+    margin-bottom: 20px;
+  }
+
+  &__public-blocked-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+  }
+
+  &__public-blocked-desc {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 24px;
+  }
+
+  &__public-blocked-back {
+    padding: 10px 24px;
+    border: 1.5px solid #ddd;
+    border-radius: 999px;
+    background: none;
+    font-size: 14px;
+    font-family: inherit;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #161616;
+      color: #161616;
+    }
+  }
+}

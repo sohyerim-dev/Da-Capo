@@ -1,6 +1,6 @@
 .concert-detail {
   min-height: calc(100vh - 147px);
-  background: #f6f3ec;
+  background: #f2ebe4;
   padding: 60px 0 80px;
 
   @media (max-width: 1200px) {
@@ -14,7 +14,9 @@
   }
 
   &__back {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-size: 14px;
     color: #888;
     text-decoration: none;
@@ -118,10 +120,77 @@
     }
   }
 
+  &__ticket-section {
+    margin-top: 32px;
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
+    align-items: flex-start;
+  }
+
+  &__ticket-label {
+    flex-shrink: 0;
+    width: 80px;
+    color: #888;
+    font-weight: 500;
+    padding-top: 8px;
+  }
+
   &__tickets {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+  }
+
+  &__title-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 28px;
+
+    .concert-detail__title {
+      width: 100%;
+      margin-bottom: 12px;
+    }
+  }
+
+  &__save-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    border: 1.5px solid #bbb;
+    background: transparent;
+    color: #555;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      color 0.2s;
+
+    svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      border-color: #161616;
+      color: #161616;
+    }
+
+    &--saved {
+      border-color: #e53935;
+      color: #e53935;
+
+      svg {
+        fill: #e53935;
+        stroke: #e53935;
+      }
+    }
   }
 
   &__ticket-btn {
@@ -184,10 +253,93 @@
   }
 
   /* 스켈레톤 */
+  @keyframes skeleton-shimmer {
+    0% {
+      background-color: #e0ddd6;
+    }
+    50% {
+      background-color: #eceae4;
+    }
+    100% {
+      background-color: #e0ddd6;
+    }
+  }
+
   &__skeleton {
-    height: 500px;
-    border-radius: 8px;
-    background: #e0ddd6;
+    display: flex;
+    gap: 52px;
+    align-items: flex-start;
+
+    @media (max-width: 1200px) {
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    &-poster {
+      flex-shrink: 0;
+      width: 260px;
+      aspect-ratio: 3 / 4;
+      border-radius: 8px;
+      animation: skeleton-shimmer 1.5s ease-in-out infinite;
+
+      @media (max-width: 1200px) {
+        width: 100%;
+        max-width: 260px;
+        margin: 0 auto;
+      }
+    }
+
+    &-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 8px;
+    }
+
+    &-badge {
+      width: 60px;
+      height: 22px;
+      border-radius: 999px;
+      animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    }
+
+    &-title {
+      width: 80%;
+      height: 28px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    }
+
+    &-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+
+      &-label {
+        flex-shrink: 0;
+        width: 80px;
+        height: 14px;
+        border-radius: 4px;
+        animation: skeleton-shimmer 1.5s ease-in-out infinite;
+      }
+
+      &-value {
+        height: 14px;
+        border-radius: 4px;
+        animation: skeleton-shimmer 1.5s ease-in-out infinite;
+        &--md {
+          width: 140px;
+        }
+        &--sm {
+          width: 80px;
+        }
+        &--lg {
+          width: 200px;
+        }
+      }
+    }
   }
 
   &__empty {
@@ -195,5 +347,186 @@
     color: #888;
     font-size: 15px;
     padding: 80px 0;
+  }
+
+  // ─── 날짜 선택 모달 ───
+  &__date-picker-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  &__date-picker {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+  }
+
+  &__date-picker-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #161616;
+    padding: 24px 24px 4px;
+    margin: 0;
+  }
+
+  &__date-picker-desc {
+    font-size: 13px;
+    color: #888;
+    padding: 0 24px 16px;
+    margin: 0;
+    border-bottom: 1px solid #f0ece7;
+  }
+
+  &__date-picker-actions-top {
+    display: flex;
+    gap: 8px;
+    padding: 12px 24px 8px;
+  }
+
+  &__date-picker-select-all {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 999px;
+    font-size: 12px;
+    font-family: inherit;
+    color: #666;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      border-color: #161616;
+      color: #161616;
+    }
+  }
+
+  &__date-list {
+    list-style: none;
+    padding: 0 12px;
+    margin: 0;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  &__date-item {
+    border-bottom: 1px solid #f5f2ee;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__date-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #222;
+    border-radius: 8px;
+    transition: background 0.12s;
+
+    &:hover {
+      background: #faf8f5;
+    }
+
+    input[type="checkbox"] {
+      accent-color: #161616;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+  }
+
+  &__date-picker-footer {
+    display: flex;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid #f0ece7;
+  }
+
+  &__date-picker-cancel {
+    flex: 1;
+    padding: 11px 0;
+    background: none;
+    border: 1.5px solid #ddd;
+    border-radius: 999px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #161616;
+      color: #161616;
+    }
+  }
+
+  &__date-picker-confirm {
+    flex: 1;
+    padding: 11px 0;
+    background: #161616;
+    border: none;
+    border-radius: 999px;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: #333;
+    }
+    &:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+  }
+
+  // ─── 로그인 안내 모달 ───
+  &__login-prompt {
+    background: #fff;
+    text-align: center;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 340px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__login-prompt-desc {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 12px;
+    line-height: 1.6;
+  }
+
+  &__login-prompt-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
   }
 }

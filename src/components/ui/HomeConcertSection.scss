@@ -2,7 +2,7 @@
   height: 100vh;
   display: flex;
   align-items: center;
-  background: #f6f3ec;
+  background: #f2ebe4;
 
   @media (max-width: 1200px) {
     height: auto;
@@ -57,7 +57,9 @@
     justify-content: center;
     gap: clamp(16px, 4vw, 70px);
     margin-bottom: 32px;
-    transition: opacity 0.4s ease, transform 0.4s ease;
+    transition:
+      opacity 0.4s ease,
+      transform 0.4s ease;
 
     &--loading {
       opacity: 0;
@@ -185,9 +187,15 @@
 
   /* 스켈레톤 */
   @keyframes home-skeleton-shimmer {
-    0% { background-color: #d5d2cb; }
-    50% { background-color: #e0ddd6; }
-    100% { background-color: #d5d2cb; }
+    0% {
+      background-color: #d5d2cb;
+    }
+    50% {
+      background-color: #e0ddd6;
+    }
+    100% {
+      background-color: #d5d2cb;
+    }
   }
 
   &__skeleton {

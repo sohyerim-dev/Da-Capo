@@ -6,8 +6,9 @@ import "./HomeConcertSection.scss";
 
 interface Concert {
   id: string;
-  title: string;
-  poster: string;
+  title: string | null;
+  poster: string | null;
+  synopsis: string | null;
 }
 
 const HOME_LABELS_PER_TAB: string[][] = [
@@ -29,7 +30,9 @@ export default function HomeConcertSection() {
   const currentTab = concertTabData[activeTab];
   const homeLabels = HOME_LABELS_PER_TAB[activeTab];
   const currentItems = homeLabels.length > 0
-    ? currentTab.items.filter((item) => homeLabels.includes(item.label))
+    ? homeLabels
+        .map((label) => currentTab.items.find((item) => item.label === label))
+        .filter((item): item is NonNullable<typeof item> => item !== undefined)
     : currentTab.items;
 
   // 탭 변경 시 소제목 초기화
@@ -61,23 +64,57 @@ export default function HomeConcertSection() {
     }
 
     const fetchConcerts = async () => {
-      const orFilter = activeItem.keywords
-        .flatMap((keyword) =>
-          currentTab.searchFields.map((f) => `${f}.ilike.%${keyword}%`)
-        )
-        .join(",");
-
-      const { data, error } = await supabase
+      let query = supabase
         .from("concerts")
-        .select("id, title, poster")
-        .or(orFilter)
-        .in("status", ["공연예정", "공연중"])
+        .select("id, title, poster, synopsis")
+        .in("status", ["공연예정", "공연중"]);
+
+      if (!activeItem.showOthers) {
+        const orFilter = activeItem.keywords
+          .flatMap((keyword) =>
+            currentTab.searchFields.map((f) => `${f}.ilike.%${keyword}%`)
+          )
+          .join(",");
+        if (orFilter) query = query.or(orFilter);
+
+        for (const kw of activeItem.excludeKeywords ?? []) {
+          query = query.not("title", "ilike", `%${kw}%`);
+        }
+      }
+
+      const { data, error } = await query
         .order("start_date", { ascending: true })
-        .limit(4);
+        .limit(100);
 
       if (!error && data) {
-        cacheRef.current[cacheKey] = data;
-        setConcerts(data);
+        let filtered: Concert[];
+
+        if (activeItem.showOthers) {
+          const otherKeywords = currentTab.items
+            .filter((item) => !item.showOthers)
+            .flatMap((item) => item.keywords);
+          filtered = data.filter(
+            (c) =>
+              !otherKeywords.some(
+                (kw) =>
+                  (c.title ?? "").includes(kw) || (c.synopsis ?? "").includes(kw)
+              )
+          );
+        } else {
+          const requireAny = activeItem.requireAny;
+          filtered = requireAny
+            ? data.filter((c) =>
+                requireAny.some(
+                  (kw) =>
+                    (c.title ?? "").includes(kw) || (c.synopsis ?? "").includes(kw)
+                )
+              )
+            : data;
+        }
+
+        const result = filtered.slice(0, 4);
+        cacheRef.current[cacheKey] = result;
+        setConcerts(result);
       }
       setIsVisible(true);
     };
@@ -112,8 +149,8 @@ export default function HomeConcertSection() {
                 <Link key={concert.id} to={`/concert-info/${concert.id}`} className="home-concert__card">
                   <img
                     className="home-concert__card-img"
-                    src={concert.poster}
-                    alt={concert.title}
+                    src={concert.poster ?? ""}
+                    alt={concert.title ?? ""}
                   />
                   <p className="home-concert__card-title">{concert.title}</p>
                 </Link>

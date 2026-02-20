@@ -19,11 +19,10 @@ function formatDate(date) {
   return `${y}${m}${d}`;
 }
 
-// 오늘 기준 31일 청크 배열 생성 (today-31 ~ today+365)
+// 2026-01-01부터 오늘+365일까지 31일 청크 배열 생성
 function getDateWindows() {
   const windows = [];
-  const start = new Date();
-  start.setDate(start.getDate() - 31);
+  const start = new Date("2026-01-01");
 
   const end = new Date();
   end.setDate(end.getDate() + 365);

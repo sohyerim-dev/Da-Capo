@@ -28,6 +28,7 @@ function App() {
             id: u.id,
             email: u.email!,
             nickname: u.user_metadata?.nickname ?? "",
+            username: u.user_metadata?.username ?? "",
             phone: u.user_metadata?.phone ?? "",
             image: u.user_metadata?.avatar_url,
             role: u.user_metadata?.role ?? "user",

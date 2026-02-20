@@ -1,0 +1,353 @@
+.support-list-page {
+  padding: 60px 0 80px;
+  min-height: calc(100vh - 147px);
+  background: #f2ebe4;
+
+  @media (max-width: 1200px) {
+    padding-top: 100px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  &__title {
+    font-size: 28px;
+    font-weight: 800;
+  }
+
+  &__write-btn {
+    padding: 10px 20px;
+    background: #161616;
+    color: #fafafa;
+    border: none;
+    border-radius: 999px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #333;
+    }
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  &__tab {
+    padding: 8px 18px;
+    background: none;
+    border: 1.5px solid #a9a9a9;
+    border-radius: 999px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #161616;
+      color: #161616;
+    }
+
+    &--active {
+      background: #161616;
+      border-color: #161616;
+      color: #fff;
+      font-weight: 600;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 80px 0;
+    color: #888;
+    font-size: 15px;
+  }
+
+  @keyframes skeleton-shimmer {
+    0% { background-color: #e0ddd6; }
+    50% { background-color: #eceae4; }
+    100% { background-color: #e0ddd6; }
+  }
+
+  &__skeleton-row td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f2f2f2;
+  }
+
+  &__skeleton-cell {
+    height: 14px;
+    border-radius: 4px;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+
+    &--num { width: 32px; margin: 0 auto; }
+    &--badge { width: 48px; height: 22px; border-radius: 4px; }
+    &--title { width: 65%; }
+    &--author { width: 48px; }
+    &--date { width: 72px; }
+    &--views { width: 32px; margin-left: auto; }
+  }
+
+  @media (max-width: 640px) {
+    &__skeleton-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      padding: 14px 0;
+      border-bottom: 1px solid #e0ddd6;
+
+      &:last-child { border-bottom: none; }
+
+      &::after {
+        content: '';
+        flex-basis: 100%;
+        order: 25;
+      }
+
+      td { padding: 0; }
+      td:nth-child(1), td:nth-child(4) { display: none; }
+      td:nth-child(2) { order: 10; flex-shrink: 0; margin-right: 8px; }
+      td:nth-child(3) { order: 20; flex: 1; min-width: 0; }
+      td:nth-child(5) { order: 30; margin-top: 6px; }
+      td:nth-child(6) { order: 40; margin-top: 6px; margin-left: auto; margin-right: 8px; }
+    }
+
+    &__skeleton-cell {
+      &--title { width: 75%; }
+      &--date { width: 64px; }
+      &--views { width: 24px; }
+    }
+  }
+
+  &__pagination {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 40px;
+  }
+
+  &__page-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #ddd;
+    border-radius: 999px;
+    background: none;
+    font-size: 14px;
+    font-family: inherit;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      border-color: #161616;
+      color: #161616;
+    }
+
+    &--active {
+      background: #161616;
+      border-color: #161616;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    &--disabled,
+    &:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+  }
+}
+
+.support-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: transparent;
+
+  th {
+    background: #161616;
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 700;
+    color: #fafafa;
+    border-bottom: 1px solid #161616;
+    white-space: nowrap;
+  }
+
+  &__row {
+    border-bottom: 1px solid #ddd;
+    transition: background 0.15s;
+
+    &:last-child { border-bottom: none; }
+
+    &:hover { background: rgba(0, 0, 0, 0.04); }
+
+    td { padding: 14px 16px; vertical-align: middle; }
+
+    &--notice {
+      background: rgba(200, 140, 50, 0.08);
+
+      &:hover { background: rgba(200, 140, 50, 0.14); }
+    }
+  }
+
+  &__num {
+    width: 64px;
+    color: #999;
+    text-align: center;
+  }
+
+  &__notice-mark {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #161616;
+    color: #fff;
+  }
+
+  &__category {
+    width: 100px;
+    text-align: center;
+  }
+
+  &__badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #e0ddd6;
+    color: #555;
+
+    &--공지 { background: #161616; color: #fff; }
+    &--질문 { background: #cce0f5; color: #1a4a7a; }
+    &--제안 { background: #d4e8d4; color: #2e6b2e; }
+    &--답변 { background: #fde8cc; color: #8a5a1a; }
+  }
+
+  &__title {
+    color: #161616;
+    font-weight: 500;
+  }
+
+  &__reply-status {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    vertical-align: middle;
+
+    &--done {
+      background: #d4e8d4;
+      color: #2e6b2e;
+    }
+
+    &--pending {
+      background: #e8e8e8;
+      color: #888;
+    }
+  }
+
+  &__author {
+    width: 100px;
+    color: #666;
+    white-space: nowrap;
+  }
+
+  &__date {
+    width: 100px;
+    color: #888;
+    white-space: nowrap;
+  }
+
+  &__views {
+    width: 72px;
+    color: #888;
+    text-align: right;
+  }
+
+  @media (max-width: 1200px) {
+    &__num { display: none; }
+    &__author { display: none; }
+
+    th, td { padding: 12px; }
+  }
+
+  @media (max-width: 640px) {
+    display: block;
+
+    thead { display: none; }
+    tbody { display: block; }
+
+    &__row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      padding: 14px 0;
+      border-bottom: 1px solid #e0ddd6;
+
+      &:last-child { border-bottom: none; }
+
+      &::after {
+        content: '';
+        flex-basis: 100%;
+        order: 25;
+      }
+
+      td { padding: 0; }
+    }
+
+    &__category {
+      order: 10;
+      width: auto;
+      text-align: left;
+      margin-right: 8px;
+    }
+
+    &__title {
+      order: 20;
+      flex: 1;
+      min-width: 0;
+    }
+
+    &__date {
+      order: 30;
+      width: auto;
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 6px;
+    }
+
+    &__views {
+      order: 40;
+      width: auto;
+      text-align: left;
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 6px;
+      margin-left: auto;
+      margin-right: 8px;
+
+      &::before {
+        content: '조회 ';
+      }
+    }
+  }
+}

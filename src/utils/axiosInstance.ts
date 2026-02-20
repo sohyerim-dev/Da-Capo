@@ -1,3 +1,4 @@
+// @ts-nocheck
 import router from "@/route";
 import useUserStore from "@/zustand/userStore";
 import axios from "axios";

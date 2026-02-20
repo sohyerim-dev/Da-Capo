@@ -5,8 +5,8 @@ import { concertTabData } from "../../data/concertTabData";
 
 interface Concert {
   id: string;
-  title: string;
-  poster: string;
+  title: string | null;
+  poster: string | null;
   synopsis: string | null;
 }
 
@@ -165,7 +165,7 @@ export default function ConcertBrowse() {
             (c) =>
               !otherKeywords.some(
                 (kw) =>
-                  c.title.includes(kw) || (c.synopsis ?? "").includes(kw)
+                  (c.title ?? "").includes(kw) || (c.synopsis ?? "").includes(kw)
               )
           );
         } else {
@@ -174,7 +174,7 @@ export default function ConcertBrowse() {
             ? data.filter((c) =>
                 requireAny.some(
                   (kw) =>
-                    c.title.includes(kw) || (c.synopsis ?? "").includes(kw)
+                    (c.title ?? "").includes(kw) || (c.synopsis ?? "").includes(kw)
                 )
               )
             : data;
@@ -325,7 +325,7 @@ export default function ConcertBrowse() {
             {concerts.slice(0, visibleCount).map((concert) => (
               <Link key={concert.id} to={`/concert-info/${concert.id}`} className="concert-info__card">
                 <div className="concert-info__card-img">
-                  <img src={concert.poster} alt={concert.title} />
+                  <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
                 </div>
                 <p className="concert-info__card-title">{concert.title}</p>
               </Link>

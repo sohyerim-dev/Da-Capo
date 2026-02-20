@@ -10,8 +10,8 @@ export default function Home() {
       <HeroSwiper />
       <HomeFeatureSection />
       <HomeConcertSection />
-      <CuratorPickSection />
-      <ClassicReadSection />
+      {/* <CuratorPickSection />
+      <ClassicReadSection /> */}
     </>
   );
 }

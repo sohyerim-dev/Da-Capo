@@ -1,10 +1,10 @@
 import { useState } from "react";
+import { Link } from "react-router";
+import PolicyModal, { type PolicyType } from "@/components/common/PolicyModal";
 import "./Footer.scss";
 
-type ModalType = "terms" | "privacy" | null;
-
 export default function Footer() {
-  const [modal, setModal] = useState<ModalType>(null);
+  const [modal, setModal] = useState<PolicyType | null>(null);
 
   return (
     <>
@@ -34,16 +34,16 @@ export default function Footer() {
               </div>
               <div className="footer__info-row">
                 <dt>E-MAIL</dt>
-                <dd>musik91@naver.com</dd>
+                <dd>admin@da-capo.co.kr</dd>
               </div>
             </dl>
 
             <ul className="footer__links">
               <li>
-                <a href="#">Da Capo (다 카포) 소개</a>
+                <Link to="/about">Da Capo (다 카포) 소개</Link>
               </li>
               <li>
-                <a href="#">고객센터</a>
+                <Link to="/support">고객센터</Link>
               </li>
               <li>
                 <button onClick={() => setModal("terms")}>이용약관</button>
@@ -56,38 +56,12 @@ export default function Footer() {
             </ul>
           </div>
         </div>
+        <div className="wrap footer__copyright">
+          © Da Capo. All rights reserved.
+        </div>
       </footer>
 
-      {modal && (
-        <div className="footer-modal" onClick={() => setModal(null)}>
-          <div
-            className="footer-modal__box"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="footer-modal__header">
-              <h2 className="footer-modal__title">
-                {modal === "terms" ? "이용약관" : "개인정보처리방침"}
-              </h2>
-              <button
-                className="footer-modal__close"
-                onClick={() => setModal(null)}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                >
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="footer-modal__body">
-              <p>내용을 입력해 주세요.</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {modal && <PolicyModal type={modal} onClose={() => setModal(null)} />}
     </>
   );
 }

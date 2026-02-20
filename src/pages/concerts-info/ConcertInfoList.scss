@@ -1,6 +1,6 @@
 .concert-info {
   min-height: calc(100vh - 147px);
-  background: #f6f3ec;
+  background: #f2ebe4;
   padding: 60px 0 80px;
 
   @media (max-width: 1200px) {
@@ -29,13 +29,13 @@
   /* 검색 */
   &__search {
     position: relative;
-    max-width: 480px;
+    max-width: 560px;
     margin: 0 auto 32px;
   }
 
   &__search-input {
     width: 100%;
-    padding: 14px 52px 14px 20px;
+    padding: 16px 52px 16px 20px;
     border: 1.5px solid #ddd;
     border-radius: 999px;
     font-size: 15px;
@@ -224,14 +224,14 @@
     color: #888;
     cursor: pointer;
     padding: 0;
-    height: 20px;
+    height: 22px;
     display: flex;
     align-items: center;
     transition: color 0.2s;
 
     svg {
-      width: 18px;
-      height: 18px;
+      width: 22px;
+      height: 22px;
     }
 
     &:hover:not(:disabled) {
@@ -266,7 +266,7 @@
     font-family: inherit;
     cursor: pointer;
     padding: 0;
-    height: 20px;
+    height: 22px;
     white-space: nowrap;
     display: flex;
     align-items: center;
@@ -352,9 +352,15 @@
 
   /* 스켈레톤 */
   @keyframes skeleton-shimmer {
-    0% { background-color: #e0ddd6; }
-    50% { background-color: #eceae4; }
-    100% { background-color: #e0ddd6; }
+    0% {
+      background-color: #e0ddd6;
+    }
+    50% {
+      background-color: #eceae4;
+    }
+    100% {
+      background-color: #e0ddd6;
+    }
   }
 
   &__skeleton {

@@ -1,0 +1,64 @@
+.mag-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 10px;
+  background: #fafaf8;
+  border-bottom: 1px solid #e8e4dc;
+  flex-wrap: wrap;
+
+  &__btn {
+    height: 34px;
+    min-width: 34px;
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 5px;
+    background: none;
+    color: #555;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &--wide {
+      padding: 0 10px;
+      font-weight: 600;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+
+    &:hover:not(:disabled) {
+      background: #ede9e0;
+      color: #161616;
+    }
+
+    &--active {
+      background: #161616;
+      color: #fff;
+
+      &:hover {
+        background: #333;
+      }
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+  }
+
+  &__divider {
+    width: 1px;
+    height: 18px;
+    background: #ddd;
+    margin: 0 5px;
+    flex-shrink: 0;
+  }
+}

@@ -1,0 +1,404 @@
+.magazine-editor-page {
+  padding: 60px 0 80px;
+  min-height: calc(100vh - 147px);
+  background: #f2ebe4;
+
+  @keyframes skeleton-shimmer {
+    0% {
+      background-color: #e0ddd6;
+    }
+    50% {
+      background-color: #eceae4;
+    }
+    100% {
+      background-color: #e0ddd6;
+    }
+  }
+
+  &__skeleton {
+    &-field {
+      height: 46px;
+      border-radius: 8px;
+      animation: skeleton-shimmer 1.5s ease-in-out infinite;
+      &--wide {
+        flex: 1;
+      }
+      &--narrow {
+        width: 140px;
+      }
+    }
+    &-editor {
+      height: 480px;
+      border-radius: 8px;
+      margin-bottom: 32px;
+      animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    }
+    &-section {
+      height: 120px;
+      border-radius: 8px;
+      animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    }
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 32px;
+  }
+
+  &__fields {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    @media (max-width: 1200px) {
+      flex-direction: column;
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    &:first-child {
+      flex: 1;
+    }
+  }
+
+  &__label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  &__input {
+    padding: 11px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fff;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #161616;
+    }
+  }
+
+  &__select {
+    padding: 11px 18px 11px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    min-width: 140px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+
+    &:focus {
+      outline: none;
+      border-color: #161616;
+    }
+  }
+
+  &__editor-wrap {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    margin-bottom: 32px;
+  }
+
+  &__concert-section {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  &__section-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  &__concert-search {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+
+    .magazine-editor-page__input {
+      flex: 1;
+    }
+  }
+
+  &__search-btn {
+    flex-shrink: 0;
+    padding: 11px 20px;
+    background: #161616;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+      background: #333;
+    }
+
+    &:disabled {
+      background: #bbb;
+      cursor: not-allowed;
+    }
+  }
+
+  &__concert-results {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    max-height: 360px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 8px;
+  }
+
+  &__results-close {
+    align-self: flex-end;
+    background: none;
+    border: none;
+    padding: 2px 6px;
+    font-size: 12px;
+    color: #aaa;
+    cursor: pointer;
+    font-family: inherit;
+
+    &:hover {
+      color: #555;
+    }
+  }
+
+  &__concert-result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+      background: #f6f3ec;
+    }
+
+    &--attached {
+      background: #f0ece3;
+
+      .magazine-editor-page__concert-add {
+        color: #5a4a30;
+        font-weight: 600;
+      }
+    }
+  }
+
+  &__concert-poster {
+    width: 44px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  &__concert-info {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  &__concert-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #161616;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__concert-date {
+    font-size: 12px;
+    color: #888;
+    margin-top: 3px;
+  }
+
+  &__concert-add {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: #888;
+  }
+
+  &__attached {
+    border-top: 1px solid #eee;
+    padding-top: 16px;
+  }
+
+  &__attached-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #555;
+  }
+
+  &__attached-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__attached-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: #f9f9f7;
+    border-radius: 6px;
+  }
+
+  &__remove-btn {
+    flex-shrink: 0;
+    padding: 5px 14px;
+    border: 1.5px solid #ddd;
+    border-radius: 999px;
+    background: none;
+    font-size: 12px;
+    font-family: inherit;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #e53935;
+      color: #e53935;
+    }
+  }
+
+  &__error {
+    font-size: 13px;
+    color: #e53935;
+    margin-bottom: 12px;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  &__cancel-btn {
+    padding: 11px 24px;
+    border: 1.5px solid #ddd;
+    border-radius: 999px;
+    background: none;
+    font-size: 15px;
+    font-family: inherit;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #161616;
+      color: #161616;
+    }
+  }
+
+  &__submit-btn {
+    padding: 11px 28px;
+    background: #161616;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #333;
+    }
+
+    &:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// TipTap 에디터 본문 영역
+.magazine-editor-content {
+  .tiptap {
+    min-height: 400px;
+    padding: 20px;
+    font-size: 15px;
+    line-height: 1.8;
+    outline: none;
+    color: #222;
+
+    p.is-editor-empty:first-child::before {
+      color: #aaa;
+      content: attr(data-placeholder);
+      float: left;
+      height: 0;
+      pointer-events: none;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 24px 0 10px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 20px 0 8px;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    ul,
+    ol {
+      padding-left: 24px;
+      margin: 0 0 12px;
+
+      li {
+        margin-bottom: 4px;
+      }
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: 6px;
+      margin: 12px 0;
+      display: block;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+}

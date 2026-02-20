@@ -1,0 +1,331 @@
+.community-editor-page {
+  padding: 60px 0 80px;
+  min-height: calc(100vh - 147px);
+  background: #f2ebe4;
+
+  @keyframes skeleton-shimmer {
+    0% {
+      background-color: #e0ddd6;
+    }
+    50% {
+      background-color: #eceae4;
+    }
+    100% {
+      background-color: #e0ddd6;
+    }
+  }
+
+  &__skeleton {
+    &-field {
+      height: 46px;
+      border-radius: 8px;
+      animation: skeleton-shimmer 1.5s ease-in-out infinite;
+      &--wide {
+        flex: 1;
+      }
+      &--narrow {
+        width: 140px;
+      }
+    }
+    &-editor {
+      height: 480px;
+      border-radius: 8px;
+      margin-bottom: 32px;
+      animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    }
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 32px;
+  }
+
+  &__fields {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    @media (max-width: 1200px) {
+      flex-direction: column;
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+
+    &--narrow {
+      flex: 0 0 160px;
+
+      @media (max-width: 1200px) {
+        flex: none;
+      }
+    }
+  }
+
+  &__label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  &__input {
+    padding: 11px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fff;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #161616;
+    }
+  }
+
+  &__select {
+    padding: 11px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+
+    &:focus {
+      outline: none;
+      border-color: #161616;
+    }
+  }
+
+  &__field {
+    margin-bottom: 20px;
+  }
+
+  &__required {
+    color: #e53935;
+  }
+
+  &__concert-search-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__search-btn {
+    padding: 11px 18px;
+    background: #161616;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #333;
+    }
+    &:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+  }
+
+  &__concert-results {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  &__concert-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0ece7;
+    transition: background 0.15s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+    &:hover {
+      background: #f9f5f1;
+    }
+  }
+
+  &__concert-result-title {
+    font-size: 14px;
+    color: #222;
+  }
+
+  &__concert-result-date {
+    font-size: 13px;
+    color: #888;
+  }
+
+  &__attached-concert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  &__attached-concert-title {
+    flex: 1;
+    font-size: 14px;
+    color: #222;
+    font-weight: 500;
+  }
+
+  &__attached-concert-date {
+    font-size: 13px;
+    color: #888;
+  }
+
+  &__attached-concert-remove {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+    transition: color 0.15s;
+
+    &:hover {
+      color: #333;
+    }
+  }
+
+  &__editor-wrap {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    margin-bottom: 24px;
+  }
+
+  &__error {
+    font-size: 13px;
+    color: #e53935;
+    margin-bottom: 12px;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  &__cancel-btn {
+    padding: 11px 24px;
+    border: 1.5px solid #ddd;
+    border-radius: 999px;
+    background: none;
+    font-size: 15px;
+    font-family: inherit;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #161616;
+      color: #161616;
+    }
+  }
+
+  &__submit-btn {
+    padding: 11px 28px;
+    background: #161616;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #333;
+    }
+
+    &:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.community-editor-content {
+  .tiptap {
+    min-height: 400px;
+    padding: 20px;
+    font-size: 15px;
+    line-height: 1.8;
+    outline: none;
+    color: #222;
+
+    p.is-editor-empty:first-child::before {
+      color: #aaa;
+      content: attr(data-placeholder);
+      float: left;
+      height: 0;
+      pointer-events: none;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 24px 0 10px;
+    }
+    h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 20px 0 8px;
+    }
+    p {
+      margin: 0 0 12px;
+    }
+
+    ul,
+    ol {
+      padding-left: 24px;
+      margin: 0 0 12px;
+      li {
+        margin-bottom: 4px;
+      }
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: 6px;
+      margin: 12px 0;
+      display: block;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
