@@ -143,6 +143,7 @@ export const concertTabData: TabData[] = [
           "베이스",
           "바리톤",
         ],
+        excludeKeywords: ["더블베이스"],
       },
       {
         label: "관악",
