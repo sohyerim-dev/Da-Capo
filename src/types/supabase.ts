@@ -139,6 +139,7 @@ export type Database = {
         Row: {
           age_limit: string | null
           area: string | null
+          bookmark_count: number
           crew: string | null
           end_date: string | null
           genre: string | null
@@ -148,6 +149,7 @@ export type Database = {
           performers: string | null
           poster: string | null
           producer: string | null
+          rank: number | null
           schedule: string | null
           start_date: string | null
           status: string | null
@@ -161,6 +163,7 @@ export type Database = {
         Insert: {
           age_limit?: string | null
           area?: string | null
+          bookmark_count?: number
           crew?: string | null
           end_date?: string | null
           genre?: string | null
@@ -170,6 +173,7 @@ export type Database = {
           performers?: string | null
           poster?: string | null
           producer?: string | null
+          rank?: number | null
           schedule?: string | null
           start_date?: string | null
           status?: string | null
@@ -183,6 +187,7 @@ export type Database = {
         Update: {
           age_limit?: string | null
           area?: string | null
+          bookmark_count?: number
           crew?: string | null
           end_date?: string | null
           genre?: string | null
@@ -192,6 +197,7 @@ export type Database = {
           performers?: string | null
           poster?: string | null
           producer?: string | null
+          rank?: number | null
           schedule?: string | null
           start_date?: string | null
           status?: string | null

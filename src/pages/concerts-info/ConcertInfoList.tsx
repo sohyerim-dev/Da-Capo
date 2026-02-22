@@ -39,6 +39,10 @@ export default function ConcertInfoList() {
         </div>
 
         {search ? <ConcertSearchResults query={search} /> : <ConcertBrowse />}
+
+        <p className="concert-info__kopis-notice">
+          본 서비스는 공연예술통합전산망(KOPIS)의 공공데이터를 활용하여 개발되었습니다.
+        </p>
       </div>
     </div>
   );

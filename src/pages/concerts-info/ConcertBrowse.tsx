@@ -8,7 +8,17 @@ interface Concert {
   title: string | null;
   poster: string | null;
   synopsis: string | null;
+  bookmark_count: number;
+  rank: number | null;
 }
+
+type SortOption = "start_date" | "bookmark_count" | "rank";
+
+const SORT_OPTIONS: { label: string; value: SortOption }[] = [
+  { label: "공연 임박순", value: "start_date" },
+  { label: "찜 많은 순", value: "bookmark_count" },
+  { label: "인기순", value: "rank" },
+];
 
 const PAGE_SIZE = 4;
 const SUB_PAGE_SIZE = 6;
@@ -98,13 +108,14 @@ export default function ConcertBrowse() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterArea, setFilterArea] = useState<string>(saved?.filterArea ?? "");
   const [filterDate, setFilterDate] = useState<string>(saved?.filterDate ?? "");
+  const [filterSort, setFilterSort] = useState<SortOption>(saved?.filterSort ?? "start_date");
 
   useEffect(() => {
     sessionStorage.setItem(
       SESSION_KEY,
-      JSON.stringify({ activeTab, activeSubIndex, subPage, filterArea, filterDate })
+      JSON.stringify({ activeTab, activeSubIndex, subPage, filterArea, filterDate, filterSort })
     );
-  }, [activeTab, activeSubIndex, subPage, filterArea, filterDate]);
+  }, [activeTab, activeSubIndex, subPage, filterArea, filterDate, filterSort]);
 
   const hasFilter = filterArea !== "" || filterDate !== "";
 
@@ -123,7 +134,7 @@ export default function ConcertBrowse() {
 
       let query = supabase
         .from("concerts")
-        .select("id, title, poster, synopsis")
+        .select("id, title, poster, synopsis, bookmark_count, rank")
         .in("status", ["공연예정", "공연중"]);
 
       if (!activeItem.showOthers) {
@@ -150,9 +161,15 @@ export default function ConcertBrowse() {
         }
       }
 
-      const { data, error } = await query
-        .order("start_date", { ascending: true })
-        .limit(100);
+      if (filterSort === "bookmark_count") {
+        query = query.order("bookmark_count", { ascending: false, nullsFirst: false });
+      } else if (filterSort === "rank") {
+        query = query.order("rank", { ascending: true, nullsFirst: false });
+      } else {
+        query = query.order("start_date", { ascending: true });
+      }
+
+      const { data, error } = await query.limit(100);
 
       if (!error && data) {
         let filtered: Concert[];
@@ -186,18 +203,20 @@ export default function ConcertBrowse() {
     };
 
     fetchConcerts();
-  }, [activeTab, activeSubIndex, filterArea, filterDate]);
+  }, [activeTab, activeSubIndex, filterArea, filterDate, filterSort]);
 
   const handleTabChange = (i: number) => {
     setActiveTab(i);
     setActiveSubIndex(0);
     setSubPage(0);
     setVisibleCount(PAGE_SIZE);
+    setFilterSort("start_date");
   };
 
   const handleSubItemClick = (globalIndex: number) => {
     setActiveSubIndex(globalIndex);
     setVisibleCount(PAGE_SIZE);
+    setFilterSort("start_date");
   };
 
   return (
@@ -253,7 +272,7 @@ export default function ConcertBrowse() {
         </button>
       </div>
 
-      {/* 필터 버튼 */}
+      {/* 필터 버튼 + 정렬 */}
       <div className="concert-info__filter-row">
         <button
           className={`concert-info__filter-btn${hasFilter ? " concert-info__filter-btn--active" : ""}`}
@@ -264,6 +283,18 @@ export default function ConcertBrowse() {
           </svg>
           필터{hasFilter ? " ●" : ""}
         </button>
+        <select
+          className="concert-info__sort-select"
+          value={filterSort}
+          onChange={(e) => {
+            setFilterSort(e.target.value as SortOption);
+            setVisibleCount(PAGE_SIZE);
+          }}
+        >
+          {SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
       </div>
 
       {/* 필터 패널 */}

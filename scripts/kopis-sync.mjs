@@ -6,6 +6,7 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const KOPIS_API_KEY = process.env.KOPIS_API_KEY;
 
 const KOPIS_BASE = "http://www.kopis.or.kr/openApi/restful/pblprfr";
+const KOPIS_BOXOFFICE = "http://www.kopis.or.kr/openApi/restful/boxoffice";
 const GENRE_CODE = "CCCA"; // 서양음악(클래식)
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -107,6 +108,36 @@ function parseTicketSites(detail) {
   return list.map((r) => ({ name: r.relatenm, url: r.relateurl }));
 }
 
+// 박스오피스 API 호출 → [{mt20id, rnum}] 반환
+async function fetchBoxoffice() {
+  const now = new Date();
+  const eddate = formatDate(now);
+  const start = new Date(now);
+  start.setDate(start.getDate() - 7);
+  const stdate = formatDate(start);
+
+  const url = new URL(KOPIS_BOXOFFICE);
+  url.searchParams.set("service", KOPIS_API_KEY);
+  url.searchParams.set("stdate", stdate);
+  url.searchParams.set("eddate", eddate);
+  url.searchParams.set("catecode", GENRE_CODE);
+
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    console.warn(`박스오피스 API 실패: ${res.status}`);
+    return [];
+  }
+  const xml = await res.text();
+  const parsed = parser.parse(xml);
+  const db = parsed?.boxofs?.boxof;
+  if (!db) return [];
+  const list = Array.isArray(db) ? db : [db];
+  return list.map((item) => ({
+    mt20id: String(item.mt20id),
+    rnum: Number(item.rnum),
+  }));
+}
+
 // KOPIS 응답 → Supabase 행 변환
 function toRow(item, detail) {
   return {
@@ -176,6 +207,22 @@ async function main() {
     if (error) {
       console.error(`upsert 실패 (${i}~${i + BATCH}):`, error.message);
     }
+  }
+
+  // 박스오피스 순위 업데이트
+  console.log("박스오피스 순위 업데이트 중...");
+  const boxofficeList = await fetchBoxoffice();
+  console.log(`박스오피스 ${boxofficeList.length}건`);
+
+  if (boxofficeList.length > 0) {
+    // 기존 순위 초기화
+    await supabase.from("concerts").update({ rank: null }).not("rank", "is", null);
+
+    // 새 순위 반영
+    for (const { mt20id, rnum } of boxofficeList) {
+      await supabase.from("concerts").update({ rank: rnum }).eq("id", mt20id);
+    }
+    console.log("순위 업데이트 완료");
   }
 
   console.log("동기화 완료");
