@@ -269,6 +269,46 @@
     }
   }
 
+  // 스켈레톤
+  @keyframes skeleton-shimmer {
+    0% { background-color: #e0ddd6; }
+    50% { background-color: #eceae4; }
+    100% { background-color: #e0ddd6; }
+  }
+
+  &__skeleton-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  &__skeleton-line {
+    border-radius: 4px;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+
+    &--name {
+      width: 140px;
+      height: 20px;
+    }
+    &--email {
+      width: 200px;
+      height: 14px;
+    }
+    &--section-title {
+      width: 80px;
+      height: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #ddd6cc;
+      margin-bottom: 4px;
+    }
+    &--field {
+      height: 48px;
+      width: 100%;
+    }
+  }
+
   // 계정 탈퇴
   &__danger {
     border: 1px solid #ffcdd2;

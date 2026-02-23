@@ -61,25 +61,33 @@ export default function MyPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // 프로필 초기 로딩
+  const [profileLoading, setProfileLoading] = useState(true);
+
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setProfileLoading(false);
+      return;
+    }
     supabase
       .from("profiles")
       .select("nickname, phone, avatar_url, classic_note_public")
       .eq("id", user.id)
       .single()
       .then(({ data }) => {
-        if (!data) return;
-        if (data.nickname) setNickname(data.nickname);
-        if (data.phone) setPhone(data.phone);
-        if (data.avatar_url) setImagePreview(data.avatar_url);
-        setIsNotePublic(data.classic_note_public ?? false);
-        setUser({
-          ...user,
-          nickname: data.nickname ?? user.nickname,
-          phone: data.phone ?? user.phone,
-          image: data.avatar_url ?? user.image,
-        });
+        if (data) {
+          if (data.nickname) setNickname(data.nickname);
+          if (data.phone) setPhone(data.phone);
+          if (data.avatar_url) setImagePreview(data.avatar_url);
+          setIsNotePublic(data.classic_note_public ?? false);
+          setUser({
+            ...user,
+            nickname: data.nickname ?? user.nickname,
+            phone: data.phone ?? user.phone,
+            image: data.avatar_url ?? user.image,
+          });
+        }
+        setProfileLoading(false);
       });
   // user?.id가 바뀔 때만 실행 (setUser는 의존성에서 제외)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -244,6 +252,29 @@ export default function MyPage() {
     currentPw.length > 0 && newPw.length >= 6 && confirmPw.length > 0;
 
   if (!user) return null;
+
+  if (profileLoading) {
+    return (
+      <div className="mypage">
+        <div className="mypage__inner">
+          <div className="mypage__profile-card">
+            <div className="mypage__skeleton-avatar" />
+            <div className="mypage__user-info">
+              <div className="mypage__skeleton-line mypage__skeleton-line--name" />
+              <div className="mypage__skeleton-line mypage__skeleton-line--email" />
+            </div>
+          </div>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="mypage__section">
+              <div className="mypage__skeleton-line mypage__skeleton-line--section-title" />
+              <div className="mypage__skeleton-line mypage__skeleton-line--field" />
+              <div className="mypage__skeleton-line mypage__skeleton-line--field" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const avatarSrc =
     imagePreview ||
