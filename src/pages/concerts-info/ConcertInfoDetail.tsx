@@ -32,6 +32,7 @@ interface Concert {
   synopsis: string | null;
   intro_images: string[] | null;
   ticket_sites: TicketSite[] | null;
+  rank: number | null;
 }
 
 function formatDate(date: string): string {
@@ -161,7 +162,8 @@ export default function ConcertInfoDetail() {
       setIsWatchlisted(false);
       setWatchlistLoading(false);
     } else {
-      const isMultiDay = concert.end_date && concert.end_date !== concert.start_date;
+      const isMultiDay =
+        concert.end_date && concert.end_date !== concert.start_date;
       if (isMultiDay) {
         const dates = getPerformanceDates(concert);
         if (dates.length > 0) {
@@ -242,8 +244,21 @@ export default function ConcertInfoDetail() {
   return (
     <div className="concert-detail">
       <div className="wrap">
-        <Link to="/concert-info" state={{ fromDetail: true }} className="concert-detail__back">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <Link
+          to="/concert-info"
+          state={{ fromDetail: true }}
+          className="concert-detail__back"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M19 12H5M12 5l-7 7 7 7" />
           </svg>
           공연 목록
@@ -257,13 +272,20 @@ export default function ConcertInfoDetail() {
 
           {/* 기본 정보 */}
           <div className="concert-detail__info">
-            <span
-              className={`concert-detail__status concert-detail__status--${
-                concert.status === "공연중" ? "ongoing" : "upcoming"
-              }`}
-            >
-              {concert.status}
-            </span>
+            <div className="concert-detail__badges">
+              <span
+                className={`concert-detail__status concert-detail__status--${
+                  concert.status === "공연중" ? "ongoing" : "upcoming"
+                }`}
+              >
+                {concert.status}
+              </span>
+              {concert.rank && (
+                <span className="concert-detail__rank">
+                  박스오피스 {concert.rank}위
+                </span>
+              )}
+            </div>
             <div className="concert-detail__title-row">
               <h1 className="concert-detail__title">{concert.title}</h1>
               <button
@@ -390,7 +412,9 @@ export default function ConcertInfoDetail() {
             className="concert-detail__login-prompt"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="concert-detail__date-picker-title">로그인이 필요합니다</h3>
+            <h3 className="concert-detail__date-picker-title">
+              로그인이 필요합니다
+            </h3>
             <p className="concert-detail__login-prompt-desc">
               관심 공연을 등록하려면 로그인해주세요.
             </p>
@@ -423,7 +447,9 @@ export default function ConcertInfoDetail() {
             className="concert-detail__date-picker"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="concert-detail__date-picker-title">관람 예정일 선택</h3>
+            <h3 className="concert-detail__date-picker-title">
+              관람 예정일 선택
+            </h3>
             <p className="concert-detail__date-picker-desc">
               관람 예정인 날짜를 선택해주세요. 여러 날 선택 가능합니다.
             </p>
@@ -471,7 +497,9 @@ export default function ConcertInfoDetail() {
               <button
                 type="button"
                 className="concert-detail__date-picker-confirm"
-                onClick={() => handleBookmarkWithDates(Array.from(selectedDates).sort())}
+                onClick={() =>
+                  handleBookmarkWithDates(Array.from(selectedDates).sort())
+                }
                 disabled={bookmarkLoading || selectedDates.size === 0}
               >
                 {selectedDates.size > 0

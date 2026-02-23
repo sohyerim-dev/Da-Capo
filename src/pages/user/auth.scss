@@ -4,6 +4,10 @@
   align-items: center;
   justify-content: center;
   background-color: #f2ebe4;
+
+  @media (max-width: 1200px) {
+    min-height: 100vh;
+  }
 }
 
 .auth-box {

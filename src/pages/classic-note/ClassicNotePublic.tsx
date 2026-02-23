@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { supabase } from "@/lib/supabase";
+import useUserStore from "@/zustand/userStore";
 import ClassicNoteCalendar from "./ClassicNoteCalendar";
 import { toDateStr, concertDateToISO, formatNoteDate, getMonthRange, formatMonthLabel } from "./classicNoteUtils";
 import "./ClassicNote.scss";
@@ -46,12 +47,15 @@ function formatPanelDate(date: Date): string {
 export default function ClassicNotePublic() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
+  const { user } = useUserStore();
 
   const [profile, setProfile] = useState<ProfileInfo | null>(null);
   const [notes, setNotes] = useState<PublicNote[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [concertMap, setConcertMap] = useState<Record<string, string | null>>({});
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscribeLoading, setSubscribeLoading] = useState(false);
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -80,6 +84,16 @@ export default function ClassicNotePublic() {
       if (!profileData.classic_note_public) {
         setLoading(false);
         return;
+      }
+
+      if (user && profileData.id !== user.id) {
+        const { data: subData } = await supabase
+          .from("classic_note_subscriptions")
+          .select("id")
+          .eq("follower_id", user.id)
+          .eq("following_id", profileData.id)
+          .maybeSingle();
+        setIsSubscribed(!!subData);
       }
 
       const profileId = profileData.id;
@@ -149,6 +163,25 @@ export default function ClassicNotePublic() {
         }
       });
   }, [notes]);
+
+  const handleSubscribeToggle = async () => {
+    if (!user || !profile) return;
+    setSubscribeLoading(true);
+    if (isSubscribed) {
+      await supabase
+        .from("classic_note_subscriptions")
+        .delete()
+        .eq("follower_id", user.id)
+        .eq("following_id", profile.id);
+      setIsSubscribed(false);
+    } else {
+      await supabase
+        .from("classic_note_subscriptions")
+        .insert({ follower_id: user.id, following_id: profile.id });
+      setIsSubscribed(true);
+    }
+    setSubscribeLoading(false);
+  };
 
   const toggleExpand = (id: number) => {
     setExpandedNotes((prev) => {
@@ -424,6 +457,15 @@ export default function ClassicNotePublic() {
               <h1 className="classic-note__public-name">{profile.nickname}</h1>
               <p className="classic-note__public-sub">의 클래식 노트</p>
             </div>
+            {user && profile.id !== user.id && (
+              <button
+                className={`classic-note__subscribe-btn${isSubscribed ? " classic-note__subscribe-btn--inactive" : " classic-note__subscribe-btn--active"}`}
+                onClick={handleSubscribeToggle}
+                disabled={subscribeLoading}
+              >
+                {isSubscribed ? "구독 중" : "구독"}
+              </button>
+            )}
           </div>
 
           {/* 캘린더 */}

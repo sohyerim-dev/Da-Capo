@@ -84,6 +84,8 @@ export default function NoteDatePanel({
 
   const handleDelete = async (id: number) => {
     setDeletingId(id);
+    // 연동된 커뮤니티 후기 먼저 삭제 (FK 제약 고려)
+    await supabase.from("community_posts").delete().eq("source_note_id", id);
     await supabase.from("notes").delete().eq("id", id);
     setDeletingId(null);
     setConfirmDeleteId(null);

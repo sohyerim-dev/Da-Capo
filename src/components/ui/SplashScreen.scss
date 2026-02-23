@@ -1,0 +1,20 @@
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 3s ease;
+
+  &--hiding {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &__video {
+    width: 200px;
+  }
+}

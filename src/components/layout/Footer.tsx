@@ -18,7 +18,7 @@ export default function Footer() {
             />
             <div className="footer__desc">
               <p className="footer__desc-top">
-                클래식을 가장 쉽게 즐기는 방법,
+                클래식을 발견하는 가장 좋은 방법,
               </p>
               <p className="footer__desc-bottom">
                 클래식 공연 정보 플랫폼 &lt;Da Capo 다 카포&gt;

@@ -19,6 +19,14 @@ interface CommunityPost {
   created_at: string;
 }
 
+type SearchField = "title" | "content" | "author_nickname";
+
+const SEARCH_FIELDS: { label: string; value: SearchField }[] = [
+  { label: "제목", value: "title" },
+  { label: "내용", value: "content" },
+  { label: "작성자", value: "author_nickname" },
+];
+
 const CATEGORIES: Category[] = ["전체", "공지", "자유", "후기", "정보"];
 const PAGE_SIZE = 20;
 
@@ -42,17 +50,23 @@ export default function CommunityList() {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState<SearchField>("title");
+  const [searchVersion, setSearchVersion] = useState(0);
 
   useEffect(() => {
     setPage(1);
+    setSearchInput("");
+    setSearchQuery("");
   }, [activeCategory]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
 
-      // 공지 고정 (전체/공지 탭에서만)
-      if (activeCategory === "전체" || activeCategory === "공지") {
+      // 공지 고정 (전체/공지 탭에서만, 검색 중엔 표시 안 함)
+      if (!searchQuery && (activeCategory === "전체" || activeCategory === "공지")) {
         const { data: noticeData } = await supabase
           .from("community_posts")
           .select(
@@ -96,6 +110,10 @@ export default function CommunityList() {
         query = query.eq("category", activeCategory);
       }
 
+      if (searchQuery) {
+        query = query.ilike(searchField, `%${searchQuery}%`);
+      }
+
       const { data, count } = await query;
 
       const withCount = await Promise.all(
@@ -114,7 +132,7 @@ export default function CommunityList() {
     };
 
     fetchPosts();
-  }, [activeCategory, page]);
+  }, [activeCategory, page, searchQuery, searchVersion]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -202,6 +220,53 @@ export default function CommunityList() {
           ))}
         </div>
 
+        <form
+          className="community-list-page__search"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setPage(1);
+            setSearchQuery(searchInput);
+            setSearchVersion((v) => v + 1);
+          }}
+        >
+          <select
+            className="community-list-page__search-select"
+            value={searchField}
+            onChange={(e) => {
+              setSearchField(e.target.value as SearchField);
+            }}
+          >
+            {SEARCH_FIELDS.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
+            ))}
+          </select>
+          <div className="community-list-page__search-input-wrap">
+            <input
+              className="community-list-page__search-input"
+              type="text"
+              placeholder={`${SEARCH_FIELDS.find((f) => f.value === searchField)?.label} 검색`}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="community-list-page__search-clear"
+                onClick={() => { setSearchInput(""); setSearchQuery(""); }}
+                aria-label="검색 초기화"
+              >
+                ✕
+              </button>
+            )}
+            <button type="submit" className="community-list-page__search-btn" aria-label="검색">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+            </button>
+          </div>
+        </form>
+
         {loading ? (
           <table className="community-table">
             <thead>
@@ -217,7 +282,9 @@ export default function CommunityList() {
             <tbody>{renderSkeletonRows()}</tbody>
           </table>
         ) : notices.length === 0 && posts.length === 0 ? (
-          <div className="community-list-page__empty">등록된 글이 없습니다.</div>
+          <div className="community-list-page__empty">
+            {searchQuery ? `"${searchQuery}" 검색 결과가 없습니다.` : "등록된 글이 없습니다."}
+          </div>
         ) : (
           <>
             <table className="community-table">

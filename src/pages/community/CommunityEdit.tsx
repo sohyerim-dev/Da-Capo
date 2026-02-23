@@ -25,7 +25,7 @@ export default function CommunityEdit() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<CommunityCategory>("자유");
   const [initialContent, setInitialContent] = useState<string | null>(null);
-  const [isReview, setIsReview] = useState(false);
+  const [sourceNoteId, setSourceNoteId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,16 +60,10 @@ export default function CommunityEdit() {
         return;
       }
 
-      // 후기(source_note_id 있음)는 수정 불가
-      if (data.source_note_id) {
-        setIsReview(true);
-        setLoading(false);
-        return;
-      }
-
       setTitle(data.title);
       setCategory(data.category as CommunityCategory);
       setInitialContent(data.content);
+      if (data.source_note_id) setSourceNoteId(data.source_note_id);
       setLoading(false);
     };
 
@@ -137,6 +131,14 @@ export default function CommunityEdit() {
       return;
     }
 
+    // 후기인 경우 연동된 노트도 함께 업데이트
+    if (sourceNoteId) {
+      await supabase
+        .from("notes")
+        .update({ title: title.trim(), content, updated_at: new Date().toISOString() })
+        .eq("id", sourceNoteId);
+    }
+
     navigate(`/community/${id}`);
   };
 
@@ -151,27 +153,6 @@ export default function CommunityEdit() {
             <div className="community-editor-page__skeleton-field community-editor-page__skeleton-field--narrow" />
           </div>
           <div className="community-editor-page__skeleton-editor" />
-        </div>
-      </div>
-    );
-  }
-
-  if (isReview) {
-    return (
-      <div className="community-editor-page">
-        <div className="wrap">
-          <p style={{ padding: "60px 0", textAlign: "center", color: "#888" }}>
-            후기 글은 클래식 노트에서 수정하실 수 있습니다.
-          </p>
-          <div className="community-editor-page__actions" style={{ justifyContent: "center" }}>
-            <button
-              type="button"
-              className="community-editor-page__cancel-btn"
-              onClick={() => navigate(`/community/${id}`)}
-            >
-              돌아가기
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -200,17 +181,23 @@ export default function CommunityEdit() {
 
           <div className="community-editor-page__field community-editor-page__field--narrow">
             <label className="community-editor-page__label">카테고리</label>
-            <select
-              className="community-editor-page__select"
-              value={category}
-              onChange={(e) => setCategory(e.target.value as CommunityCategory)}
-            >
-              {availableCategories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+            {sourceNoteId ? (
+              <span className="community-editor-page__select" style={{ display: "flex", alignItems: "center", color: "#888", cursor: "default" }}>
+                후기
+              </span>
+            ) : (
+              <select
+                className="community-editor-page__select"
+                value={category}
+                onChange={(e) => setCategory(e.target.value as CommunityCategory)}
+              >
+                {availableCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 

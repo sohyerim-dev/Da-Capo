@@ -64,12 +64,28 @@
     min-width: 0;
   }
 
+  &__badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  &__rank {
+    display: inline-block;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(233, 70, 70, 0.92);
+    color: #fff;
+  }
+
   &__status {
     display: inline-block;
     font-size: 12px;
     padding: 4px 12px;
     border-radius: 999px;
-    margin-bottom: 14px;
+    margin-bottom: 0;
 
     &--ongoing {
       background: #161616;

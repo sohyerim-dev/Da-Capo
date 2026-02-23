@@ -20,6 +20,7 @@ interface ConcertResult {
   id: string;
   title: string | null;
   start_date: string | null;
+  end_date: string | null;
 }
 
 function getAvailableCategories(isAdmin: boolean): CategoryOption[] {
@@ -64,6 +65,7 @@ export default function CommunityNew() {
   const [concertResults, setConcertResults] = useState<ConcertResult[]>([]);
   const [concertSearching, setConcertSearching] = useState(false);
   const [attachedConcert, setAttachedConcert] = useState<ConcertResult | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,7 +92,7 @@ export default function CommunityNew() {
     setConcertSearching(true);
     const { data } = await supabase
       .from("concerts")
-      .select("id, title, start_date")
+      .select("id, title, start_date, end_date")
       .ilike("title", `%${concertQuery.trim()}%`)
       .eq("status", "공연완료")
       .limit(10);
@@ -151,7 +153,7 @@ export default function CommunityNew() {
           type: "concert_record",
           title: title.trim(),
           content: content === "<p></p>" ? null : content,
-          note_date: convertToNoteDate(attachedConcert.start_date),
+          note_date: selectedDate || convertToNoteDate(attachedConcert.start_date),
           concert_id: attachedConcert.id,
           is_public: true,
         })
@@ -230,23 +232,41 @@ export default function CommunityNew() {
               공연 <span className="community-editor-page__required">*</span>
             </label>
             {attachedConcert ? (
-              <div className="community-editor-page__attached-concert">
-                <span className="community-editor-page__attached-concert-title">
-                  {attachedConcert.title}
-                </span>
-                {attachedConcert.start_date && (
-                  <span className="community-editor-page__attached-concert-date">
-                    {formatConcertDate(attachedConcert.start_date)}
+              <>
+                <div className="community-editor-page__attached-concert">
+                  <span className="community-editor-page__attached-concert-title">
+                    {attachedConcert.title}
                   </span>
+                  {attachedConcert.start_date && (
+                    <span className="community-editor-page__attached-concert-date">
+                      {formatConcertDate(attachedConcert.start_date)}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className="community-editor-page__attached-concert-remove"
+                    onClick={() => { setAttachedConcert(null); setSelectedDate(""); }}
+                  >
+                    ×
+                  </button>
+                </div>
+                {attachedConcert.start_date && attachedConcert.end_date && attachedConcert.start_date !== attachedConcert.end_date && (
+                  <div className="community-editor-page__date-row">
+                    <label className="community-editor-page__date-label">관람 날짜</label>
+                    <input
+                      type="date"
+                      className="community-editor-page__date-input"
+                      value={selectedDate}
+                      min={convertToNoteDate(attachedConcert.start_date)}
+                      max={convertToNoteDate(attachedConcert.end_date)}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                    />
+                    <span className="community-editor-page__date-hint">
+                      {formatConcertDate(attachedConcert.start_date)} ~ {formatConcertDate(attachedConcert.end_date)}
+                    </span>
+                  </div>
                 )}
-                <button
-                  type="button"
-                  className="community-editor-page__attached-concert-remove"
-                  onClick={() => setAttachedConcert(null)}
-                >
-                  ×
-                </button>
-              </div>
+              </>
             ) : (
               <div className="community-editor-page__concert-search-row">
                 <input
@@ -275,6 +295,7 @@ export default function CommunityNew() {
                     className="community-editor-page__concert-result-item"
                     onClick={() => {
                       setAttachedConcert(c);
+                      setSelectedDate(convertToNoteDate(c.start_date));
                       setConcertResults([]);
                       setConcertQuery("");
                     }}

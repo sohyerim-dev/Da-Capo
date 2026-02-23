@@ -16,6 +16,12 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 40px;
+
+    @media (max-width: 640px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
   }
 
   &__title-row {
@@ -28,6 +34,10 @@
     font-size: 28px;
     font-weight: 800;
     color: #161616;
+
+    @media (max-width: 640px) {
+      font-size: 20px;
+    }
   }
 
   &__public-badge {
@@ -61,6 +71,10 @@
     &:hover {
       background: #333;
       color: #fff;
+    }
+
+    @media (max-width: 640px) {
+      align-self: flex-start;
     }
   }
 
@@ -675,7 +689,9 @@
     color: #161616;
     margin: 0 0 8px;
 
-    &:last-child { margin-bottom: 0; }
+    &:last-child {
+      margin-bottom: 0;
+    }
 
     & + .classic-note__public-card-content {
       border-top: 1px solid #e8e4dc;
@@ -776,6 +792,206 @@
     &:hover {
       border-color: #161616;
       color: #161616;
+    }
+  }
+
+  // ─── 구독 목록 (나의 클래식 노트) ───
+  &__subscriptions {
+    margin-top: 24px;
+    padding: 24px 24px 28px 28px;
+    background: #fffef9;
+    border-radius: 12px;
+    border: 1px solid #e4ddd6;
+    border-left: 4px solid #161616;
+    box-shadow: 2px 4px 16px rgba(0, 0, 0, 0.05);
+
+    @media (max-width: 640px) {
+      padding: 20px 16px 24px;
+    }
+  }
+
+  &__subscriptions-label {
+    font-size: 17px;
+    font-weight: 700;
+    color: #161616;
+    margin: 0 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid #c8bfb0;
+    letter-spacing: 0.01em;
+  }
+
+  &__subscriptions-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  &__subscription-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px 6px 6px;
+    border-radius: 999px;
+    border: 1.5px solid #e0ddd6;
+    text-decoration: none;
+    color: #161616;
+    font-size: 13px;
+    font-weight: 500;
+    background: #f6f3ec;
+    transition:
+      background 0.2s,
+      border-color 0.2s;
+
+    img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid #e0ddd6;
+    }
+
+    &:hover {
+      background: rgba(22, 22, 22, 0.08);
+      border-color: #161616;
+    }
+  }
+
+  // ─── 구독자 수 버튼 ───
+  &__subscriber-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    background: none;
+    border: 1.5px solid #d8d4ce;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      color 0.2s;
+
+    &:hover {
+      border-color: #161616;
+      color: #161616;
+    }
+  }
+
+  // ─── 구독자 모달 ───
+  &__subscribers-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 900;
+  }
+
+  &__subscribers-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 901;
+    background: #fffef9;
+    border-radius: 16px;
+    width: min(400px, 90vw);
+    max-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+  }
+
+  &__subscribers-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid #e4ddd6;
+    flex-shrink: 0;
+  }
+
+  &__subscribers-modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #161616;
+  }
+
+  &__subscribers-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #161616;
+    }
+  }
+
+  &__subscribers-list {
+    list-style: none;
+    padding: 8px 0;
+    margin: 0;
+    overflow-y: auto;
+  }
+
+  &__subscriber-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: #161616;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s;
+
+    img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid #e0ddd6;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background: rgba(250, 185, 91, 0.1);
+    }
+  }
+
+  // ─── 구독 버튼 (공개 노트 뷰) ───
+  &__subscribe-btn {
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1.5px solid #161616;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      color 0.2s;
+    white-space: nowrap;
+
+    &--active {
+      background: #161616;
+      color: #fafafa;
+
+      &:hover {
+        background: #3a3a3a;
+      }
+    }
+
+    &--inactive {
+      background: transparent;
+      color: #161616;
+
+      &:hover {
+        background: rgba(22, 22, 22, 0.06);
+      }
     }
   }
 }

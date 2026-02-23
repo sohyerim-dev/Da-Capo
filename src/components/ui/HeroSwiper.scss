@@ -22,9 +22,94 @@
     object-fit: cover;
   }
 
+  &__text {
+    position: absolute;
+    z-index: 10;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.8s ease;
+
+    .swiper-slide-active & {
+      opacity: 1;
+    }
+    font-family: "tway_sky", sans-serif;
+    font-size: 4rem;
+    font-weight: normal;
+    color: #fff;
+    white-space: nowrap;
+    letter-spacing: 0;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+
+    @media (max-width: 1200px) {
+      font-size: 2.8rem;
+    }
+
+    @media (max-width: 640px) {
+      font-size: 1.6rem;
+      text-align: center;
+      line-height: 1.5;
+    }
+  }
+
+  &__text-br {
+    display: none;
+
+    @media (max-width: 640px) {
+      display: block;
+    }
+  }
+
+  &__logo-wrap {
+    position: absolute;
+    z-index: 10;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.8s ease;
+
+    .swiper-slide-active & {
+      opacity: 1;
+    }
+  }
+
+  &__logo {
+    height: 107px;
+    display: block;
+
+    @media (max-width: 1200px) {
+      height: 81px;
+    }
+
+    @media (max-width: 640px) {
+      height: 54px;
+    }
+  }
+
+  &__progress {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 1px;
+    z-index: 10;
+    overflow: hidden;
+  }
+
+  &__progress-bar {
+    height: 100%;
+    background: #fff;
+    transform-origin: left;
+    transform: scaleX(0);
+    border-radius: 1px;
+  }
+
   @media (max-width: 1200px) {
-    height: auto;
-    aspect-ratio: 16 / 9;
     margin-top: 0;
   }
 }

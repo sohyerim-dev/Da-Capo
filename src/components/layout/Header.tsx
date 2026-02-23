@@ -27,7 +27,7 @@ export default function Header() {
     }
 
     const handleScroll = () => {
-      setIsPastHero(window.scrollY > 0);
+      setIsPastHero(window.scrollY > window.innerHeight);
     };
 
     handleScroll();
@@ -49,6 +49,7 @@ export default function Header() {
             <img
               src={isWhite ? "/images/logo-white.png" : "/images/logo-black.png"}
               alt="Da Capo"
+              draggable="false"
             />
           </Link>
 

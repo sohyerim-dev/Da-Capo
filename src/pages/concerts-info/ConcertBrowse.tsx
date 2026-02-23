@@ -12,20 +12,22 @@ interface Concert {
   rank: number | null;
 }
 
-type SortOption = "start_date" | "bookmark_count" | "rank";
+type SortOption = "start_date" | "bookmark_count";
 
 const SORT_OPTIONS: { label: string; value: SortOption }[] = [
   { label: "공연 임박순", value: "start_date" },
   { label: "찜 많은 순", value: "bookmark_count" },
-  { label: "인기순", value: "rank" },
 ];
 
 const PAGE_SIZE = 4;
+const BOXOFFICE_PAGE_SIZE = 8;
 const SUB_PAGE_SIZE = 6;
 const SUB_PAGE_SIZE_MOBILE = 3;
 
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 1200px)").matches);
+  const [isMobile, setIsMobile] = useState(
+    () => window.matchMedia("(max-width: 1200px)").matches
+  );
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1200px)");
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
@@ -36,10 +38,23 @@ function useIsMobile() {
 }
 
 const AREAS = [
-  "서울특별시", "인천광역시", "경기도", "부산광역시", "대구광역시",
-  "광주광역시", "대전광역시", "울산광역시", "세종특별자치시",
-  "강원특별자치도", "충청북도", "충청남도", "전북특별자치도",
-  "전라남도", "경상북도", "경상남도", "제주특별자치도",
+  "서울특별시",
+  "인천광역시",
+  "경기도",
+  "부산광역시",
+  "대구광역시",
+  "광주광역시",
+  "대전광역시",
+  "울산광역시",
+  "세종특별자치시",
+  "강원특별자치도",
+  "충청북도",
+  "충청남도",
+  "전북특별자치도",
+  "전라남도",
+  "경상북도",
+  "경상남도",
+  "제주특별자치도",
 ];
 
 const DATE_OPTIONS = [
@@ -53,7 +68,8 @@ const DATE_OPTIONS = [
 function getDateRange(filter: string): { from: string; to: string } | null {
   const now = new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
-  const fmt = (d: Date) => `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
 
   if (filter === "thisMonth") {
     return {
@@ -94,13 +110,16 @@ function loadSession() {
 export default function ConcertBrowse() {
   const location = useLocation();
   const navType = useNavigationType();
-  const shouldRestore = navType === "POP" || location.state?.fromDetail === true;
+  const shouldRestore =
+    navType === "POP" || location.state?.fromDetail === true;
   const saved = shouldRestore ? loadSession() : null;
   const isMobile = useIsMobile();
   const subPageSize = isMobile ? SUB_PAGE_SIZE_MOBILE : SUB_PAGE_SIZE;
 
   const [activeTab, setActiveTab] = useState<number>(saved?.activeTab ?? 0);
-  const [activeSubIndex, setActiveSubIndex] = useState<number>(saved?.activeSubIndex ?? 0);
+  const [activeSubIndex, setActiveSubIndex] = useState<number>(
+    saved?.activeSubIndex ?? 0
+  );
   const [subPage, setSubPage] = useState<number>(saved?.subPage ?? 0);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -108,12 +127,21 @@ export default function ConcertBrowse() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterArea, setFilterArea] = useState<string>(saved?.filterArea ?? "");
   const [filterDate, setFilterDate] = useState<string>(saved?.filterDate ?? "");
-  const [filterSort, setFilterSort] = useState<SortOption>(saved?.filterSort ?? "start_date");
+  const [filterSort, setFilterSort] = useState<SortOption>(
+    saved?.filterSort ?? "start_date"
+  );
 
   useEffect(() => {
     sessionStorage.setItem(
       SESSION_KEY,
-      JSON.stringify({ activeTab, activeSubIndex, subPage, filterArea, filterDate, filterSort })
+      JSON.stringify({
+        activeTab,
+        activeSubIndex,
+        subPage,
+        filterArea,
+        filterDate,
+        filterSort,
+      })
     );
   }, [activeTab, activeSubIndex, subPage, filterArea, filterDate, filterSort]);
 
@@ -126,7 +154,7 @@ export default function ConcertBrowse() {
     subPage * subPageSize,
     (subPage + 1) * subPageSize
   );
-  const activeItem = currentItems[activeSubIndex];
+  const activeItem = currentTab.rankOnly ? null : currentItems[activeSubIndex];
 
   useEffect(() => {
     const fetchConcerts = async () => {
@@ -137,16 +165,29 @@ export default function ConcertBrowse() {
         .select("id, title, poster, synopsis, bookmark_count, rank")
         .in("status", ["공연예정", "공연중"]);
 
-      if (!activeItem.showOthers) {
-        const orFilter = activeItem.keywords
-          .flatMap((keyword) =>
-            currentTab.searchFields.map((f) => `${f}.ilike.%${keyword}%`)
-          )
-          .join(",");
-        query = query.or(orFilter);
+      if (currentTab.rankOnly) {
+        query = query.not("rank", "is", null).order("rank", { ascending: true });
+      } else {
+        if (!activeItem!.showOthers) {
+          const orFilter = activeItem!.keywords
+            .flatMap((keyword) =>
+              currentTab.searchFields.map((f) => `${f}.ilike.%${keyword}%`)
+            )
+            .join(",");
+          query = query.or(orFilter);
 
-        for (const kw of activeItem.excludeKeywords ?? []) {
-          query = query.not("title", "ilike", `%${kw}%`);
+          for (const kw of activeItem!.excludeKeywords ?? []) {
+            query = query.not("title", "ilike", `%${kw}%`);
+          }
+        }
+
+        if (filterSort === "bookmark_count") {
+          query = query.order("bookmark_count", {
+            ascending: false,
+            nullsFirst: false,
+          });
+        } else {
+          query = query.order("start_date", { ascending: true });
         }
       }
 
@@ -161,20 +202,14 @@ export default function ConcertBrowse() {
         }
       }
 
-      if (filterSort === "bookmark_count") {
-        query = query.order("bookmark_count", { ascending: false, nullsFirst: false });
-      } else if (filterSort === "rank") {
-        query = query.order("rank", { ascending: true, nullsFirst: false });
-      } else {
-        query = query.order("start_date", { ascending: true });
-      }
-
       const { data, error } = await query.limit(100);
 
       if (!error && data) {
         let filtered: Concert[];
 
-        if (activeItem.showOthers) {
+        if (currentTab.rankOnly || !activeItem) {
+          filtered = data;
+        } else if (activeItem.showOthers) {
           const otherKeywords = currentTab.items
             .filter((item) => !item.showOthers)
             .flatMap((item) => item.keywords);
@@ -182,7 +217,8 @@ export default function ConcertBrowse() {
             (c) =>
               !otherKeywords.some(
                 (kw) =>
-                  (c.title ?? "").includes(kw) || (c.synopsis ?? "").includes(kw)
+                  (c.title ?? "").includes(kw) ||
+                  (c.synopsis ?? "").includes(kw)
               )
           );
         } else {
@@ -191,7 +227,8 @@ export default function ConcertBrowse() {
             ? data.filter((c) =>
                 requireAny.some(
                   (kw) =>
-                    (c.title ?? "").includes(kw) || (c.synopsis ?? "").includes(kw)
+                    (c.title ?? "").includes(kw) ||
+                    (c.synopsis ?? "").includes(kw)
                 )
               )
             : data;
@@ -209,14 +246,18 @@ export default function ConcertBrowse() {
     setActiveTab(i);
     setActiveSubIndex(0);
     setSubPage(0);
-    setVisibleCount(PAGE_SIZE);
+    setVisibleCount(concertTabData[i].rankOnly ? BOXOFFICE_PAGE_SIZE : PAGE_SIZE);
     setFilterSort("start_date");
+    setFilterArea("");
+    setFilterDate("");
   };
 
   const handleSubItemClick = (globalIndex: number) => {
     setActiveSubIndex(globalIndex);
     setVisibleCount(PAGE_SIZE);
     setFilterSort("start_date");
+    setFilterArea("");
+    setFilterDate("");
   };
 
   return (
@@ -235,42 +276,66 @@ export default function ConcertBrowse() {
       </div>
 
       {/* 소분류 */}
-      <div className="concert-info__sub-wrap">
-        <button
-          className="concert-info__sub-arrow"
-          onClick={() => setSubPage((p: number) => Math.max(0, p - 1))}
-          disabled={subPage === 0}
-          aria-label="이전"
-        >
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <div className="concert-info__sub-list">
-          {visibleSubItems.map((item, i) => {
-            const globalIndex = subPage * subPageSize + i;
-            return (
-              <button
-                key={item.label}
-                className={`concert-info__sub-item${activeSubIndex === globalIndex ? " concert-info__sub-item--active" : ""}`}
-                onClick={() => handleSubItemClick(globalIndex)}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+      {!currentTab.rankOnly && (
+        <div className="concert-info__sub-wrap">
+          <button
+            className="concert-info__sub-arrow"
+            onClick={() => setSubPage((p: number) => Math.max(0, p - 1))}
+            disabled={subPage === 0}
+            aria-label="이전"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 18l-6-6 6-6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <div className="concert-info__sub-list">
+            {visibleSubItems.map((item, i) => {
+              const globalIndex = subPage * subPageSize + i;
+              return (
+                <button
+                  key={item.label}
+                  className={`concert-info__sub-item${activeSubIndex === globalIndex ? " concert-info__sub-item--active" : ""}`}
+                  onClick={() => handleSubItemClick(globalIndex)}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            className="concert-info__sub-arrow"
+            onClick={() =>
+              setSubPage((p: number) => Math.min(totalSubPages - 1, p + 1))
+            }
+            disabled={subPage === totalSubPages - 1}
+            aria-label="다음"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M9 18l6-6-6-6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
-        <button
-          className="concert-info__sub-arrow"
-          onClick={() => setSubPage((p: number) => Math.min(totalSubPages - 1, p + 1))}
-          disabled={subPage === totalSubPages - 1}
-          aria-label="다음"
-        >
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      </div>
+      )}
 
       {/* 필터 버튼 + 정렬 */}
       <div className="concert-info__filter-row">
@@ -278,23 +343,36 @@ export default function ConcertBrowse() {
           className={`concert-info__filter-btn${hasFilter ? " concert-info__filter-btn--active" : ""}`}
           onClick={() => setIsFilterOpen((v) => !v)}
         >
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 6h18M7 12h10M11 18h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 6h18M7 12h10M11 18h2"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
           </svg>
           필터{hasFilter ? " ●" : ""}
         </button>
-        <select
-          className="concert-info__sort-select"
-          value={filterSort}
-          onChange={(e) => {
-            setFilterSort(e.target.value as SortOption);
-            setVisibleCount(PAGE_SIZE);
-          }}
-        >
-          {SORT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+        {!currentTab.rankOnly && (
+          <select
+            className="concert-info__sort-select"
+            value={filterSort}
+            onChange={(e) => {
+              setFilterSort(e.target.value as SortOption);
+              setVisibleCount(PAGE_SIZE);
+            }}
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* 필터 패널 */}
@@ -354,9 +432,18 @@ export default function ConcertBrowse() {
         <>
           <div className="concert-info__cards">
             {concerts.slice(0, visibleCount).map((concert) => (
-              <Link key={concert.id} to={`/concert-info/${concert.id}`} className="concert-info__card">
+              <Link
+                key={concert.id}
+                to={`/concert-info/${concert.id}`}
+                className="concert-info__card"
+              >
                 <div className="concert-info__card-img">
                   <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
+                  {concert.rank && (
+                    <span className="concert-info__card-rank">
+                      박스오피스 {concert.rank}위
+                    </span>
+                  )}
                 </div>
                 <p className="concert-info__card-title">{concert.title}</p>
               </Link>
@@ -370,8 +457,18 @@ export default function ConcertBrowse() {
                 className="concert-info__more-btn"
                 onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
               >
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6 9l6 6 6-6"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 더보기
               </button>

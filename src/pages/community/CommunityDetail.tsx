@@ -123,6 +123,10 @@ export default function CommunityDetail() {
       await supabase.rpc("admin_delete_community_post", { p_post_id: post.id });
     } else {
       await supabase.from("community_posts").delete().eq("id", Number(id));
+      // 후기인 경우 연동된 노트도 함께 삭제
+      if (post.source_note_id) {
+        await supabase.from("notes").delete().eq("id", post.source_note_id);
+      }
     }
 
     setDeleteLoading(false);
@@ -156,7 +160,7 @@ export default function CommunityDetail() {
     );
   }
 
-  const canEdit = (user?.id === post.author_id || isAdmin) && !post.source_note_id;
+  const canEdit = user?.id === post.author_id || isAdmin;
   const canDelete = user?.id === post.author_id || isAdmin;
   const showComments = post.category !== "공지";
 

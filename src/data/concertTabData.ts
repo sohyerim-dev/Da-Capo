@@ -10,6 +10,7 @@ export interface TabData {
   label: string;
   searchFields: string[];
   items: SubItem[];
+  rankOnly?: boolean;
 }
 
 export const concertTabData: TabData[] = [
@@ -47,7 +48,7 @@ export const concertTabData: TabData[] = [
     ],
   },
   {
-    label: "아티스트 / 단체",
+    label: "아티스트・단체",
     searchFields: ["title", "synopsis", "performers", "producer"],
     items: [
       { label: "금난새", keywords: ["금난새"] },
@@ -164,5 +165,11 @@ export const concertTabData: TabData[] = [
         keywords: ["타악", "타악기", "마림바", "팀파니", "퍼커션"],
       },
     ],
+  },
+  {
+    label: "박스오피스",
+    rankOnly: true,
+    searchFields: [],
+    items: [],
   },
 ];

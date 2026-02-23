@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import NoteDatePanel from "./NoteDatePanel";
@@ -19,6 +19,13 @@ export interface Note {
   is_public: boolean | null;
   created_at: string | null;
   updated_at: string | null;
+}
+
+interface SubscribedUser {
+  id: string;
+  nickname: string | null;
+  username: string | null;
+  avatar_url: string | null;
 }
 
 export interface BookmarkItem {
@@ -43,6 +50,10 @@ export default function ClassicNote() {
   const [concertTitleMap, setConcertTitleMap] = useState<Record<string, string | null>>({});
   const [bookmarkItems, setBookmarkItems] = useState<BookmarkItem[]>([]);
   const [notePublic, setNotePublic] = useState<boolean | null>(null);
+
+  const [subscribedUsers, setSubscribedUsers] = useState<SubscribedUser[]>([]);
+  const [subscribers, setSubscribers] = useState<SubscribedUser[]>([]);
+  const [showSubscribersModal, setShowSubscribersModal] = useState(false);
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -130,6 +141,34 @@ export default function ClassicNote() {
       .single()
       .then(({ data }) => {
         if (data) setNotePublic(data.classic_note_public ?? false);
+      });
+
+    supabase
+      .from("classic_note_subscriptions")
+      .select("following_id")
+      .eq("follower_id", user.id)
+      .then(async ({ data: subData }) => {
+        if (!subData || subData.length === 0) return;
+        const ids = subData.map((s) => s.following_id as string);
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("id, nickname, username, avatar_url")
+          .in("id", ids);
+        setSubscribedUsers((profileData ?? []) as SubscribedUser[]);
+      });
+
+    supabase
+      .from("classic_note_subscriptions")
+      .select("follower_id")
+      .eq("following_id", user.id)
+      .then(async ({ data: subData }) => {
+        if (!subData || subData.length === 0) return;
+        const ids = subData.map((s) => s.follower_id as string);
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("id, nickname, username, avatar_url")
+          .in("id", ids);
+        setSubscribers((profileData ?? []) as SubscribedUser[]);
       });
   }, [user]);
 
@@ -229,6 +268,14 @@ export default function ClassicNote() {
               <span className={`classic-note__public-badge${notePublic ? " classic-note__public-badge--on" : ""}`}>
                 {notePublic ? "공개" : "비공개"}
               </span>
+            )}
+            {subscribers.length > 0 && (
+              <button
+                className="classic-note__subscriber-count"
+                onClick={() => setShowSubscribersModal(true)}
+              >
+                구독자 {subscribers.length}명
+              </button>
             )}
           </div>
           <button
@@ -451,6 +498,27 @@ export default function ClassicNote() {
             </>
           )}
         </div>
+
+        {subscribedUsers.length > 0 && (
+          <div className="classic-note__subscriptions">
+            <h3 className="classic-note__subscriptions-label">구독 중인 노트</h3>
+            <div className="classic-note__subscriptions-list">
+              {subscribedUsers.map((u) => (
+                <Link
+                  key={u.id}
+                  to={`/classic-note/${u.username}`}
+                  className="classic-note__subscription-chip"
+                >
+                  <img
+                    src={u.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${u.id}&backgroundColor=f6f3ec`}
+                    alt={u.nickname ?? ""}
+                  />
+                  <span>{u.nickname}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 날짜 패널 overlay */}
@@ -484,6 +552,50 @@ export default function ClassicNote() {
         onClose={handleFormClose}
         onSaved={handleFormSaved}
       />
+
+      {/* 구독자 모달 */}
+      {showSubscribersModal && (
+        <>
+          <div
+            className="classic-note__subscribers-overlay"
+            onClick={() => setShowSubscribersModal(false)}
+          />
+          <div className="classic-note__subscribers-modal">
+            <div className="classic-note__subscribers-modal-header">
+              <span className="classic-note__subscribers-modal-title">
+                구독자 {subscribers.length}명
+              </span>
+              <button
+                className="classic-note__subscribers-modal-close"
+                onClick={() => setShowSubscribersModal(false)}
+                aria-label="닫기"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <ul className="classic-note__subscribers-list">
+              {subscribers.map((u) => (
+                <li key={u.id}>
+                  <Link
+                    to={`/classic-note/${u.username}`}
+                    className="classic-note__subscriber-item"
+                    onClick={() => setShowSubscribersModal(false)}
+                  >
+                    <img
+                      src={u.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${u.id}&backgroundColor=f6f3ec`}
+                      alt={u.nickname ?? ""}
+                    />
+                    <span>{u.nickname}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
     </div>
   );
 }
