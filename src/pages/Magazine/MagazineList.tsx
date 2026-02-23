@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import "./MagazineList.scss";
@@ -47,22 +47,23 @@ function formatDate(str: string): string {
 export default function MagazineList() {
   const { user } = useUserStore();
   const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState<Category>("전체");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL에서 파생된 값 (소스 오브 트루스)
+  const activeCategory = (searchParams.get("category") as Category) ?? "전체";
+  const page = Number(searchParams.get("page") || "1");
+  const searchQuery = searchParams.get("q") ?? "";
+  const activeField = (searchParams.get("field") as SearchField) ?? "title";
+
+  // 로컬 상태 (입력 중인 값)
   const [notices, setNotices] = useState<MagazinePost[]>([]);
   const [posts, setPosts] = useState<MagazinePost[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchField, setSearchField] = useState<SearchField>("title");
-  const [searchVersion, setSearchVersion] = useState(0);
-
-  useEffect(() => {
-    setPage(1);
-    setSearchInput("");
-    setSearchQuery("");
-  }, [activeCategory]);
+  const [searchInput, setSearchInput] = useState(() => searchParams.get("q") ?? "");
+  const [pendingField, setPendingField] = useState<SearchField>(
+    () => (searchParams.get("field") as SearchField) ?? "title"
+  );
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -103,7 +104,7 @@ export default function MagazineList() {
       }
 
       if (searchQuery) {
-        query = query.ilike(searchField, `%${searchQuery}%`);
+        query = query.ilike(activeField, `%${searchQuery}%`);
       }
 
       const { data, count, error } = await query;
@@ -115,9 +116,18 @@ export default function MagazineList() {
     };
 
     fetchPosts();
-  }, [activeCategory, page, searchQuery, searchVersion]);
+  }, [activeCategory, page, searchQuery, activeField]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  // 페이지 이동 (카테고리·검색 상태 유지)
+  const goToPage = (newPage: number) => {
+    const params: Record<string, string> = {};
+    if (activeCategory !== "전체") params.category = activeCategory;
+    if (searchQuery) { params.q = searchQuery; params.field = activeField; }
+    if (newPage > 1) params.page = String(newPage);
+    setSearchParams(params);
+  };
 
   return (
     <div className="magazine-list-page">
@@ -139,7 +149,13 @@ export default function MagazineList() {
             <button
               key={cat}
               className={`magazine-list-page__tab${activeCategory === cat ? " magazine-list-page__tab--active" : ""}`}
-              onClick={() => setActiveCategory(cat)}
+              onClick={() => {
+                const params: Record<string, string> = {};
+                if (cat !== "전체") params.category = cat;
+                setSearchParams(params);
+                setSearchInput("");
+                setPendingField("title");
+              }}
             >
               {cat}
             </button>
@@ -150,16 +166,20 @@ export default function MagazineList() {
           className="magazine-list-page__search"
           onSubmit={(e) => {
             e.preventDefault();
-            setPage(1);
-            setSearchQuery(searchInput);
-            setSearchVersion((v) => v + 1);
+            const params: Record<string, string> = {};
+            if (activeCategory !== "전체") params.category = activeCategory;
+            if (searchInput.trim()) {
+              params.q = searchInput.trim();
+              params.field = pendingField;
+            }
+            setSearchParams(params);
           }}
         >
           <select
             className="magazine-list-page__search-select"
-            value={searchField}
+            value={pendingField}
             onChange={(e) => {
-              setSearchField(e.target.value as SearchField);
+              setPendingField(e.target.value as SearchField);
             }}
           >
             {SEARCH_FIELDS.map((f) => (
@@ -170,7 +190,7 @@ export default function MagazineList() {
             <input
               className="magazine-list-page__search-input"
               type="text"
-              placeholder={`${SEARCH_FIELDS.find((f) => f.value === searchField)?.label} 검색`}
+              placeholder={`${SEARCH_FIELDS.find((f) => f.value === pendingField)?.label} 검색`}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -178,7 +198,12 @@ export default function MagazineList() {
               <button
                 type="button"
                 className="magazine-list-page__search-clear"
-                onClick={() => { setSearchInput(""); setSearchQuery(""); }}
+                onClick={() => {
+                  setSearchInput("");
+                  const params: Record<string, string> = {};
+                  if (activeCategory !== "전체") params.category = activeCategory;
+                  setSearchParams(params);
+                }}
                 aria-label="검색 초기화"
               >
                 ✕
@@ -284,32 +309,32 @@ export default function MagazineList() {
             </table>
 
             <div className="magazine-list-page__pagination">
+              <button
+                className={`magazine-list-page__page-btn${page === 1 ? " magazine-list-page__page-btn--disabled" : ""}`}
+                onClick={() => goToPage(page - 1)}
+                disabled={page === 1}
+                aria-label="이전 페이지"
+              >
+                &lt;
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                 <button
-                  className={`magazine-list-page__page-btn${page === 1 ? " magazine-list-page__page-btn--disabled" : ""}`}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  aria-label="이전 페이지"
+                  key={p}
+                  className={`magazine-list-page__page-btn${page === p ? " magazine-list-page__page-btn--active" : ""}`}
+                  onClick={() => goToPage(p)}
                 >
-                  &lt;
+                  {p}
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    className={`magazine-list-page__page-btn${page === p ? " magazine-list-page__page-btn--active" : ""}`}
-                    onClick={() => setPage(p)}
-                  >
-                    {p}
-                  </button>
-                ))}
-                <button
-                  className={`magazine-list-page__page-btn${page === totalPages ? " magazine-list-page__page-btn--disabled" : ""}`}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  aria-label="다음 페이지"
-                >
-                  &gt;
-                </button>
-              </div>
+              ))}
+              <button
+                className={`magazine-list-page__page-btn${page === totalPages ? " magazine-list-page__page-btn--disabled" : ""}`}
+                onClick={() => goToPage(page + 1)}
+                disabled={page === totalPages}
+                aria-label="다음 페이지"
+              >
+                &gt;
+              </button>
+            </div>
           </>
         )}
       </div>

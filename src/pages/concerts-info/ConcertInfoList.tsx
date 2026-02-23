@@ -1,14 +1,21 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router";
 import ConcertBrowse from "./ConcertBrowse";
 import ConcertSearchResults from "./ConcertSearchResults";
 import "./ConcertInfoList.scss";
 
 export default function ConcertInfoList() {
-  const [inputValue, setInputValue] = useState("");
-  const [search, setSearch] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get("q") ?? "";
+  const [inputValue, setInputValue] = useState(search);
 
   const handleSearch = () => {
-    setSearch(inputValue.trim());
+    const trimmed = inputValue.trim();
+    if (trimmed) {
+      setSearchParams({ q: trimmed });
+    } else {
+      setSearchParams({});
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

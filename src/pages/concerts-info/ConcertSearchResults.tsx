@@ -72,7 +72,7 @@ export default function ConcertSearchResults({ query }: Props) {
       </p>
       <div className="concert-info__cards">
         {concerts.map((concert) => (
-          <Link key={concert.id} to={`/concert-info/${concert.id}`} className="concert-info__card">
+          <Link key={concert.id} to={`/concert-info/${concert.id}`} state={{ q: query }} className="concert-info__card">
             <div className="concert-info__card-img">
               <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
             </div>

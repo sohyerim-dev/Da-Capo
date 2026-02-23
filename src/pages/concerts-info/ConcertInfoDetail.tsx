@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router";
+import { useParams, Link, useLocation } from "react-router";
 import { supabase } from "../../lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import "./ConcertInfoDetail.scss";
@@ -110,6 +110,8 @@ function formatPickerDate(dateStr: string): string {
 
 export default function ConcertInfoDetail() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const backQuery = (location.state as { q?: string } | null)?.q;
   const { user } = useUserStore();
   const [concert, setConcert] = useState<Concert | null>(null);
   const [loading, setLoading] = useState(true);
@@ -245,7 +247,7 @@ export default function ConcertInfoDetail() {
     <div className="concert-detail">
       <div className="wrap">
         <Link
-          to="/concert-info"
+          to={backQuery ? `/concert-info?q=${encodeURIComponent(backQuery)}` : "/concert-info"}
           state={{ fromDetail: true }}
           className="concert-detail__back"
         >
