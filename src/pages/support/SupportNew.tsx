@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import MagazineEditorToolbar from "@/pages/Magazine/MagazineEditorToolbar";
@@ -18,21 +20,55 @@ export default function SupportNew() {
   const { user } = useUserStore();
   const navigate = useNavigate();
   const isAdmin = user?.role === "admin";
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<SupportCategory>(
     isAdmin ? "공지" : "질문"
   );
+  const [isPrivate, setIsPrivate] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const editor = useEditor({
     extensions: [
       StarterKit,
+      Image.configure({
+        inline: false,
+        resize: {
+          enabled: true,
+          directions: ["top-left", "top-right", "bottom-left", "bottom-right"],
+          minWidth: 50,
+          minHeight: 50,
+          alwaysPreserveAspectRatio: true,
+        },
+      }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: "내용을 입력하세요..." }),
     ],
     content: "",
   });
+
+  const handleImageUpload = async (file: File) => {
+    if (!editor) return;
+    setImageUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `posts/new/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("magazine")
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) {
+      setError("이미지 업로드에 실패했습니다.");
+      setImageUploading(false);
+      return;
+    }
+
+    const { data } = supabase.storage.from("magazine").getPublicUrl(path);
+    editor.chain().focus().setImage({ src: data.publicUrl }).run();
+    setImageUploading(false);
+  };
 
   const handleSubmit = async () => {
     if (!user || !editor) return;
@@ -58,6 +94,7 @@ export default function SupportNew() {
         author_id: user.id,
         author_nickname: user.nickname,
         author_username: user.username,
+        is_private: !isAdmin && isPrivate,
       })
       .select("id")
       .single();
@@ -102,15 +139,48 @@ export default function SupportNew() {
               ))}
             </select>
           </div>
+
+          {!isAdmin && (
+            <div className="magazine-editor-page__field">
+              <label className="magazine-editor-page__label">공개 설정</label>
+              <div className="magazine-editor-page__privacy-btns">
+                <button
+                  type="button"
+                  className={`magazine-editor-page__privacy-btn${!isPrivate ? " magazine-editor-page__privacy-btn--active" : ""}`}
+                  onClick={() => setIsPrivate(false)}
+                >
+                  공개
+                </button>
+                <button
+                  type="button"
+                  className={`magazine-editor-page__privacy-btn${isPrivate ? " magazine-editor-page__privacy-btn--active" : ""}`}
+                  onClick={() => setIsPrivate(true)}
+                >
+                  비공개
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="magazine-editor-page__editor-wrap">
           <MagazineEditorToolbar
             editor={editor}
-            onImageClick={() => {}}
-            imageUploading={false}
+            onImageClick={() => imageInputRef.current?.click()}
+            imageUploading={imageUploading}
           />
           <EditorContent editor={editor} className="magazine-editor-content" />
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleImageUpload(file);
+              e.target.value = "";
+            }}
+          />
         </div>
 
         {error && <p className="magazine-editor-page__error">{error}</p>}

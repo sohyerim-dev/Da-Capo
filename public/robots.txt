@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Disallow: /mypage
+Disallow: /classic-note
+Disallow: /support/new
+Disallow: /community/new
+Disallow: /magazine/new
+
+Sitemap: https://da-capo.co.kr/sitemap.xml

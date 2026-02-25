@@ -1,0 +1,58 @@
+.announcement-banner {
+  background-color: #fab95b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 48px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #161616;
+  letter-spacing: 0.02em;
+
+  &__content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  &__icon {
+    font-size: 10px;
+    opacity: 0.8;
+  }
+
+  &__arrow {
+    font-size: 14px;
+  }
+
+  @media (max-width: 1200px) {
+    padding: 28px 48px;
+  }
+
+  &__close {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

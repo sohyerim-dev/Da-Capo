@@ -5,6 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import MagazineEditorToolbar from "./MagazineEditorToolbar";
@@ -56,8 +57,18 @@ export default function MagazineEdit() {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image.configure({ inline: false }),
+      Image.configure({
+        inline: false,
+        resize: {
+          enabled: true,
+          directions: ["top-left", "top-right", "bottom-left", "bottom-right"],
+          minWidth: 50,
+          minHeight: 50,
+          alwaysPreserveAspectRatio: true,
+        },
+      }),
       Underline,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: "내용을 입력하세요..." }),
     ],
     content: "",

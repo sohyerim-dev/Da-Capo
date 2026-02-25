@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import MagazineEditorToolbar from "@/pages/Magazine/MagazineEditorToolbar";
@@ -16,6 +18,7 @@ interface SupportPost {
   category: SupportCategory;
   content: string;
   author_id: string;
+  is_private: boolean;
 }
 
 export default function SupportEdit() {
@@ -23,20 +26,54 @@ export default function SupportEdit() {
   const { user } = useUserStore();
   const navigate = useNavigate();
   const isAdmin = user?.role === "admin";
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const [post, setPost] = useState<SupportPost | null>(null);
   const [title, setTitle] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const editor = useEditor({
     extensions: [
       StarterKit,
+      Image.configure({
+        inline: false,
+        resize: {
+          enabled: true,
+          directions: ["top-left", "top-right", "bottom-left", "bottom-right"],
+          minWidth: 50,
+          minHeight: 50,
+          alwaysPreserveAspectRatio: true,
+        },
+      }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: "내용을 입력하세요..." }),
     ],
     content: "",
   });
+
+  const handleImageUpload = async (file: File) => {
+    if (!editor) return;
+    setImageUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `posts/${id}/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("magazine")
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) {
+      setError("이미지 업로드에 실패했습니다.");
+      setImageUploading(false);
+      return;
+    }
+
+    const { data } = supabase.storage.from("magazine").getPublicUrl(path);
+    editor.chain().focus().setImage({ src: data.publicUrl }).run();
+    setImageUploading(false);
+  };
 
   useEffect(() => {
     if (!id || !user) return;
@@ -44,7 +81,7 @@ export default function SupportEdit() {
     const fetchPost = async () => {
       const { data, error: fetchError } = await supabase
         .from("support_posts")
-        .select("id, title, category, content, author_id")
+        .select("id, title, category, content, author_id, is_private")
         .eq("id", Number(id))
         .single();
 
@@ -68,6 +105,7 @@ export default function SupportEdit() {
 
       setPost(postData);
       setTitle(postData.title);
+      setIsPrivate(postData.is_private);
       setLoading(false);
     };
 
@@ -100,6 +138,7 @@ export default function SupportEdit() {
       .update({
         title: title.trim(),
         content,
+        is_private: !isAdmin && isPrivate,
         updated_at: new Date().toISOString(),
       })
       .eq("id", post.id);
@@ -150,15 +189,48 @@ export default function SupportEdit() {
               <option value={post?.category}>{post?.category}</option>
             </select>
           </div>
+
+          {!isAdmin && (
+            <div className="magazine-editor-page__field">
+              <label className="magazine-editor-page__label">공개 설정</label>
+              <div className="magazine-editor-page__privacy-btns">
+                <button
+                  type="button"
+                  className={`magazine-editor-page__privacy-btn${!isPrivate ? " magazine-editor-page__privacy-btn--active" : ""}`}
+                  onClick={() => setIsPrivate(false)}
+                >
+                  공개
+                </button>
+                <button
+                  type="button"
+                  className={`magazine-editor-page__privacy-btn${isPrivate ? " magazine-editor-page__privacy-btn--active" : ""}`}
+                  onClick={() => setIsPrivate(true)}
+                >
+                  비공개
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="magazine-editor-page__editor-wrap">
           <MagazineEditorToolbar
             editor={editor}
-            onImageClick={() => {}}
-            imageUploading={false}
+            onImageClick={() => imageInputRef.current?.click()}
+            imageUploading={imageUploading}
           />
           <EditorContent editor={editor} className="magazine-editor-content" />
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleImageUpload(file);
+              e.target.value = "";
+            }}
+          />
         </div>
 
         {error && <p className="magazine-editor-page__error">{error}</p>}

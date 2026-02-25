@@ -4,6 +4,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import EditorToolbar from "@/components/editor/EditorToolbar";
@@ -33,7 +34,17 @@ export default function CommunityEdit() {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image.configure({ inline: false }),
+      Image.configure({
+        inline: false,
+        resize: {
+          enabled: true,
+          directions: ["top-left", "top-right", "bottom-left", "bottom-right"],
+          minWidth: 50,
+          minHeight: 50,
+          alwaysPreserveAspectRatio: true,
+        },
+      }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: "내용을 입력하세요..." }),
     ],
     content: "",

@@ -3,6 +3,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import EditorToolbar from "@/components/editor/EditorToolbar";
@@ -16,6 +17,49 @@ interface ConcertResult {
   title: string | null;
   start_date: string | null;
   end_date: string | null;
+  schedule: string | null;
+  open_run: string | null;
+}
+
+const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"] as const;
+
+function parseScheduleWeekdays(schedule: string | null): Set<number> | null {
+  if (!schedule) return null;
+  if (schedule.includes("매일")) return null;
+  const days = new Set<number>();
+  WEEKDAY_LABELS.forEach((label, i) => {
+    if (schedule.includes(label)) days.add(i);
+  });
+  return days.size > 0 ? days : null;
+}
+
+function getPerformanceDates(concert: ConcertResult): string[] {
+  const startISO = concertDateToInputDate(concert.start_date);
+  const endISO = concertDateToInputDate(concert.end_date ?? concert.start_date);
+  if (!startISO) return [];
+
+  const scheduledDays = parseScheduleWeekdays(concert.schedule);
+  const endDate = new Date((endISO || startISO) + "T00:00:00");
+
+  const allDates: string[] = [];
+  const cursor = new Date(startISO + "T00:00:00");
+  while (cursor <= endDate && allDates.length < 200) {
+    const y = cursor.getFullYear();
+    const mo = String(cursor.getMonth() + 1).padStart(2, "0");
+    const d = String(cursor.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${mo}-${d}`;
+    if (!scheduledDays || scheduledDays.has(cursor.getDay())) {
+      allDates.push(dateStr);
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return allDates;
+}
+
+function formatPickerDate(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  const dayLabel = WEEKDAY_LABELS[d.getDay()];
+  return `${dateStr.replace(/-/g, ".")} (${dayLabel})`;
 }
 
 interface Props {
@@ -67,7 +111,17 @@ export default function NoteFormPanel({
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image.configure({ inline: false }),
+      Image.configure({
+        inline: false,
+        resize: {
+          enabled: true,
+          directions: ["top-left", "top-right", "bottom-left", "bottom-right"],
+          minWidth: 50,
+          minHeight: 50,
+          alwaysPreserveAspectRatio: true,
+        },
+      }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: () => placeholderRef.current }),
     ],
     content: "",
@@ -97,7 +151,7 @@ export default function NoteFormPanel({
       if (editingNote.concert_id) {
         supabase
           .from("concerts")
-          .select("id, title, start_date, end_date")
+          .select("id, title, start_date, end_date, schedule, open_run")
           .eq("id", editingNote.concert_id)
           .single()
           .then(({ data }) => {
@@ -145,7 +199,7 @@ export default function NoteFormPanel({
     setConcertSearching(true);
     const { data } = await supabase
       .from("concerts")
-      .select("id, title, start_date, end_date")
+      .select("id, title, start_date, end_date, schedule, open_run")
       .ilike("title", `%${concertQuery.trim()}%`)
       .eq("status", "공연완료")
       .limit(10);
@@ -290,6 +344,18 @@ export default function NoteFormPanel({
     onSaved();
   };
 
+  const isSingleDayConcert =
+    type === "concert_record" &&
+    !!attachedConcert &&
+    (!attachedConcert.end_date ||
+      concertDateToInputDate(attachedConcert.start_date) ===
+        concertDateToInputDate(attachedConcert.end_date));
+
+  const concertPerformanceDates =
+    type === "concert_record" && attachedConcert && !isSingleDayConcert
+      ? getPerformanceDates(attachedConcert)
+      : [];
+
   return (
     <div className={`note-panel note-panel--form${open ? " note-panel--open" : ""}`}>
       <div className="note-panel__header">
@@ -324,30 +390,40 @@ export default function NoteFormPanel({
         {/* 날짜 */}
         <div className="note-form__field">
           <label className="note-form__label">날짜</label>
-          <input
-            type="date"
-            className="note-form__input"
-            value={noteDate}
-            onChange={(e) => setNoteDate(e.target.value)}
-            min={
-              type === "concert_record" && attachedConcert?.start_date
-                ? concertDateToInputDate(attachedConcert.start_date)
-                : undefined
-            }
-            max={
-              type === "concert_record" && attachedConcert?.end_date
-                ? concertDateToInputDate(attachedConcert.end_date)
-                : undefined
-            }
-          />
-          {type === "concert_record" &&
-            attachedConcert?.start_date &&
-            attachedConcert?.end_date &&
-            attachedConcert.start_date !== attachedConcert.end_date && (
-              <p className="note-form__date-hint">
-                공연 기간({formatConcertDate(attachedConcert.start_date)} ~ {formatConcertDate(attachedConcert.end_date)}) 중 관람 날짜를 선택해주세요
-              </p>
-            )}
+          {/* 자유 기록 or 관람 기록인데 공연 미연결: 자유 입력 */}
+          {(type === "free_writing" || !attachedConcert) && (
+            <input
+              type="date"
+              className="note-form__input"
+              value={noteDate}
+              onChange={(e) => setNoteDate(e.target.value)}
+            />
+          )}
+          {/* 하루 공연: 날짜 자동 고정 */}
+          {type === "concert_record" && attachedConcert && isSingleDayConcert && (
+            <p className="note-form__date-display">
+              {attachedConcert.start_date ? formatConcertDate(attachedConcert.start_date) : ""}
+            </p>
+          )}
+          {/* 여러 날 공연: 실제 공연 날짜 목록에서 선택 */}
+          {type === "concert_record" && attachedConcert && !isSingleDayConcert && (
+            <>
+              <p className="note-form__date-hint">관람 날짜를 선택해주세요.</p>
+              <ul className="note-form__date-list">
+                {concertPerformanceDates.map((date) => (
+                  <li key={date}>
+                    <button
+                      type="button"
+                      className={`note-form__date-item${noteDate === date ? " note-form__date-item--active" : ""}`}
+                      onClick={() => setNoteDate(date)}
+                    >
+                      {formatPickerDate(date)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
 
         {/* 제목 */}

@@ -18,15 +18,13 @@ export default function ClassicReadSection() {
 
         <article className="classic-read__article">
           <header className="classic-read__header">
-            <div className="classic-read__header-left">
-              <h3 className="classic-read__title">{classicRead.title}</h3>
-              <span className="classic-read__author">
-                by. {classicRead.author}
-              </span>
+            <h3 className="classic-read__title">{classicRead.title}</h3>
+            <div className="classic-read__meta">
+              <span className="classic-read__author">by. {classicRead.author}</span>
+              <a href={classicRead.moreUrl} className="classic-read__more">
+                … 더보기
+              </a>
             </div>
-            <a href={classicRead.moreUrl} className="classic-read__more">
-              … 더보기
-            </a>
           </header>
 
           <p className="classic-read__summary">{classicRead.summary}</p>

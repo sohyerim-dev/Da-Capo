@@ -120,6 +120,16 @@ export default function MagazineList() {
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
+  const getPageRange = (current: number, total: number): (number | "...")[] => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: (number | "...")[] = [1];
+    if (current > 3) pages.push("...");
+    for (let i = Math.max(2, current - 2); i <= Math.min(total - 1, current + 2); i++) pages.push(i);
+    if (current < total - 2) pages.push("...");
+    pages.push(total);
+    return pages;
+  };
+
   // 페이지 이동 (카테고리·검색 상태 유지)
   const goToPage = (newPage: number) => {
     const params: Record<string, string> = {};
@@ -132,8 +142,27 @@ export default function MagazineList() {
   return (
     <div className="magazine-list-page">
       <div className="wrap">
-        <div className="magazine-list-page__header">
-          <h1 className="magazine-list-page__title">매거진</h1>
+        <h1 className="magazine-list-page__title">매거진</h1>
+
+        <div className="magazine-list-page__board">
+        <div className="magazine-list-page__toolbar">
+          <div className="magazine-list-page__tabs">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                className={`magazine-list-page__tab${activeCategory === cat ? " magazine-list-page__tab--active" : ""}`}
+                onClick={() => {
+                  const params: Record<string, string> = {};
+                  if (cat !== "전체") params.category = cat;
+                  setSearchParams(params);
+                  setSearchInput("");
+                  setPendingField("title");
+                }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
           {user?.role === "admin" && (
             <button
               className="magazine-list-page__write-btn"
@@ -143,80 +172,6 @@ export default function MagazineList() {
             </button>
           )}
         </div>
-
-        <div className="magazine-list-page__tabs">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              className={`magazine-list-page__tab${activeCategory === cat ? " magazine-list-page__tab--active" : ""}`}
-              onClick={() => {
-                const params: Record<string, string> = {};
-                if (cat !== "전체") params.category = cat;
-                setSearchParams(params);
-                setSearchInput("");
-                setPendingField("title");
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        <form
-          className="magazine-list-page__search"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const params: Record<string, string> = {};
-            if (activeCategory !== "전체") params.category = activeCategory;
-            if (searchInput.trim()) {
-              params.q = searchInput.trim();
-              params.field = pendingField;
-            }
-            setSearchParams(params);
-          }}
-        >
-          <select
-            className="magazine-list-page__search-select"
-            value={pendingField}
-            onChange={(e) => {
-              setPendingField(e.target.value as SearchField);
-            }}
-          >
-            {SEARCH_FIELDS.map((f) => (
-              <option key={f.value} value={f.value}>{f.label}</option>
-            ))}
-          </select>
-          <div className="magazine-list-page__search-input-wrap">
-            <input
-              className="magazine-list-page__search-input"
-              type="text"
-              placeholder={`${SEARCH_FIELDS.find((f) => f.value === pendingField)?.label} 검색`}
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                className="magazine-list-page__search-clear"
-                onClick={() => {
-                  setSearchInput("");
-                  const params: Record<string, string> = {};
-                  if (activeCategory !== "전체") params.category = activeCategory;
-                  setSearchParams(params);
-                }}
-                aria-label="검색 초기화"
-              >
-                ✕
-              </button>
-            )}
-            <button type="submit" className="magazine-list-page__search-btn" aria-label="검색">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
-            </button>
-          </div>
-        </form>
 
         {loading ? (
           <table className="magazine-table">
@@ -248,66 +203,68 @@ export default function MagazineList() {
             {searchQuery ? `"${searchQuery}" 검색 결과가 없습니다.` : "등록된 글이 없습니다."}
           </div>
         ) : (
-          <>
-            <table className="magazine-table">
-              <thead>
-                <tr>
-                  <th className="magazine-table__num">번호</th>
-                  <th className="magazine-table__category">카테고리</th>
-                  <th className="magazine-table__title">제목</th>
-                  <th className="magazine-table__author">작성자</th>
-                  <th className="magazine-table__date">작성일</th>
-                  <th className="magazine-table__views">조회수</th>
+          <table className="magazine-table">
+            <thead>
+              <tr>
+                <th className="magazine-table__num">번호</th>
+                <th className="magazine-table__category">카테고리</th>
+                <th className="magazine-table__title">제목</th>
+                <th className="magazine-table__author">작성자</th>
+                <th className="magazine-table__date">작성일</th>
+                <th className="magazine-table__views">조회수</th>
+              </tr>
+            </thead>
+            <tbody>
+              {notices.map((post) => (
+                <tr key={`notice-${post.id}`} className="magazine-table__row magazine-table__row--notice">
+                  <td className="magazine-table__num">{post.id}</td>
+                  <td className="magazine-table__category">
+                    <span className={`magazine-table__badge magazine-table__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
+                      {post.category}
+                    </span>
+                  </td>
+                  <td className="magazine-table__title">
+                    <Link to={`/magazine/${post.id}`}>{post.title}</Link>
+                  </td>
+                  <td className="magazine-table__author">{post.author_nickname}</td>
+                  <td className="magazine-table__date">
+                    {post.created_at ? formatDate(post.created_at) : ""}
+                  </td>
+                  <td className="magazine-table__views">
+                    {(post.view_count ?? 0).toLocaleString()}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {notices.map((post) => (
-                  <tr key={`notice-${post.id}`} className="magazine-table__row magazine-table__row--notice">
-                    <td className="magazine-table__num">{post.id}</td>
-                    <td className="magazine-table__category">
-                      <span className={`magazine-table__badge magazine-table__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
-                        {post.category}
-                      </span>
-                    </td>
-                    <td className="magazine-table__title">
-                      <Link to={`/magazine/${post.id}`}>{post.title}</Link>
-                    </td>
-                    <td className="magazine-table__author">{post.author_nickname}</td>
-                    <td className="magazine-table__date">
-                      {post.created_at ? formatDate(post.created_at) : ""}
-                    </td>
-                    <td className="magazine-table__views">
-                      {(post.view_count ?? 0).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-                {posts.map((post, idx) => (
-                  <tr key={post.id} className="magazine-table__row">
-                    <td className="magazine-table__num">
-                      {totalCount - (page - 1) * PAGE_SIZE - idx}
-                    </td>
-                    <td className="magazine-table__category">
-                      <span className={`magazine-table__badge magazine-table__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
-                        {post.category}
-                      </span>
-                    </td>
-                    <td className="magazine-table__title">
-                      <Link to={`/magazine/${post.id}`}>{post.title}</Link>
-                    </td>
-                    <td className="magazine-table__author">
-                      {post.author_nickname}
-                    </td>
-                    <td className="magazine-table__date">
-                      {post.created_at ? formatDate(post.created_at) : ""}
-                    </td>
-                    <td className="magazine-table__views">
-                      {(post.view_count ?? 0).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              ))}
+              {posts.map((post, idx) => (
+                <tr key={post.id} className="magazine-table__row">
+                  <td className="magazine-table__num">
+                    {totalCount - (page - 1) * PAGE_SIZE - idx}
+                  </td>
+                  <td className="magazine-table__category">
+                    <span className={`magazine-table__badge magazine-table__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
+                      {post.category}
+                    </span>
+                  </td>
+                  <td className="magazine-table__title">
+                    <Link to={`/magazine/${post.id}`}>{post.title}</Link>
+                  </td>
+                  <td className="magazine-table__author">
+                    {post.author_nickname}
+                  </td>
+                  <td className="magazine-table__date">
+                    {post.created_at ? formatDate(post.created_at) : ""}
+                  </td>
+                  <td className="magazine-table__views">
+                    {(post.view_count ?? 0).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
 
+        <div className="magazine-list-page__bottom-bar">
+          {!loading && totalPages > 0 && (
             <div className="magazine-list-page__pagination">
               <button
                 className={`magazine-list-page__page-btn${page === 1 ? " magazine-list-page__page-btn--disabled" : ""}`}
@@ -317,15 +274,19 @@ export default function MagazineList() {
               >
                 &lt;
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  className={`magazine-list-page__page-btn${page === p ? " magazine-list-page__page-btn--active" : ""}`}
-                  onClick={() => goToPage(p)}
-                >
-                  {p}
-                </button>
-              ))}
+              {getPageRange(page, totalPages).map((p, i) =>
+                p === "..." ? (
+                  <span key={`ellipsis-${i}`} className="magazine-list-page__page-ellipsis">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    className={`magazine-list-page__page-btn${page === p ? " magazine-list-page__page-btn--active" : ""}`}
+                    onClick={() => goToPage(p)}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
               <button
                 className={`magazine-list-page__page-btn${page === totalPages ? " magazine-list-page__page-btn--disabled" : ""}`}
                 onClick={() => goToPage(page + 1)}
@@ -335,8 +296,64 @@ export default function MagazineList() {
                 &gt;
               </button>
             </div>
-          </>
-        )}
+          )}
+          <form
+            className="magazine-list-page__search"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const params: Record<string, string> = {};
+              if (activeCategory !== "전체") params.category = activeCategory;
+              if (searchInput.trim()) {
+                params.q = searchInput.trim();
+                params.field = pendingField;
+              }
+              setSearchParams(params);
+            }}
+          >
+            <select
+              className="magazine-list-page__search-select"
+              value={pendingField}
+              onChange={(e) => {
+                setPendingField(e.target.value as SearchField);
+              }}
+            >
+              {SEARCH_FIELDS.map((f) => (
+                <option key={f.value} value={f.value}>{f.label}</option>
+              ))}
+            </select>
+            <div className="magazine-list-page__search-input-wrap">
+              <input
+                className="magazine-list-page__search-input"
+                type="text"
+                placeholder={`${SEARCH_FIELDS.find((f) => f.value === pendingField)?.label} 검색`}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="magazine-list-page__search-clear"
+                  onClick={() => {
+                    setSearchInput("");
+                    const params: Record<string, string> = {};
+                    if (activeCategory !== "전체") params.category = activeCategory;
+                    setSearchParams(params);
+                  }}
+                  aria-label="검색 초기화"
+                >
+                  ✕
+                </button>
+              )}
+              <button type="submit" className="magazine-list-page__search-btn" aria-label="검색">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+        </div>
       </div>
     </div>
   );

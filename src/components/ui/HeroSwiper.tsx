@@ -1,9 +1,9 @@
-import { useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, EffectFade } from "swiper/modules";
+import { Autoplay, EffectFade, Pagination } from "swiper/modules";
 import type { ReactNode } from "react";
 import "swiper/css";
 import "swiper/css/effect-fade";
+import "swiper/css/pagination";
 import "./HeroSwiper.scss";
 
 interface SlideItem {
@@ -22,36 +22,24 @@ const slides: SlideItem[] = [
       </>
     ),
   },
-  { image: "/images/main-image-2.svg", text: "클래식 공연 정보 플랫폼" },
+  { image: "/images/main-image-2.svg", text: "클래식 공연 중심 플랫폼" },
   { image: "/images/main-image-3.svg", logo: "/images/main-logo.svg" },
 ];
 
 export default function HeroSwiper() {
-  const progressBarRef = useRef<HTMLDivElement>(null);
-  const activeIndexRef = useRef(0);
-
   return (
     <section className="hero">
       <Swiper
-        modules={[Autoplay, EffectFade]}
+        modules={[Autoplay, EffectFade, Pagination]}
         effect="fade"
         autoplay={{
           delay: 3000,
           disableOnInteraction: false,
           pauseOnMouseEnter: false,
         }}
+        pagination={{ clickable: true }}
         loop
         className="hero__swiper"
-        onSlideChange={(swiper) => {
-          activeIndexRef.current = swiper.realIndex;
-        }}
-        onAutoplayTimeLeft={(_, __, percentage) => {
-          if (progressBarRef.current) {
-            const progress =
-              (activeIndexRef.current + (1 - percentage)) / slides.length;
-            progressBarRef.current.style.transform = `scaleX(${progress})`;
-          }
-        }}
       >
         {slides.map((slide, i) => (
           <SwiperSlide key={i} className="hero__slide">
@@ -65,9 +53,6 @@ export default function HeroSwiper() {
           </SwiperSlide>
         ))}
       </Swiper>
-      <div className="hero__progress">
-        <div ref={progressBarRef} className="hero__progress-bar" />
-      </div>
     </section>
   );
 }

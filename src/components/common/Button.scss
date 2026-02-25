@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 999px;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -37,9 +37,11 @@
   &--primary {
     background-color: #111;
     color: #fff;
+    border: 1.5px solid #111;
 
     &:hover:not(:disabled) {
-      background-color: #333;
+      background-color: transparent;
+      color: #111;
     }
   }
 

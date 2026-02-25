@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import Input from "@/components/common/Input";
@@ -27,6 +27,7 @@ type MessageState = { type: "success" | "error"; text: string } | null;
 
 export default function MyPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, setUser, resetUser } = useUserStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -63,6 +64,15 @@ export default function MyPage() {
 
   // 프로필 초기 로딩
   const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    if (location.hash && !profileLoading) {
+      const el = document.getElementById(location.hash.slice(1));
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+      }
+    }
+  }, [location.hash, profileLoading]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -452,7 +462,7 @@ export default function MyPage() {
         </section>
 
         {/* 클래식 노트 공개 설정 */}
-        <section className="mypage__section">
+        <section className="mypage__section" id="classic-note">
           <h3 className="mypage__section-title">나의 클래식 노트</h3>
           <div className="mypage__toggle-row">
             <div>

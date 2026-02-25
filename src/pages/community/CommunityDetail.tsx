@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import CommentList from "./CommentList";
+import ShareButton from "@/components/ui/ShareButton";
+import ImageLightbox from "@/components/ui/ImageLightbox";
 import "./CommunityDetail.scss";
 
 interface CommunityPost {
@@ -39,6 +41,11 @@ interface CommunityComment {
   updated_at: string | null;
 }
 
+interface NavPost {
+  id: number;
+  title: string;
+}
+
 function formatDate(str: string): string {
   if (/^\d{8}$/.test(str)) {
     return `${str.slice(0, 4)}.${str.slice(4, 6)}.${str.slice(6, 8)}`;
@@ -48,6 +55,12 @@ function formatDate(str: string): string {
   }
   const d = new Date(str.replace(" ", "T"));
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function formatDateTime(str: string): string {
+  const d = new Date(str.replace(" ", "T"));
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export default function CommunityDetail() {
@@ -62,8 +75,29 @@ export default function CommunityDetail() {
   const [notFound, setNotFound] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [prevPost, setPrevPost] = useState<NavPost | null>(null);
+  const [nextPost, setNextPost] = useState<NavPost | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = user?.role === "admin";
+
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "IMG" && !target.closest("a")) {
+        e.preventDefault();
+        setLightboxSrc((target as HTMLImageElement).src);
+      }
+    };
+    container.addEventListener("click", handleClick);
+    return () => container.removeEventListener("click", handleClick);
+  }, [post, loading]);
 
   const fetchComments = useCallback(async () => {
     if (!id) return;
@@ -95,10 +129,23 @@ export default function CommunityDetail() {
 
       setPost(postData as CommunityPost);
 
-      // 조회수 증가
-      await supabase.rpc("increment_community_view_count", { p_post_id: Number(id) });
+      const [, { count: fetchedLikeCount }, { data: myLike }] = await Promise.all([
+        supabase.rpc("increment_community_view_count", { p_post_id: Number(id) }),
+        supabase.from("community_likes").select("*", { count: "exact", head: true }).eq("post_id", Number(id)),
+        user
+          ? supabase.from("community_likes").select("id").eq("post_id", Number(id)).eq("user_id", user.id).maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
+      setLikeCount(fetchedLikeCount ?? 0);
+      setLiked(!!myLike);
 
-      // 후기 글이면 공연 정보 조회
+      const [{ data: prevData }, { data: nextData }] = await Promise.all([
+        supabase.from("community_posts").select("id, title").lt("id", Number(id)).order("id", { ascending: false }).limit(1),
+        supabase.from("community_posts").select("id, title").gt("id", Number(id)).order("id", { ascending: true }).limit(1),
+      ]);
+      setPrevPost((prevData?.[0] as NavPost) ?? null);
+      setNextPost((nextData?.[0] as NavPost) ?? null);
+
       if (postData.concert_id) {
         const { data: concertData } = await supabase
           .from("concerts")
@@ -115,6 +162,24 @@ export default function CommunityDetail() {
     fetchComments();
   }, [id, fetchComments]);
 
+  const handleLike = async () => {
+    if (!user) { navigate("/login"); return; }
+    if (likeLoading || !post) return;
+    setLikeLoading(true);
+    if (liked) {
+      setLiked(false);
+      setLikeCount((c) => c - 1);
+      const { error } = await supabase.from("community_likes").delete().eq("post_id", post.id).eq("user_id", user.id);
+      if (error) { setLiked(true); setLikeCount((c) => c + 1); }
+    } else {
+      setLiked(true);
+      setLikeCount((c) => c + 1);
+      const { error } = await supabase.from("community_likes").insert({ post_id: post.id, user_id: user.id });
+      if (error) { setLiked(false); setLikeCount((c) => c - 1); }
+    }
+    setLikeLoading(false);
+  };
+
   const handleDelete = async () => {
     if (!id || !post) return;
     setDeleteLoading(true);
@@ -123,7 +188,6 @@ export default function CommunityDetail() {
       await supabase.rpc("admin_delete_community_post", { p_post_id: post.id });
     } else {
       await supabase.from("community_posts").delete().eq("id", Number(id));
-      // 후기인 경우 연동된 노트도 함께 삭제
       if (post.source_note_id) {
         await supabase.from("notes").delete().eq("id", post.source_note_id);
       }
@@ -137,9 +201,16 @@ export default function CommunityDetail() {
     return (
       <div className="community-detail-page">
         <div className="wrap community-detail-page__inner">
-          <div className="community-detail-page__skeleton-badge" />
-          <div className="community-detail-page__skeleton-title" />
-          <div className="community-detail-page__skeleton-meta" />
+          <div className="community-detail-page__heading">
+            <h1>커뮤니티</h1>
+          </div>
+          <div className="community-detail-page__post-row">
+            <div className="community-detail-page__post-row-left">
+              <div className="community-detail-page__skeleton-badge" />
+              <div className="community-detail-page__skeleton-title" />
+            </div>
+            <div className="community-detail-page__skeleton-meta" />
+          </div>
           <hr className="community-detail-page__divider" />
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="community-detail-page__skeleton-line" />
@@ -165,88 +236,64 @@ export default function CommunityDetail() {
   const showComments = post.category !== "공지";
 
   return (
+    <>
     <div className="community-detail-page">
       <div className="wrap community-detail-page__inner">
-        <div className="community-detail-page__meta-top">
-          <Link to="/community" className="community-detail-page__back">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M19 12H5M12 5l-7 7 7 7" />
-            </svg>
-            목록
-          </Link>
+
+        <div className="community-detail-page__heading">
+          <h1>커뮤니티</h1>
         </div>
 
-        <span className={`community-detail-page__badge community-detail-page__badge--${post.category}`}>
-          {post.category}
-        </span>
-        <h1 className="community-detail-page__title">{post.title}</h1>
-        <div className="community-detail-page__info">
-          {post.author_role === "admin" ? (
-            <span className="community-detail-page__author-link">{post.author_nickname}</span>
-          ) : (
-            <Link to={`/classic-note/${post.author_username || post.author_id}`} className="community-detail-page__author-link">
-              {post.author_nickname}
-            </Link>
-          )}
-          <span>·</span>
-          <span>{post.created_at ? formatDate(post.created_at) : ""}</span>
-          <span>·</span>
-          <span>조회 {(post.view_count ?? 0).toLocaleString()}</span>
-          {post.source_note_id && (
-            <>
-              <span>·</span>
-              <Link
-                to={`/classic-note/${post.author_username || post.author_id}`}
-                className="community-detail-page__note-link"
-              >
-                클래식 노트에서 보기
-              </Link>
-            </>
-          )}
+        <div className="community-detail-page__post-row">
+          <div className="community-detail-page__post-row-left">
+            <span className="community-detail-page__post-num">{post.id}</span>
+            <span className={`community-detail-page__badge community-detail-page__badge--${post.category}`}>
+              {post.category}
+            </span>
+            <span className="community-detail-page__post-title">{post.title}</span>
+          </div>
+          <span className="community-detail-page__post-date">
+            {post.created_at ? formatDateTime(post.created_at) : ""}
+          </span>
         </div>
 
         <hr className="community-detail-page__divider" />
 
-        {/* 후기: 공연 정보 */}
-        {concert && (
-          <Link
-            to={`/concert-info/${concert.id}`}
-            className="community-concert-card"
-          >
-            {concert.poster && (
-              <img
-                src={concert.poster}
-                alt={concert.title ?? ""}
-                className="community-concert-card__poster"
-              />
+        <div className="community-detail-page__sub-meta">
+          <div className="community-detail-page__sub-meta-left">
+            {post.author_role === "admin" ? (
+              <span className="community-detail-page__author-link">{post.author_nickname}</span>
+            ) : (
+              <Link to={`/classic-note/${post.author_username || post.author_id}`} className="community-detail-page__author-link">
+                {post.author_nickname}
+              </Link>
             )}
-            <div className="community-concert-card__info">
-              <p className="community-concert-card__title">{concert.title}</p>
-              <p className="community-concert-card__date">
-                {concert.start_date ? formatDate(concert.start_date) : ""}
-                {concert.end_date !== concert.start_date &&
-                  concert.end_date ? ` ~ ${formatDate(concert.end_date)}` : ""}
-              </p>
-            </div>
-          </Link>
-        )}
-
-        <div
-          className="community-detail-page__content tiptap-content"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
-
-        {(canEdit || canDelete) && (
-          <div className="community-detail-page__actions">
+            <span>·</span>
+            <span>조회 {(post.view_count ?? 0).toLocaleString()}</span>
+            {post.source_note_id && (
+              <>
+                <span>·</span>
+                <Link
+                  to={`/classic-note/${post.author_username || post.author_id}`}
+                  className="community-detail-page__note-link"
+                >
+                  클래식 노트에서 보기
+                </Link>
+              </>
+            )}
+          </div>
+          <div className="community-detail-page__sub-meta-right">
+            <button
+              className={`community-detail-page__like-btn${liked ? " community-detail-page__like-btn--liked" : ""}`}
+              onClick={handleLike}
+              disabled={likeLoading}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              {likeCount > 0 ? likeCount : "좋아요"}
+            </button>
+            {post.category === "정보" && <ShareButton title={post.title} />}
             {canEdit && (
               <button
                 className="community-detail-page__action-btn"
@@ -264,7 +311,30 @@ export default function CommunityDetail() {
               </button>
             )}
           </div>
+        </div>
+
+        {concert && (
+          <Link to={`/concert-info/${concert.id}`} className="community-concert-card">
+            {concert.poster && (
+              <img src={concert.poster} alt={concert.title ?? ""} className="community-concert-card__poster" />
+            )}
+            <div className="community-concert-card__info">
+              <p className="community-concert-card__title">{concert.title}</p>
+              <p className="community-concert-card__date">
+                {concert.start_date ? formatDate(concert.start_date) : ""}
+                {concert.end_date !== concert.start_date && concert.end_date
+                  ? ` ~ ${formatDate(concert.end_date)}`
+                  : ""}
+              </p>
+            </div>
+          </Link>
         )}
+
+        <div
+          ref={contentRef}
+          className="community-detail-page__content tiptap-content"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
 
         {showComments && (
           <CommentList
@@ -273,6 +343,34 @@ export default function CommunityDetail() {
             onRefresh={fetchComments}
           />
         )}
+
+        <div className="community-detail-page__nav">
+          <div className="community-detail-page__nav-row">
+            <span className="community-detail-page__nav-label">이전글</span>
+            {prevPost ? (
+              <Link to={`/community/${prevPost.id}`} className="community-detail-page__nav-link">
+                {prevPost.title}
+              </Link>
+            ) : (
+              <span className="community-detail-page__nav-empty">이전글이 없습니다.</span>
+            )}
+          </div>
+          <div className="community-detail-page__nav-row">
+            <span className="community-detail-page__nav-label">다음글</span>
+            {nextPost ? (
+              <Link to={`/community/${nextPost.id}`} className="community-detail-page__nav-link">
+                {nextPost.title}
+              </Link>
+            ) : (
+              <span className="community-detail-page__nav-empty">다음글이 없습니다.</span>
+            )}
+          </div>
+        </div>
+
+        <div className="community-detail-page__footer">
+          <Link to="/community" className="community-detail-page__list-btn">목록</Link>
+        </div>
+
       </div>
 
       {showDeleteConfirm && (
@@ -309,5 +407,10 @@ export default function CommunityDetail() {
         </div>
       )}
     </div>
+
+    {lightboxSrc && (
+      <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+    )}
+    </>
   );
 }

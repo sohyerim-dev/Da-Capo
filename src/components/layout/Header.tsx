@@ -8,9 +8,7 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, resetUser } = useUserStore();
-  const isHome = location.pathname === "/";
   const isClassicNotePublic = useMatch("/classic-note/:username");
-  const [isPastHero, setIsPastHero] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -21,45 +19,31 @@ export default function Header() {
   };
 
   useEffect(() => {
-    if (!isHome) {
-      setIsPastHero(false);
-      return;
-    }
-
-    const handleScroll = () => {
-      setIsPastHero(window.scrollY > window.innerHeight);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isHome]);
-
-  useEffect(() => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  const isWhite = isHome && !isPastHero;
-
   return (
     <>
-      <header className={`header ${isWhite ? "header--white" : "header--black"}`}>
+      <header className="header header--black">
         <div className="wrap header__inner">
+          <nav className="header__nav header__nav-left">
+            <NavLink to="/concert-info">공연</NavLink>
+            <NavLink to="/magazine">매거진</NavLink>
+          </nav>
+
           <Link to="/" className="header__logo">
             <img
-              src={isWhite ? "/images/logo-white.png" : "/images/logo-black.png"}
+              src="/images/logo-black.png"
               alt="Da Capo"
               draggable="false"
             />
           </Link>
 
-          <nav className="header__nav">
-            <NavLink to="/concert-info">공연</NavLink>
-            <NavLink to="/magazine">매거진</NavLink>
-            <NavLink to="/community" className={({ isActive }) => isActive || !!isClassicNotePublic ? "active" : ""}>커뮤니티</NavLink>
-            <NavLink to="/classic-note" end>나의 클래식 노트</NavLink>
-          </nav>
-
+          <div className="header__right">
+            <nav className="header__nav header__nav-right">
+              <NavLink to="/community" className={({ isActive }) => isActive || !!isClassicNotePublic ? "active" : ""}>커뮤니티</NavLink>
+              <NavLink to="/classic-note" end>나의 클래식 노트</NavLink>
+            </nav>
           <div className="header__actions">
             <div className={`header__user-menu${user ? " header__user-menu--active" : ""}`}>
               <Link to={user ? "/mypage" : "/login"} className="header__icon">
@@ -81,15 +65,16 @@ export default function Header() {
               aria-label="메뉴 열기"
             >
               {isMenuOpen ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round">
                   <path d="M6 6L18 18M6 18L18 6" />
                 </svg>
               ) : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round">
                   <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
             </button>
+          </div>
           </div>
         </div>
       </header>
@@ -99,15 +84,20 @@ export default function Header() {
       )}
 
       <div className={`header__drawer ${isMenuOpen ? "header__drawer--open" : ""}`} inert={!isMenuOpen}>
-        <button
-          className="header__drawer-close"
-          onClick={() => setIsMenuOpen(false)}
-          aria-label="메뉴 닫기"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-            <path d="M6 6L18 18M6 18L18 6" />
-          </svg>
-        </button>
+        <div className="header__drawer-header">
+          <Link to="/" className="header__drawer-logo" onClick={() => setIsMenuOpen(false)}>
+            <img src="/images/logo-black.png" alt="Da Capo" draggable="false" />
+          </Link>
+          <button
+            className="header__drawer-close"
+            onClick={() => setIsMenuOpen(false)}
+            aria-label="메뉴 닫기"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              <path d="M6 6L18 18M6 18L18 6" />
+            </svg>
+          </button>
+        </div>
 
         <nav className="header__drawer-nav">
           <NavLink to="/">홈</NavLink>

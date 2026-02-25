@@ -21,7 +21,7 @@ export default function Footer() {
                 클래식을 발견하는 가장 좋은 방법,
               </p>
               <p className="footer__desc-bottom">
-                클래식 공연 정보 플랫폼 &lt;Da Capo 다 카포&gt;
+                클래식 공연 중심 플랫폼 &lt;Da Capo 다 카포&gt;
               </p>
             </div>
           </div>
@@ -34,7 +34,7 @@ export default function Footer() {
               </div>
               <div className="footer__info-row">
                 <dt>E-MAIL</dt>
-                <dd>admin@da-capo.co.kr</dd>
+                <dd>contact@da-capo.co.kr</dd>
               </div>
             </dl>
 

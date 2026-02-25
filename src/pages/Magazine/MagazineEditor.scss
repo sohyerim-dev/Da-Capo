@@ -1,17 +1,17 @@
 .magazine-editor-page {
   padding: 60px 0 80px;
-  min-height: calc(100vh - 147px);
-  background: #f2ebe4;
+  min-height: calc(100vh - 84px);
+  background: #fafafa;
 
   @keyframes skeleton-shimmer {
     0% {
-      background-color: #e0ddd6;
+      background-color: #e8e8e8;
     }
     50% {
-      background-color: #eceae4;
+      background-color: #f4f4f4;
     }
     100% {
-      background-color: #e0ddd6;
+      background-color: #e8e8e8;
     }
   }
 
@@ -69,16 +69,16 @@
   &__label {
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: #161616;
   }
 
   &__input {
     padding: 11px 14px;
-    border: 1px solid #ddd;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
     font-size: 15px;
     font-family: inherit;
-    background: #fff;
+    background: #fafafa;
     transition: border-color 0.2s;
 
     &:focus {
@@ -89,11 +89,11 @@
 
   &__select {
     padding: 11px 18px 11px 14px;
-    border: 1px solid #ddd;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
-    background: #fff;
+    background: #fafafa;
     cursor: pointer;
     transition: border-color 0.2s;
     min-width: 140px;
@@ -110,17 +110,46 @@
     }
   }
 
+  &__privacy-btns {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__privacy-btn {
+    padding: 9px 20px;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fafafa;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #161616;
+      color: #161616;
+    }
+
+    &--active {
+      background: #161616;
+      border-color: #161616;
+      color: #fff;
+      font-weight: 600;
+    }
+  }
+
   &__editor-wrap {
-    border: 1px solid #ddd;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
     overflow: hidden;
-    background: #fff;
+    background: #fafafa;
     margin-bottom: 32px;
   }
 
   &__concert-section {
-    background: #fff;
-    border: 1px solid #ddd;
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
     padding: 24px;
     margin-bottom: 24px;
@@ -148,7 +177,7 @@
     background: #161616;
     color: #fff;
     border: none;
-    border-radius: 999px;
+    border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
     cursor: pointer;
@@ -172,7 +201,7 @@
     margin-bottom: 20px;
     max-height: 360px;
     overflow-y: auto;
-    border: 1px solid #eee;
+    border: 1px solid #e5e5e5;
     border-radius: 6px;
     padding: 8px;
   }
@@ -188,7 +217,7 @@
     font-family: inherit;
 
     &:hover {
-      color: #555;
+      color: #888;
     }
   }
 
@@ -202,11 +231,11 @@
     transition: background 0.15s;
 
     &:hover {
-      background: #f6f3ec;
+      background: #f2f2f2;
     }
 
     &--attached {
-      background: #f0ece3;
+      background: #f2f2f2;
 
       .magazine-editor-page__concert-add {
         color: #5a4a30;
@@ -258,7 +287,7 @@
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 12px;
-    color: #555;
+    color: #888;
   }
 
   &__attached-list {
@@ -272,15 +301,15 @@
     align-items: center;
     gap: 12px;
     padding: 10px;
-    background: #f9f9f7;
+    background: #f5f5f5;
     border-radius: 6px;
   }
 
   &__remove-btn {
     flex-shrink: 0;
     padding: 5px 14px;
-    border: 1.5px solid #ddd;
-    border-radius: 999px;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 8px;
     background: none;
     font-size: 12px;
     font-family: inherit;
@@ -308,8 +337,8 @@
 
   &__cancel-btn {
     padding: 11px 24px;
-    border: 1.5px solid #ddd;
-    border-radius: 999px;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 8px;
     background: none;
     font-size: 15px;
     font-family: inherit;
@@ -328,7 +357,7 @@
     background: #161616;
     color: #fff;
     border: none;
-    border-radius: 999px;
+    border-radius: 8px;
     font-size: 15px;
     font-family: inherit;
     font-weight: 600;
@@ -354,7 +383,7 @@
     font-size: 15px;
     line-height: 1.8;
     outline: none;
-    color: #222;
+    color: #161616;
 
     p.is-editor-empty:first-child::before {
       color: #aaa;

@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
+import ShareButton from "@/components/ui/ShareButton";
+import ImageLightbox from "@/components/ui/ImageLightbox";
 import "./MagazineDetail.scss";
 
 interface Concert {
@@ -22,6 +24,11 @@ interface MagazinePost {
   created_at: string | null;
 }
 
+interface NavPost {
+  id: number;
+  title: string;
+}
+
 const CATEGORY_SLUG: Record<string, string> = {
   "공지": "notice",
   "큐레이터 픽": "curator",
@@ -40,6 +47,12 @@ function formatDate(str: string): string {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
 }
 
+function formatDateTime(str: string): string {
+  const d = new Date(str.replace(" ", "T"));
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default function MagazineDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useUserStore();
@@ -51,6 +64,27 @@ export default function MagazineDetail() {
   const [notFound, setNotFound] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [prevPost, setPrevPost] = useState<NavPost | null>(null);
+  const [nextPost, setNextPost] = useState<NavPost | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "IMG" && !target.closest("a")) {
+        e.preventDefault();
+        setLightboxSrc((target as HTMLImageElement).src);
+      }
+    };
+    container.addEventListener("click", handleClick);
+    return () => container.removeEventListener("click", handleClick);
+  }, [post, loading]);
 
   useEffect(() => {
     if (!id) return;
@@ -72,8 +106,21 @@ export default function MagazineDetail() {
 
       setPost(postData);
 
-      // 조회수 증가
-      await supabase.rpc("increment_view_count", { p_post_id: Number(id) });
+      const [, { count: fetchedLikeCount }, { data: myLike }, [{ data: prevData }, { data: nextData }]] = await Promise.all([
+        supabase.rpc("increment_view_count", { p_post_id: Number(id) }),
+        supabase.from("magazine_likes").select("*", { count: "exact", head: true }).eq("post_id", Number(id)),
+        user
+          ? supabase.from("magazine_likes").select("id").eq("post_id", Number(id)).eq("user_id", user.id).maybeSingle()
+          : Promise.resolve({ data: null }),
+        Promise.all([
+          supabase.from("magazine_posts").select("id, title").lt("id", Number(id)).order("id", { ascending: false }).limit(1),
+          supabase.from("magazine_posts").select("id, title").gt("id", Number(id)).order("id", { ascending: true }).limit(1),
+        ]),
+      ]);
+      setLikeCount(fetchedLikeCount ?? 0);
+      setLiked(!!myLike);
+      setPrevPost((prevData?.[0] as NavPost) ?? null);
+      setNextPost((nextData?.[0] as NavPost) ?? null);
 
       // 첨부 공연 조회
       const { data: concertLinks } = await supabase
@@ -90,7 +137,6 @@ export default function MagazineDetail() {
           .in("id", concertIds);
 
         if (concertData) {
-          // display_order 순서 유지
           const ordered = concertLinks
             .map((link) => concertData.find((c) => c.id === link.concert_id))
             .filter((c): c is Concert => !!c);
@@ -103,6 +149,27 @@ export default function MagazineDetail() {
 
     fetchData();
   }, [id]);
+
+  const LIKEABLE_CATEGORIES = ["큐레이터 픽", "클래식 읽기"] as const;
+  type LikeableCategory = (typeof LIKEABLE_CATEGORIES)[number];
+
+  const handleLike = async () => {
+    if (!user) { navigate("/login"); return; }
+    if (likeLoading || !post) return;
+    setLikeLoading(true);
+    if (liked) {
+      setLiked(false);
+      setLikeCount((c) => c - 1);
+      const { error } = await supabase.from("magazine_likes").delete().eq("post_id", post.id).eq("user_id", user.id);
+      if (error) { setLiked(true); setLikeCount((c) => c + 1); }
+    } else {
+      setLiked(true);
+      setLikeCount((c) => c + 1);
+      const { error } = await supabase.from("magazine_likes").insert({ post_id: post.id, user_id: user.id });
+      if (error) { setLiked(false); setLikeCount((c) => c - 1); }
+    }
+    setLikeLoading(false);
+  };
 
   const handleDelete = async () => {
     if (!id) return;
@@ -121,10 +188,16 @@ export default function MagazineDetail() {
     return (
       <div className="magazine-detail-page">
         <div className="wrap magazine-detail-page__inner">
-          <div className="magazine-detail-page__skeleton-badge" />
-          <div className="magazine-detail-page__skeleton-title" />
-          <div className="magazine-detail-page__skeleton-title-sm" />
-          <div className="magazine-detail-page__skeleton-meta" />
+          <div className="magazine-detail-page__heading">
+            <h1>매거진</h1>
+          </div>
+          <div className="magazine-detail-page__post-row">
+            <div className="magazine-detail-page__post-row-left">
+              <div className="magazine-detail-page__skeleton-badge" />
+              <div className="magazine-detail-page__skeleton-title" />
+            </div>
+            <div className="magazine-detail-page__skeleton-meta" />
+          </div>
           <hr className="magazine-detail-page__divider" />
           {Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className="magazine-detail-page__skeleton-line" />
@@ -146,32 +219,72 @@ export default function MagazineDetail() {
   }
 
   return (
+    <>
     <div className="magazine-detail-page">
       <div className="wrap magazine-detail-page__inner">
-        <div className="magazine-detail-page__meta-top">
-          <Link to="/magazine" className="magazine-detail-page__back">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 5l-7 7 7 7" />
-            </svg>
-            목록
-          </Link>
+
+        <div className="magazine-detail-page__heading">
+          <h1>매거진</h1>
         </div>
 
-        <span className={`magazine-detail-page__badge magazine-detail-page__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
-          {post.category}
-        </span>
-        <h1 className="magazine-detail-page__title">{post.title}</h1>
-        <div className="magazine-detail-page__info">
-          <span>{post.author_nickname}</span>
-          <span>·</span>
-          <span>{post.created_at ? formatDate(post.created_at) : ""}</span>
-          <span>·</span>
-          <span>조회 {(post.view_count ?? 0).toLocaleString()}</span>
+        <div className="magazine-detail-page__post-row">
+          <div className="magazine-detail-page__post-row-left">
+            <span className="magazine-detail-page__post-num">{post.id}</span>
+            <span className={`magazine-detail-page__badge magazine-detail-page__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
+              {post.category}
+            </span>
+            <span className="magazine-detail-page__post-title">{post.title}</span>
+          </div>
+          <span className="magazine-detail-page__post-date">
+            {post.created_at ? formatDateTime(post.created_at) : ""}
+          </span>
         </div>
 
         <hr className="magazine-detail-page__divider" />
 
+        <div className="magazine-detail-page__sub-meta">
+          <div className="magazine-detail-page__sub-meta-left">
+            <span>{post.author_nickname}</span>
+            <span>·</span>
+            <span>조회 {(post.view_count ?? 0).toLocaleString()}</span>
+          </div>
+          <div className="magazine-detail-page__sub-meta-right">
+            {LIKEABLE_CATEGORIES.includes(post.category as LikeableCategory) && (
+              <button
+                className={`magazine-detail-page__like-btn${liked ? " magazine-detail-page__like-btn--liked" : ""}`}
+                onClick={handleLike}
+                disabled={likeLoading}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                {likeCount > 0 ? likeCount : "좋아요"}
+              </button>
+            )}
+            {post.category !== "공지" && (
+              <ShareButton title={post.title} />
+            )}
+            {user?.role === "admin" && (
+              <>
+                <button
+                  className="magazine-detail-page__action-btn"
+                  onClick={() => navigate(`/magazine/${id}/edit`)}
+                >
+                  수정
+                </button>
+                <button
+                  className="magazine-detail-page__action-btn magazine-detail-page__action-btn--delete"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  삭제
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
         <div
+          ref={contentRef}
           className="magazine-detail-page__content tiptap-content"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
@@ -179,7 +292,7 @@ export default function MagazineDetail() {
         {concerts.length > 0 && (
           <div className="magazine-detail-page__concerts">
             <h2 className="magazine-detail-page__concerts-title">
-              연결된 공연
+              추천 공연
             </h2>
             <div className="magazine-detail-page__concerts-list">
               {concerts.map((concert) => (
@@ -211,47 +324,63 @@ export default function MagazineDetail() {
           </div>
         )}
 
-        {user?.role === "admin" && (
-          <div className="magazine-detail-page__admin-actions">
-            <button
-              className="magazine-detail-page__action-btn"
-              onClick={() => navigate(`/magazine/${id}/edit`)}
-            >
-              수정
-            </button>
-            <button
-              className="magazine-detail-page__action-btn magazine-detail-page__action-btn--delete"
-              onClick={() => setShowDeleteConfirm(true)}
-            >
-              삭제
-            </button>
+        <div className="magazine-detail-page__nav">
+          <div className="magazine-detail-page__nav-row">
+            <span className="magazine-detail-page__nav-label">이전글</span>
+            {prevPost ? (
+              <Link to={`/magazine/${prevPost.id}`} className="magazine-detail-page__nav-link">
+                {prevPost.title}
+              </Link>
+            ) : (
+              <span className="magazine-detail-page__nav-empty">이전글이 없습니다.</span>
+            )}
           </div>
-        )}
+          <div className="magazine-detail-page__nav-row">
+            <span className="magazine-detail-page__nav-label">다음글</span>
+            {nextPost ? (
+              <Link to={`/magazine/${nextPost.id}`} className="magazine-detail-page__nav-link">
+                {nextPost.title}
+              </Link>
+            ) : (
+              <span className="magazine-detail-page__nav-empty">다음글이 없습니다.</span>
+            )}
+          </div>
+        </div>
 
-        {showDeleteConfirm && (
-          <div className="magazine-detail-page__modal-overlay" onClick={() => !deleteLoading && setShowDeleteConfirm(false)}>
-            <div className="magazine-detail-page__delete-confirm" onClick={(e) => e.stopPropagation()}>
-              <p className="magazine-detail-page__delete-confirm-title">글을 삭제하시겠습니까?</p>
-              <p className="magazine-detail-page__delete-confirm-desc">삭제 후 복구할 수 없습니다.</p>
-              <div className="magazine-detail-page__delete-actions">
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={deleteLoading}
-                >
-                  취소
-                </button>
-                <button
-                  className="magazine-detail-page__delete-confirm-btn"
-                  onClick={handleDelete}
-                  disabled={deleteLoading}
-                >
-                  {deleteLoading ? "삭제 중..." : "삭제"}
-                </button>
-              </div>
+        <div className="magazine-detail-page__footer">
+          <Link to="/magazine" className="magazine-detail-page__list-btn">목록</Link>
+        </div>
+
+      </div>
+
+      {showDeleteConfirm && (
+        <div className="magazine-detail-page__modal-overlay" onClick={() => !deleteLoading && setShowDeleteConfirm(false)}>
+          <div className="magazine-detail-page__delete-confirm" onClick={(e) => e.stopPropagation()}>
+            <p className="magazine-detail-page__delete-confirm-title">글을 삭제하시겠습니까?</p>
+            <p className="magazine-detail-page__delete-confirm-desc">삭제 후 복구할 수 없습니다.</p>
+            <div className="magazine-detail-page__delete-actions">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleteLoading}
+              >
+                취소
+              </button>
+              <button
+                className="magazine-detail-page__delete-confirm-btn"
+                onClick={handleDelete}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? "삭제 중..." : "삭제"}
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
+
+    {lightboxSrc && (
+      <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+    )}
+    </>
   );
 }

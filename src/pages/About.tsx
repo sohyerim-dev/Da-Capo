@@ -4,9 +4,20 @@ export default function About() {
   return (
     <div className="about">
       <div className="wrap">
-        <h1 className="about__title">Da Capo 다 카포 소개</h1>
-        <hr />
-        <br />
+        <h1 className="sr-only">Da Capo 소개</h1>
+        <div className="about__title" aria-hidden="true">
+          <img
+            src="/images/logo-black.png"
+            alt=""
+            className="about__title-logo"
+          />
+          <span>소개</span>
+        </div>
+        <img
+          src="/images/about-image.png"
+          alt="Da Capo 소개 이미지"
+          className="about__image"
+        />
         <div className="about__content">
           <p>
             Da Capo는 이탈리아어로 ‘처음부터 다시’라는 뜻을 지닌 표현으로,
@@ -29,12 +40,6 @@ export default function About() {
             Da Capo를 통해 누구나 클래식을 더 쉽고 깊이 있게 향유할 수 있기를
             바랍니다.
           </p>
-          <br />
-          <img
-            src="/images/about-image.png"
-            alt="Da Capo 소개 이미지"
-            className="about__image"
-          />
         </div>
       </div>
     </div>

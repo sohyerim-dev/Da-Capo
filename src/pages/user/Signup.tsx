@@ -139,6 +139,7 @@ export default function Signup() {
           phone,
           avatar_url: DEFAULT_IMAGE,
           role: "user",
+          classic_note_public: true,
         },
       },
     });

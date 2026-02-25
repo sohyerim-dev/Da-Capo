@@ -19,7 +19,7 @@ const SORT_OPTIONS: { label: string; value: SortOption }[] = [
   { label: "찜 많은 순", value: "bookmark_count" },
 ];
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 8;
 const BOXOFFICE_PAGE_SIZE = 8;
 const SUB_PAGE_SIZE = 6;
 const SUB_PAGE_SIZE_MOBILE = 3;
@@ -262,6 +262,8 @@ export default function ConcertBrowse() {
 
   return (
     <>
+      <hr className="concert-info__section-divider" />
+
       {/* 대분류 탭 */}
       <div className="concert-info__tabs">
         {concertTabData.map((tab, i) => (
@@ -336,6 +338,8 @@ export default function ConcertBrowse() {
           </button>
         </div>
       )}
+
+      <hr className="concert-info__section-divider" />
 
       {/* 필터 버튼 + 정렬 */}
       <div className="concert-info__filter-row">

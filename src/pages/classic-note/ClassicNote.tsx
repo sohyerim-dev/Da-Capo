@@ -16,6 +16,7 @@ export interface Note {
   content: string | null;
   note_date: string;
   concert_id: string | null;
+  concert: { id: string; title: string | null } | null;
   is_public: boolean | null;
   created_at: string | null;
   updated_at: string | null;
@@ -36,7 +37,6 @@ export interface BookmarkItem {
     id: string;
     title: string | null;
     start_date: string | null;
-    end_date: string | null;
   };
 }
 
@@ -47,7 +47,6 @@ export default function ClassicNote() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [monthNotes, setMonthNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
-  const [concertTitleMap, setConcertTitleMap] = useState<Record<string, string | null>>({});
   const [bookmarkItems, setBookmarkItems] = useState<BookmarkItem[]>([]);
   const [notePublic, setNotePublic] = useState<boolean | null>(null);
 
@@ -73,7 +72,7 @@ export default function ClassicNote() {
       const { start, end } = getMonthRange(month);
       const { data } = await supabase
         .from("notes")
-        .select("*")
+        .select("*, concert:concerts(id, title)")
         .eq("user_id", user.id)
         .gte("note_date", start)
         .lte("note_date", end)
@@ -85,12 +84,12 @@ export default function ClassicNote() {
   );
 
   const fetchMonthBookmarks = useCallback(
-    async (month: Date) => {
+    async () => {
       if (!user) return;
 
       const { data: wlData } = await supabase
         .from("bookmarks")
-        .select("id, concert_id, scheduled_dates")
+        .select("id, concert_id, scheduled_dates, concert:concerts(id, title, start_date)")
         .eq("user_id", user.id);
 
       if (!wlData || wlData.length === 0) {
@@ -98,32 +97,11 @@ export default function ClassicNote() {
         return;
       }
 
-      const concertIds = wlData.map((w) => w.concert_id);
-      const { data: concertData } = await supabase
-        .from("concerts")
-        .select("id, title, start_date, end_date")
-        .in("id", concertIds);
-
-      if (!concertData) {
-        setBookmarkItems([]);
-        return;
-      }
-
-      const { start: monthStart, end: monthEnd } = getMonthRange(month);
-
       const items: BookmarkItem[] = [];
       for (const wl of wlData) {
-        const concert = concertData.find((c) => c.id === wl.concert_id);
+        const concert = wl.concert as BookmarkItem["concert"] | null;
         if (!concert) continue;
         const scheduledDates = wl.scheduled_dates ?? null;
-        let includeInMonth: boolean;
-        if (scheduledDates && scheduledDates.length > 0) {
-          includeInMonth = scheduledDates.some((d) => d >= monthStart && d <= monthEnd);
-        } else {
-          const s = concertDateToISO(concert.start_date);
-          includeInMonth = s >= monthStart && s <= monthEnd;
-        }
-        if (!includeInMonth) continue;
         items.push({ id: wl.id, concert_id: wl.concert_id, scheduled_dates: scheduledDates, concert });
       }
 
@@ -173,37 +151,15 @@ export default function ClassicNote() {
   }, [user]);
 
   useEffect(() => {
+    fetchMonthBookmarks();
+  }, [fetchMonthBookmarks]);
+
+  useEffect(() => {
     fetchMonthNotes(currentMonth);
-    fetchMonthBookmarks(currentMonth);
     setBookmarkLimit(PAGE_SIZE);
     setConcertRecordLimit(PAGE_SIZE);
     setFreeWritingLimit(PAGE_SIZE);
-  }, [currentMonth, fetchMonthNotes, fetchMonthBookmarks]);
-
-  useEffect(() => {
-    const ids = monthNotes
-      .filter((n) => n.concert_id && !n.title)
-      .map((n) => n.concert_id as string);
-
-    if (ids.length === 0) {
-      setConcertTitleMap({});
-      return;
-    }
-
-    supabase
-      .from("concerts")
-      .select("id, title")
-      .in("id", ids)
-      .then(({ data }) => {
-        if (data) {
-          const map: Record<string, string | null> = {};
-          data.forEach((c) => {
-            map[c.id] = c.title;
-          });
-          setConcertTitleMap(map);
-        }
-      });
-  }, [monthNotes]);
+  }, [currentMonth, fetchMonthNotes]);
 
   const handleDayClick = (date: Date) => {
     setSelectedDate(date);
@@ -265,9 +221,12 @@ export default function ClassicNote() {
           <div className="classic-note__title-row">
             <h1 className="classic-note__title">나의 클래식 노트</h1>
             {notePublic !== null && (
-              <span className={`classic-note__public-badge${notePublic ? " classic-note__public-badge--on" : ""}`}>
+              <Link
+                to="/mypage#classic-note"
+                className={`classic-note__public-badge${notePublic ? " classic-note__public-badge--on" : ""}`}
+              >
                 {notePublic ? "공개" : "비공개"}
-              </span>
+              </Link>
             )}
             {subscribers.length > 0 && (
               <button
@@ -332,7 +291,10 @@ export default function ClassicNote() {
                   const datesInMonth =
                     w.scheduled_dates && w.scheduled_dates.length > 0
                       ? w.scheduled_dates.filter((d) => d >= monthStart && d <= monthEnd)
-                      : [concertDateToISO(w.concert.start_date)];
+                      : (() => {
+                          const s = concertDateToISO(w.concert.start_date);
+                          return s >= monthStart && s <= monthEnd ? [s] : [];
+                        })();
                   return datesInMonth.map((date) => ({ w, date }));
                 });
                 if (allBookmarkRows.length === 0) return null;
@@ -419,10 +381,7 @@ export default function ClassicNote() {
                             <span className="classic-note__list-badge-text">관람 기록</span>
                           </span>
                           <span className="classic-note__list-title">
-                            {note.title ??
-                              (note.concert_id
-                                ? (concertTitleMap[note.concert_id] ?? "(제목 없음)")
-                                : "(제목 없음)")}
+                            {note.title ?? note.concert?.title ?? "(제목 없음)"}
                           </span>
                         </li>
                       ))}
@@ -521,11 +480,6 @@ export default function ClassicNote() {
         )}
       </div>
 
-      {/* 날짜 패널 overlay */}
-      {panelOpen && (
-        <div className="note-panel-overlay" onClick={handlePanelClose} />
-      )}
-
       <NoteDatePanel
         open={panelOpen}
         date={selectedDate}
@@ -536,14 +490,6 @@ export default function ClassicNote() {
         onEditNote={handleEditNote}
         onNoteDeleted={handleNoteDeleted}
       />
-
-      {/* 폼 패널 overlay */}
-      {formOpen && (
-        <div
-          className="note-panel-overlay note-panel-overlay--form"
-          onClick={handleFormClose}
-        />
-      )}
 
       <NoteFormPanel
         open={formOpen}

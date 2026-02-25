@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { supabase } from "@/lib/supabase";
 import type { Note, BookmarkItem } from "./ClassicNote";
+import ImageLightbox from "@/components/ui/ImageLightbox";
 import "./NotePanel.scss";
 
 interface Props {
@@ -44,6 +45,8 @@ export default function NoteDatePanel({
   onNoteDeleted,
 }: Props) {
   const navigate = useNavigate();
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [concertMap, setConcertMap] = useState<Record<string, ConcertInfo>>({});
@@ -56,6 +59,21 @@ export default function NoteDatePanel({
       return next;
     });
   };
+
+  useEffect(() => {
+    const body = bodyRef.current;
+    if (!body) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "IMG" && !target.closest("a")) {
+        e.preventDefault();
+        e.stopPropagation();
+        setLightboxSrc((target as HTMLImageElement).src);
+      }
+    };
+    body.addEventListener("click", handleClick);
+    return () => body.removeEventListener("click", handleClick);
+  }, []);
 
   useEffect(() => {
     const concertIds = notes
@@ -93,6 +111,7 @@ export default function NoteDatePanel({
   };
 
   return (
+    <>
     <div className={`note-panel${open ? " note-panel--open" : ""}`}>
       <div className="note-panel__header">
         <span className="note-panel__header-title">
@@ -119,7 +138,7 @@ export default function NoteDatePanel({
         </button>
       </div>
 
-      <div className="note-panel__body">
+      <div className="note-panel__body" ref={bodyRef}>
         {notes.length === 0 && bookmarks.length === 0 ? (
           <p className="note-panel__empty">이 날의 기록이 없습니다.</p>
         ) : (
@@ -282,5 +301,10 @@ export default function NoteDatePanel({
         </button>
       </div>
     </div>
+
+    {lightboxSrc && (
+      <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+    )}
+    </>
   );
 }

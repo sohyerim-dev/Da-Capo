@@ -1,6 +1,6 @@
 .classic-note {
-  min-height: calc(100vh - 147px);
-  background: #f2ebe4;
+  min-height: calc(100vh - 84px);
+  background: #fafafa;
   padding: 60px 0 80px;
 
   @media (max-width: 1200px) {
@@ -44,10 +44,17 @@
     font-size: 11px;
     font-weight: 600;
     padding: 3px 9px;
-    border-radius: 999px;
-    border: 1.5px solid #ccc;
+    border-radius: 8px;
+    border: 1.5px solid #d0d0d0;
     color: #aaa;
     background: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+
+    &:hover {
+      opacity: 0.65;
+    }
 
     &--on {
       border-color: #161616;
@@ -61,8 +68,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #fab95b;
-    color: #161616;
+    background: #161616;
+    color: #fff;
     border: none;
     border-radius: 50%;
     cursor: pointer;
@@ -70,7 +77,6 @@
 
     &:hover {
       background: #333;
-      color: #fff;
     }
 
     @media (max-width: 640px) {
@@ -80,10 +86,10 @@
 
   // ─── react-calendar 커스텀 스타일 ───
   &__calendar-wrap {
-    background: #fffef9;
+    background: #f5f5f5;
     border-radius: 16px;
-    border: 1px solid #e4ddd6;
-    border-top: 4px solid #fab95b;
+    border: 1px solid #e5e5e5;
+    border-top: 4px solid #161616;
     padding-bottom: 50px;
     margin-bottom: 48px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
@@ -118,7 +124,7 @@
         background: none;
         border: none;
         font-size: 18px;
-        color: #999;
+        color: #888;
         cursor: pointer;
         width: 40px;
         height: 40px;
@@ -133,7 +139,7 @@
 
         &:hover {
           color: #161616;
-          background: #fab95b;
+          background: #161616;
         }
       }
 
@@ -147,17 +153,17 @@
       &__weekdays {
         display: grid !important;
         grid-template-columns: repeat(7, 1fr);
-        border-top: 1px solid #e4ddd6;
-        border-left: 1px solid #e4ddd6;
+        border-top: 1px solid #e5e5e5;
+        border-left: 1px solid #e5e5e5;
 
         &__weekday {
           font-size: 12px;
           font-weight: 600;
-          color: #999;
+          color: #888;
           padding: 10px 0;
           text-align: center;
-          border-right: 1px solid #e4ddd6;
-          border-bottom: 1px solid #e4ddd6;
+          border-right: 1px solid #e5e5e5;
+          border-bottom: 1px solid #e5e5e5;
           letter-spacing: 0.03em;
 
           abbr {
@@ -169,7 +175,7 @@
       &__days {
         display: grid !important;
         grid-template-columns: repeat(7, 1fr);
-        border-left: 1px solid #e4ddd6;
+        border-left: 1px solid #e5e5e5;
 
         &__day {
           &--neighboringMonth {
@@ -188,14 +194,14 @@
       position: relative;
       height: 88px;
       padding: 10px 12px 8px;
-      background: #fffef9;
+      background: #f5f5f5;
       border: none;
-      border-right: 1px solid #e4ddd6;
-      border-bottom: 1px solid #e4ddd6;
+      border-right: 1px solid #e5e5e5;
+      border-bottom: 1px solid #e5e5e5;
       border-radius: 0;
       font-size: 14px;
       font-family: inherit;
-      color: #333;
+      color: #161616;
       cursor: pointer;
       transition: background 0.15s;
       display: flex;
@@ -216,7 +222,7 @@
 
       &--active,
       &--hasActive {
-        background: #fffef9 !important;
+        background: #fafafa !important;
         color: #333 !important;
       }
 
@@ -247,7 +253,7 @@
 
   // 선택된 날짜
   .classic-note__tile--selected {
-    background: #f0e8de !important;
+    background: #f2f2f2 !important;
 
     abbr {
       position: absolute;
@@ -259,8 +265,9 @@
       width: 26px;
       height: 26px;
       border-radius: 50%;
-      background: #161616;
-      color: #fff;
+      background: transparent;
+      border: 2px solid #161616;
+      color: #161616;
       font-weight: 700;
       font-size: 13px;
 
@@ -288,6 +295,13 @@
     }
   }
 
+  // 인접 월(overflow) 날짜의 아이콘은 흐리게
+  .react-calendar__month-view__days__day--neighboringMonth {
+    .classic-note__tile-icons {
+      opacity: 0.25;
+    }
+  }
+
   &__tile-icon {
     width: 28px;
     height: 28px;
@@ -301,7 +315,7 @@
       color 0.2s;
 
     &:hover {
-      background: #fab95b;
+      background: #161616;
       color: #161616;
     }
 
@@ -319,10 +333,10 @@
   &__month-list {
     margin-top: 8px;
     padding: 28px 24px 36px 28px;
-    background: #fffef9;
+    background: #f5f5f5;
     border-radius: 12px;
-    border: 1px solid #e4ddd6;
-    border-left: 4px solid #fab95b;
+    border: 1px solid #e5e5e5;
+    border-left: 4px solid #161616;
     box-shadow: 2px 4px 16px rgba(0, 0, 0, 0.05);
 
     @media (max-width: 640px) {
@@ -347,12 +361,12 @@
   &__group-label {
     font-size: 12px;
     font-weight: 700;
-    color: #8a7055;
+    color: #888;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     margin: 0 0 12px;
     padding: 0 0 0 10px;
-    border-left: 3px solid #fab95b;
+    border-left: 3px solid #161616;
   }
 
   &__more-btn {
@@ -409,7 +423,7 @@
     }
 
     &:hover {
-      background: rgba(250, 185, 91, 0.07);
+      background: rgba(0, 0, 0, 0.03);
     }
   }
 
@@ -475,13 +489,13 @@
   // ─── 스켈레톤 ───
   @keyframes skeleton-shimmer {
     0% {
-      background-color: #e0ddd6;
+      background-color: #e8e8e8;
     }
     50% {
-      background-color: #eceae4;
+      background-color: #f4f4f4;
     }
     100% {
-      background-color: #e0ddd6;
+      background-color: #e8e8e8;
     }
   }
 
@@ -565,7 +579,7 @@
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
-    border: 2px solid #e0ddd6;
+    border: 2px solid #e8e8e8;
   }
 
   &__public-user {
@@ -595,12 +609,12 @@
   &__public-section-title {
     font-size: 12px;
     font-weight: 700;
-    color: #8a7055;
+    color: #888;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     margin: 0 0 12px;
     padding: 0 0 0 10px;
-    border-left: 3px solid #fab95b;
+    border-left: 3px solid #161616;
   }
 
   &__public-list {
@@ -613,9 +627,9 @@
   }
 
   &__public-card {
-    background: #fffef9;
-    border: 1px solid #e4ddd6;
-    border-left: 3px solid #fab95b;
+    background: #f5f5f5;
+    border: 1px solid #e5e5e5;
+    border-left: 3px solid #161616;
     border-radius: 10px;
     padding: 16px 18px;
   }
@@ -649,23 +663,13 @@
     align-items: center;
     gap: 4px;
     padding: 3px 8px;
-    border-radius: 50px;
+    border-radius: 4px;
     font-size: 12px;
     font-weight: 600;
 
-    &--bookmark {
-      background: #fde8cc;
-      color: #8a5a1a;
-    }
-
-    &--record {
-      background: #d4e8d4;
-      color: #2e6b2e;
-    }
-
-    &--free {
-      background: #e8e4f8;
-      color: #4a3a8a;
+    &--bookmark, &--record, &--free {
+      background: #f0f0f0;
+      color: #444;
     }
   }
 
@@ -673,7 +677,7 @@
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #666;
+    color: #888;
     text-decoration: none;
     margin-bottom: 6px;
 
@@ -716,7 +720,7 @@
       left: 0;
       right: 0;
       height: 40px;
-      background: linear-gradient(transparent, #fffef9);
+      background: linear-gradient(transparent, #fafafa);
     }
 
     &--expanded {
@@ -768,7 +772,7 @@
   &__public-blocked-title {
     font-size: 18px;
     font-weight: 700;
-    color: #333;
+    color: #161616;
     margin-bottom: 8px;
   }
 
@@ -780,8 +784,8 @@
 
   &__public-blocked-back {
     padding: 10px 24px;
-    border: 1.5px solid #ddd;
-    border-radius: 999px;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 8px;
     background: none;
     font-size: 14px;
     font-family: inherit;
@@ -799,9 +803,9 @@
   &__subscriptions {
     margin-top: 24px;
     padding: 24px 24px 28px 28px;
-    background: #fffef9;
+    background: #f5f5f5;
     border-radius: 12px;
-    border: 1px solid #e4ddd6;
+    border: 1px solid #e5e5e5;
     border-left: 4px solid #161616;
     box-shadow: 2px 4px 16px rgba(0, 0, 0, 0.05);
 
@@ -831,13 +835,13 @@
     align-items: center;
     gap: 8px;
     padding: 6px 14px 6px 6px;
-    border-radius: 999px;
-    border: 1.5px solid #e0ddd6;
+    border-radius: 8px;
+    border: 1.5px solid #e8e8e8;
     text-decoration: none;
     color: #161616;
     font-size: 13px;
     font-weight: 500;
-    background: #f6f3ec;
+    background: #f2f2f2;
     transition:
       background 0.2s,
       border-color 0.2s;
@@ -847,7 +851,7 @@
       height: 28px;
       border-radius: 50%;
       object-fit: cover;
-      border: 1.5px solid #e0ddd6;
+      border: 1.5px solid #e8e8e8;
     }
 
     &:hover {
@@ -863,7 +867,7 @@
     color: #888;
     background: none;
     border: 1.5px solid #d8d4ce;
-    border-radius: 999px;
+    border-radius: 8px;
     padding: 3px 10px;
     font-family: inherit;
     cursor: pointer;
@@ -881,7 +885,7 @@
   &__subscribers-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0,0,0,0.4);
     z-index: 900;
   }
 
@@ -891,7 +895,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 901;
-    background: #fffef9;
+    background: #f5f5f5;
     border-radius: 16px;
     width: min(400px, 90vw);
     max-height: 60vh;
@@ -906,7 +910,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 18px 20px 16px;
-    border-bottom: 1px solid #e4ddd6;
+    border-bottom: 1px solid #e5e5e5;
     flex-shrink: 0;
   }
 
@@ -954,19 +958,19 @@
       height: 36px;
       border-radius: 50%;
       object-fit: cover;
-      border: 1.5px solid #e0ddd6;
+      border: 1.5px solid #e8e8e8;
       flex-shrink: 0;
     }
 
     &:hover {
-      background: rgba(250, 185, 91, 0.1);
+      background: rgba(0, 0, 0, 0.05);
     }
   }
 
   // ─── 구독 버튼 (공개 노트 뷰) ───
   &__subscribe-btn {
     padding: 6px 16px;
-    border-radius: 999px;
+    border-radius: 8px;
     border: 1.5px solid #161616;
     font-size: 13px;
     font-family: inherit;

@@ -1,6 +1,6 @@
 .mypage {
-  min-height: calc(100vh - 147px);
-  background-color: #f2ebe4;
+  min-height: calc(100vh - 84px);
+  background-color: #fafafa;
   padding: 48px 20px;
 
   @media (max-width: 1200px) {
@@ -21,9 +21,10 @@
     align-items: center;
     gap: 24px;
     padding: 32px;
-    background: #f2ebe4;
-    border: 1px solid #c8c0b6;
+    background: #fafafa;
+    border: 1px solid #ddd6cc;
     border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   }
 
   &__avatar-wrapper {
@@ -97,13 +98,14 @@
 
   // 섹션
   &__section {
-    background: #f2ebe4;
-    border: 1px solid #c8c0b6;
+    background: #fafafa;
+    border: 1px solid #ddd6cc;
     border-radius: 12px;
     padding: 32px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   }
 
   &__section-title {
@@ -137,10 +139,10 @@
     flex-shrink: 0;
     padding: 12px 16px;
     line-height: 1.5;
-    border: 1px solid #c8c0b6;
+    border: 1px solid #d0d0d0;
     border-radius: 8px;
     background: transparent;
-    color: #333;
+    color: #161616;
     font-size: 16px;
     font-family: inherit;
     cursor: pointer;
@@ -216,7 +218,7 @@
 
   &__toggle-status {
     font-size: 13px;
-    color: #555;
+    color: #888;
   }
 
   &__toggle {
@@ -250,7 +252,7 @@
     &-track {
       position: absolute;
       inset: 0;
-      background: #c8c0b6;
+      background: #d0d0d0;
       border-radius: 12px;
       transition: background 0.2s;
       cursor: pointer;
@@ -260,7 +262,7 @@
         position: absolute;
         width: 18px;
         height: 18px;
-        background: #fff;
+        background: #fafafa;
         border-radius: 50%;
         top: 3px;
         left: 3px;
@@ -271,9 +273,9 @@
 
   // 스켈레톤
   @keyframes skeleton-shimmer {
-    0% { background-color: #e0ddd6; }
-    50% { background-color: #eceae4; }
-    100% { background-color: #e0ddd6; }
+    0% { background-color: #e8e8e8; }
+    50% { background-color: #f4f4f4; }
+    100% { background-color: #e8e8e8; }
   }
 
   &__skeleton-avatar {
@@ -312,7 +314,7 @@
   // 계정 탈퇴
   &__danger {
     border: 1px solid #ffcdd2;
-    background: #f2ebe4;
+    background: #fafafa;
     border-radius: 12px;
     padding: 32px;
     display: flex;
@@ -328,7 +330,7 @@
 
   &__danger-desc {
     font-size: 13px;
-    color: #555;
+    color: #888;
     line-height: 1.6;
   }
 
@@ -358,9 +360,9 @@
 
   &__btn-cancel {
     padding: 7px 16px;
-    border: 1px solid #c8c0b6;
+    border: 1px solid #d0d0d0;
     background: transparent;
-    color: #555;
+    color: #888;
     border-radius: 8px;
     font-size: 14px;
     font-family: inherit;

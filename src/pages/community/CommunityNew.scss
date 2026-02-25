@@ -1,17 +1,17 @@
 .community-editor-page {
   padding: 60px 0 80px;
-  min-height: calc(100vh - 147px);
-  background: #f2ebe4;
+  min-height: calc(100vh - 84px);
+  background: #fafafa;
 
   @keyframes skeleton-shimmer {
     0% {
-      background-color: #e0ddd6;
+      background-color: #e8e8e8;
     }
     50% {
-      background-color: #eceae4;
+      background-color: #f4f4f4;
     }
     100% {
-      background-color: #e0ddd6;
+      background-color: #e8e8e8;
     }
   }
 
@@ -69,16 +69,16 @@
   &__label {
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: #161616;
   }
 
   &__input {
     padding: 11px 14px;
-    border: 1px solid #ddd;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
     font-size: 15px;
     font-family: inherit;
-    background: #fff;
+    background: #fafafa;
     transition: border-color 0.2s;
 
     &:focus {
@@ -89,11 +89,11 @@
 
   &__select {
     padding: 11px 14px;
-    border: 1px solid #ddd;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
-    background: #fff;
+    background: #fafafa;
     cursor: pointer;
     transition: border-color 0.2s;
     -webkit-appearance: none;
@@ -147,9 +147,9 @@
     list-style: none;
     padding: 0;
     margin: 0;
-    border: 1px solid #ddd;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
-    background: #fff;
+    background: #fafafa;
     overflow: hidden;
   }
 
@@ -172,7 +172,7 @@
 
   &__concert-result-title {
     font-size: 14px;
-    color: #222;
+    color: #161616;
   }
 
   &__concert-result-date {
@@ -185,15 +185,15 @@
     align-items: center;
     gap: 10px;
     padding: 11px 14px;
-    border: 1px solid #ddd;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
-    background: #fff;
+    background: #fafafa;
   }
 
   &__attached-concert-title {
     flex: 1;
     font-size: 14px;
-    color: #222;
+    color: #161616;
     font-weight: 500;
   }
 
@@ -205,7 +205,7 @@
   &__attached-concert-remove {
     background: none;
     border: none;
-    color: #999;
+    color: #888;
     font-size: 18px;
     line-height: 1;
     cursor: pointer;
@@ -213,7 +213,7 @@
     transition: color 0.15s;
 
     &:hover {
-      color: #333;
+      color: #161616;
     }
   }
 
@@ -227,18 +227,18 @@
 
   &__date-label {
     font-size: 13px;
-    color: #555;
+    color: #888;
     font-weight: 500;
     white-space: nowrap;
   }
 
   &__date-input {
     padding: 7px 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
-    background: #fff;
+    background: #fafafa;
     transition: border-color 0.2s;
     cursor: pointer;
 
@@ -254,10 +254,10 @@
   }
 
   &__editor-wrap {
-    border: 1px solid #ddd;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
     overflow: hidden;
-    background: #fff;
+    background: #fafafa;
     margin-bottom: 24px;
   }
 
@@ -275,8 +275,8 @@
 
   &__cancel-btn {
     padding: 11px 24px;
-    border: 1.5px solid #ddd;
-    border-radius: 999px;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 8px;
     background: none;
     font-size: 15px;
     font-family: inherit;
@@ -295,7 +295,7 @@
     background: #161616;
     color: #fff;
     border: none;
-    border-radius: 999px;
+    border-radius: 8px;
     font-size: 15px;
     font-family: inherit;
     font-weight: 600;
@@ -320,7 +320,7 @@
     font-size: 15px;
     line-height: 1.8;
     outline: none;
-    color: #222;
+    color: #161616;
 
     p.is-editor-empty:first-child::before {
       color: #aaa;

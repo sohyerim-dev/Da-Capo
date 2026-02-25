@@ -21,7 +21,7 @@ export default function SplashScreen() {
     setHiding(true);
     setTimeout(() => {
       setMounted(false);
-    }, 3000);
+    }, 5000);
   };
 
   if (!mounted) return null;
@@ -41,7 +41,6 @@ export default function SplashScreen() {
         onEnded={handleEnded}
       >
         <source src="/images/intro.webm" type="video/webm" />
-        <source src="/images/intro.mp4" type="video/mp4" />
       </video>
     </div>
   );

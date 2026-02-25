@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import ClassicNoteCalendar from "./ClassicNoteCalendar";
+import ImageLightbox from "@/components/ui/ImageLightbox";
 import { toDateStr, concertDateToISO, formatNoteDate, getMonthRange, formatMonthLabel } from "./classicNoteUtils";
 import "./ClassicNote.scss";
 import "./NotePanel.scss";
@@ -14,6 +15,7 @@ interface PublicNote {
   content: string | null;
   note_date: string;
   concert_id: string | null;
+  concert: { id: string; title: string | null } | null;
   is_public: boolean | null;
   created_at: string | null;
 }
@@ -53,7 +55,6 @@ export default function ClassicNotePublic() {
   const [notes, setNotes] = useState<PublicNote[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [concertMap, setConcertMap] = useState<Record<string, string | null>>({});
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscribeLoading, setSubscribeLoading] = useState(false);
 
@@ -61,6 +62,23 @@ export default function ClassicNotePublic() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set());
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const panelBodyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const body = panelBodyRef.current;
+    if (!body) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "IMG" && !target.closest("a")) {
+        e.preventDefault();
+        e.stopPropagation();
+        setLightboxSrc((target as HTMLImageElement).src);
+      }
+    };
+    body.addEventListener("click", handleClick);
+    return () => body.removeEventListener("click", handleClick);
+  }, []);
 
   useEffect(() => {
     if (!username) return;
@@ -80,89 +98,55 @@ export default function ClassicNotePublic() {
       }
 
       setProfile(profileData);
+      document.title = `${profileData.nickname ?? username}의 클래식 노트 | Da Capo`;
 
       if (!profileData.classic_note_public) {
         setLoading(false);
         return;
       }
 
+      const profileId = profileData.id;
+
+      const [notesResult, bookmarkResult] = await Promise.all([
+        supabase
+          .from("notes")
+          .select("id, type, title, content, note_date, concert_id, is_public, created_at, concert:concerts(id, title)")
+          .eq("user_id", profileId)
+          .in("type", ["concert_record", "free_writing"])
+          .order("note_date", { ascending: false }),
+        supabase
+          .from("bookmarks")
+          .select("id, concert_id, scheduled_dates, concert:concerts(id, title, start_date)")
+          .eq("user_id", profileId),
+      ]);
+
       if (user && profileData.id !== user.id) {
         const { data: subData } = await supabase
           .from("classic_note_subscriptions")
           .select("id")
           .eq("follower_id", user.id)
-          .eq("following_id", profileData.id)
+          .eq("following_id", profileId)
           .maybeSingle();
         setIsSubscribed(!!subData);
       }
 
-      const profileId = profileData.id;
+      setNotes((notesResult.data ?? []) as PublicNote[]);
 
-      const { data: notesData } = await supabase
-        .from("notes")
-        .select("id, type, title, content, note_date, concert_id, is_public, created_at")
-        .eq("user_id", profileId)
-        .in("type", ["concert_record", "free_writing"])
-        .order("note_date", { ascending: false });
-
-      setNotes((notesData ?? []) as PublicNote[]);
-
-      const { data: bookmarkData } = await supabase
-        .from("bookmarks")
-        .select("id, concert_id, scheduled_dates")
-        .eq("user_id", profileId);
-
-      if (bookmarkData && bookmarkData.length > 0) {
-        const concertIds = bookmarkData.map((b) => b.concert_id as string);
-        const { data: concertData } = await supabase
-          .from("concerts")
-          .select("id, title, start_date")
-          .in("id", concertIds);
-
-        if (concertData) {
-          const concertById: Record<string, BookmarkConcert> = {};
-          concertData.forEach((c) => {
-            concertById[c.id] = { id: c.id, title: c.title, start_date: c.start_date };
-          });
-
-          const mapped: BookmarkItem[] = bookmarkData
-            .filter((b) => concertById[b.concert_id as string])
-            .map((b) => ({
-              id: b.id,
-              concert_id: b.concert_id as string,
-              scheduled_dates: (b.scheduled_dates as string[] | null) ?? null,
-              concert: concertById[b.concert_id as string],
-            }));
-          setBookmarks(mapped);
-        }
-      }
+      const mapped: BookmarkItem[] = (bookmarkResult.data ?? [])
+        .filter((b) => b.concert)
+        .map((b) => ({
+          id: b.id,
+          concert_id: b.concert_id as string,
+          scheduled_dates: (b.scheduled_dates as string[] | null) ?? null,
+          concert: b.concert as BookmarkConcert,
+        }));
+      setBookmarks(mapped);
 
       setLoading(false);
     };
 
     fetchData();
   }, [username]);
-
-  useEffect(() => {
-    const ids = notes.filter((n) => n.concert_id).map((n) => n.concert_id as string);
-    if (ids.length === 0) {
-      setConcertMap({});
-      return;
-    }
-    supabase
-      .from("concerts")
-      .select("id, title")
-      .in("id", ids)
-      .then(({ data }) => {
-        if (data) {
-          const map: Record<string, string | null> = {};
-          data.forEach((c) => {
-            map[c.id] = c.title;
-          });
-          setConcertMap(map);
-        }
-      });
-  }, [notes]);
 
   const handleSubscribeToggle = async () => {
     if (!user || !profile) return;
@@ -319,7 +303,7 @@ export default function ClassicNotePublic() {
           </button>
         </div>
 
-        <div className="note-panel__body">
+        <div className="note-panel__body" ref={panelBodyRef}>
           {selectedDateNotes.length === 0 && selectedDateBookmarks.length === 0 ? (
             <p className="note-panel__empty">이 날의 기록이 없습니다.</p>
           ) : (
@@ -406,13 +390,13 @@ export default function ClassicNotePublic() {
                       <hr className="note-panel__note-hr" />
                     </>
                   )}
-                  {note.concert_id && concertMap[note.concert_id] !== undefined && (
+                  {note.concert && (
                     <div
                       className="note-panel__concert-info note-panel__concert-info--link"
                       onClick={() => navigate(`/concert-info/${note.concert_id}`)}
                     >
                       <span className="note-panel__concert-title">
-                        공연명 : {concertMap[note.concert_id]}
+                        공연명 : {note.concert.title}
                       </span>
                     </div>
                   )}
@@ -581,10 +565,7 @@ export default function ClassicNotePublic() {
                                   <span className="classic-note__list-badge-text">관람 기록</span>
                                 </span>
                                 <span className="classic-note__list-title">
-                                  {note.title ??
-                                    (note.concert_id
-                                      ? (concertMap[note.concert_id] ?? "(제목 없음)")
-                                      : "(제목 없음)")}
+                                  {note.title ?? note.concert?.title ?? "(제목 없음)"}
                                 </span>
                               </li>
                             ))}
@@ -645,6 +626,10 @@ export default function ClassicNotePublic() {
           })()}
         </div>
       </div>
+
+    {lightboxSrc && (
+      <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+    )}
     </>
   );
 }

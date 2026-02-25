@@ -9,6 +9,13 @@ interface TicketSite {
   url: string;
 }
 
+interface Review {
+  id: number;
+  title: string;
+  author_nickname: string;
+  created_at: string | null;
+}
+
 const TICKET_SITE_NAMES: Record<string, string> = {
   놀유니버스: "NOL티켓",
 };
@@ -121,6 +128,7 @@ export default function ConcertInfoDetail() {
   const [pickerDates, setPickerDates] = useState<string[]>([]);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
     const fetchConcert = async () => {
@@ -136,6 +144,23 @@ export default function ConcertInfoDetail() {
 
     if (id) fetchConcert();
   }, [id]);
+
+  useEffect(() => {
+    if (!id || !concert) return;
+    const todayStr = new Date().toISOString().split("T")[0]!;
+    const endISO = concertDateToISO(concert.end_date);
+    if (!endISO || endISO >= todayStr) return;
+
+    supabase
+      .from("community_posts")
+      .select("id, title, author_nickname, created_at")
+      .eq("concert_id", id)
+      .order("created_at", { ascending: false })
+      .limit(20)
+      .then(({ data }) => {
+        if (data) setReviews(data);
+      });
+  }, [id, concert]);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -237,6 +262,10 @@ export default function ConcertInfoDetail() {
       </div>
     );
   }
+
+  const todayStr = new Date().toISOString().split("T")[0]!;
+  const endISO = concertDateToISO(concert.end_date);
+  const isFinished = !!endISO && endISO < todayStr;
 
   const dateRange =
     concert.open_run === "Y"
@@ -400,6 +429,25 @@ export default function ConcertInfoDetail() {
             {concert.intro_images.map((url, i) => (
               <img key={i} src={url} alt={`소개 이미지 ${i + 1}`} />
             ))}
+          </div>
+        )}
+
+        {/* 관람 후기 */}
+        {isFinished && reviews.length > 0 && (
+          <div className="concert-detail__section">
+            <h2 className="concert-detail__section-title">관람 후기 ({reviews.length})</h2>
+            <ul className="concert-detail__reviews">
+              {reviews.map((review) => (
+                <li key={review.id}>
+                  <Link to={`/community/${review.id}`} className="concert-detail__review-item">
+                    <span className="concert-detail__review-title">{review.title}</span>
+                    <span className="concert-detail__review-meta">
+                      {review.author_nickname} · {review.created_at?.slice(0, 10).replace(/-/g, ".")}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>

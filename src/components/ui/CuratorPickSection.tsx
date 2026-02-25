@@ -43,13 +43,13 @@ export default function CuratorPickSection() {
 
         <article className="curator-pick__article">
           <header className="curator-pick__header">
-            <div className="curator-pick__header-left">
-              <h3 className="curator-pick__title">{curatorPick.title}</h3>
+            <h3 className="curator-pick__title">{curatorPick.title}</h3>
+            <div className="curator-pick__meta">
               <span className="curator-pick__author">by. {curatorPick.author}</span>
+              <a href={curatorPick.moreUrl} className="curator-pick__more">
+                … 더보기
+              </a>
             </div>
-            <a href={curatorPick.moreUrl} className="curator-pick__more">
-              … 더보기
-            </a>
           </header>
 
           <p className="curator-pick__summary">{curatorPick.summary}</p>

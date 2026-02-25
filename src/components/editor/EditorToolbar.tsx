@@ -114,6 +114,54 @@ export default function EditorToolbar({
 
       <Divider />
 
+      {/* Text alignment */}
+      <ToolbarBtn
+        onClick={() => editor.chain().focus().setTextAlign("left").run()}
+        active={editor.isActive({ textAlign: "left" })}
+        title="왼쪽 정렬"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="15" y2="12" />
+          <line x1="3" y1="18" x2="18" y2="18" />
+        </svg>
+      </ToolbarBtn>
+      <ToolbarBtn
+        onClick={() => editor.chain().focus().setTextAlign("center").run()}
+        active={editor.isActive({ textAlign: "center" })}
+        title="가운데 정렬"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="6" y1="12" x2="18" y2="12" />
+          <line x1="4" y1="18" x2="20" y2="18" />
+        </svg>
+      </ToolbarBtn>
+      <ToolbarBtn
+        onClick={() => editor.chain().focus().setTextAlign("right").run()}
+        active={editor.isActive({ textAlign: "right" })}
+        title="오른쪽 정렬"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="9" y1="12" x2="21" y2="12" />
+          <line x1="6" y1="18" x2="21" y2="18" />
+        </svg>
+      </ToolbarBtn>
+      <ToolbarBtn
+        onClick={() => editor.chain().focus().setTextAlign("justify").run()}
+        active={editor.isActive({ textAlign: "justify" })}
+        title="양쪽 정렬"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </ToolbarBtn>
+
+      <Divider />
+
       {/* Lists */}
       <ToolbarBtn
         onClick={() => editor.chain().focus().toggleBulletList().run()}

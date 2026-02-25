@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      classic_note_subscriptions: {
+        Row: {
+          created_at: string | null
+          follower_id: string
+          following_id: string
+          id: number
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id: string
+          following_id: string
+          id?: number
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string
+          following_id?: string
+          id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classic_note_subscriptions_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classic_note_subscriptions_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookmarks: {
         Row: {
           concert_id: string
@@ -312,7 +348,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notes_concert_id_fkey"
+            columns: ["concert_id"]
+            isOneToOne: false
+            referencedRelation: "concerts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -362,6 +406,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: number
+          is_private: boolean
           title: string
           updated_at: string | null
           view_count: number
@@ -374,6 +419,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: number
+          is_private?: boolean
           title: string
           updated_at?: string | null
           view_count?: number
@@ -386,6 +432,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: number
+          is_private?: boolean
           title?: string
           updated_at?: string | null
           view_count?: number
