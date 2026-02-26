@@ -287,11 +287,13 @@ export default function CommunityDetail() {
               className={`community-detail-page__like-btn${liked ? " community-detail-page__like-btn--liked" : ""}`}
               onClick={handleLike}
               disabled={likeLoading}
+              aria-pressed={liked}
+              aria-label={liked ? `좋아요 취소 (${likeCount})` : `좋아요 (${likeCount})`}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
-              {likeCount > 0 ? likeCount : "좋아요"}
+              <span aria-hidden="true">{likeCount > 0 ? likeCount : "좋아요"}</span>
             </button>
             {post.category === "정보" && <ShareButton title={post.title} />}
             {canEdit && (
@@ -377,12 +379,16 @@ export default function CommunityDetail() {
         <div
           className="community-detail-page__modal-overlay"
           onClick={() => !deleteLoading && setShowDeleteConfirm(false)}
+          aria-hidden="true"
         >
           <div
             className="community-detail-page__delete-confirm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="comm-delete-modal-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="community-detail-page__delete-confirm-title">
+            <p id="comm-delete-modal-title" className="community-detail-page__delete-confirm-title">
               글을 삭제하시겠습니까?
             </p>
             <p className="community-detail-page__delete-confirm-desc">

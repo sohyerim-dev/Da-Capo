@@ -20,6 +20,10 @@ interface MagazinePost {
   category: string;
   content: string;
   author_nickname: string;
+  author_bio_name: string | null;
+  author_bio_text: string | null;
+  author_bio_link_text: string | null;
+  author_bio_link_url: string | null;
   view_count: number | null;
   created_at: string | null;
 }
@@ -254,11 +258,13 @@ export default function MagazineDetail() {
                 className={`magazine-detail-page__like-btn${liked ? " magazine-detail-page__like-btn--liked" : ""}`}
                 onClick={handleLike}
                 disabled={likeLoading}
+                aria-pressed={liked}
+                aria-label={liked ? `좋아요 취소 (${likeCount})` : `좋아요 (${likeCount})`}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
-                {likeCount > 0 ? likeCount : "좋아요"}
+                <span aria-hidden="true">{likeCount > 0 ? likeCount : "좋아요"}</span>
               </button>
             )}
             {post.category !== "공지" && (
@@ -324,6 +330,30 @@ export default function MagazineDetail() {
           </div>
         )}
 
+        {(post.author_bio_name || post.author_bio_text) && (
+          <>
+            <h2 className="magazine-detail-page__author-bio-heading">필진 소개</h2>
+            <div className="magazine-detail-page__author-bio">
+              {post.author_bio_name && (
+                <p className="magazine-detail-page__author-bio-name">{post.author_bio_name}</p>
+              )}
+              {post.author_bio_text && (
+                <p className="magazine-detail-page__author-bio-text">{post.author_bio_text}</p>
+              )}
+              {post.author_bio_link_url && (
+                <a
+                  className="magazine-detail-page__author-bio-link"
+                  href={post.author_bio_link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {post.author_bio_link_text || post.author_bio_link_url}
+                </a>
+              )}
+            </div>
+          </>
+        )}
+
         <div className="magazine-detail-page__nav">
           <div className="magazine-detail-page__nav-row">
             <span className="magazine-detail-page__nav-label">이전글</span>
@@ -354,9 +384,15 @@ export default function MagazineDetail() {
       </div>
 
       {showDeleteConfirm && (
-        <div className="magazine-detail-page__modal-overlay" onClick={() => !deleteLoading && setShowDeleteConfirm(false)}>
-          <div className="magazine-detail-page__delete-confirm" onClick={(e) => e.stopPropagation()}>
-            <p className="magazine-detail-page__delete-confirm-title">글을 삭제하시겠습니까?</p>
+        <div className="magazine-detail-page__modal-overlay" onClick={() => !deleteLoading && setShowDeleteConfirm(false)} aria-hidden="true">
+          <div
+            className="magazine-detail-page__delete-confirm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mag-delete-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p id="mag-delete-modal-title" className="magazine-detail-page__delete-confirm-title">글을 삭제하시겠습니까?</p>
             <p className="magazine-detail-page__delete-confirm-desc">삭제 후 복구할 수 없습니다.</p>
             <div className="magazine-detail-page__delete-actions">
               <button

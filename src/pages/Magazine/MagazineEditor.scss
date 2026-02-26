@@ -147,6 +147,50 @@
     margin-bottom: 32px;
   }
 
+  &__bio-section {
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  &__field--bio {
+    margin-top: 16px;
+  }
+
+  &__bio-link-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+
+    @media (max-width: 640px) {
+      flex-direction: column;
+    }
+  }
+
+  &__field--bio-link {
+    flex: 1;
+  }
+
+  &__textarea {
+    padding: 11px 14px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fafafa;
+    transition: border-color 0.2s;
+    resize: vertical;
+    width: 100%;
+    line-height: 1.7;
+
+    &:focus {
+      outline: none;
+      border-color: #161616;
+    }
+  }
+
   &__concert-section {
     background: #fafafa;
     border: 1px solid #e5e5e5;
@@ -424,6 +468,17 @@
       border-radius: 6px;
       margin: 12px 0;
       display: block;
+    }
+
+    a {
+      color: #4a6cf7;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      cursor: pointer;
+
+      &:hover {
+        color: #2d4fd4;
+      }
     }
 
     &:focus {

@@ -46,10 +46,10 @@ export default function Footer() {
                 <Link to="/support">고객센터</Link>
               </li>
               <li>
-                <button onClick={() => setModal("terms")}>이용약관</button>
+                <button onClick={() => setModal("terms")} aria-haspopup="dialog">이용약관</button>
               </li>
               <li>
-                <button onClick={() => setModal("privacy")}>
+                <button onClick={() => setModal("privacy")} aria-haspopup="dialog">
                   개인정보처리방침
                 </button>
               </li>

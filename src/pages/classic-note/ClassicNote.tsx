@@ -505,10 +505,16 @@ export default function ClassicNote() {
           <div
             className="classic-note__subscribers-overlay"
             onClick={() => setShowSubscribersModal(false)}
+            aria-hidden="true"
           />
-          <div className="classic-note__subscribers-modal">
+          <div
+            className="classic-note__subscribers-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="subscribers-modal-title"
+          >
             <div className="classic-note__subscribers-modal-header">
-              <span className="classic-note__subscribers-modal-title">
+              <span id="subscribers-modal-title" className="classic-note__subscribers-modal-title">
                 구독자 {subscribers.length}명
               </span>
               <button

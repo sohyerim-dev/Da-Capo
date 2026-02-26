@@ -38,6 +38,10 @@ export default function ClassicNoteCalendar({
         onActiveStartDateChange={({ activeStartDate }) => {
           if (activeStartDate) onMonthChange(activeStartDate);
         }}
+        prevAriaLabel="이전 달"
+        nextAriaLabel="다음 달"
+        prev2AriaLabel="이전 연도"
+        next2AriaLabel="다음 연도"
         formatDay={(_locale, date) => String(date.getDate())}
         tileContent={({ date, view }) => {
           if (view !== "month") return null;

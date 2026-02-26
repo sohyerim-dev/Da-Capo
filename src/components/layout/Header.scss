@@ -104,6 +104,12 @@
       &:hover {
         opacity: 0.6;
       }
+
+      &:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 4px;
+        border-radius: 3px;
+      }
     }
   }
 
@@ -126,6 +132,12 @@
     svg {
       width: 28px;
       height: 28px;
+    }
+
+    &:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 4px;
+      border-radius: 6px;
     }
   }
 
@@ -155,6 +167,7 @@
       opacity 0.2s ease,
       transform 0.2s ease;
     z-index: 200;
+    list-style: none;
 
     &::before {
       content: "";
@@ -187,6 +200,12 @@
 
     &:hover {
       background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    &:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: -2px;
+      border-radius: 4px;
     }
   }
 

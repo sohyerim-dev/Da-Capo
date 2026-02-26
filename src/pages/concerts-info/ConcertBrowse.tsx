@@ -10,6 +10,7 @@ interface Concert {
   synopsis: string | null;
   bookmark_count: number;
   rank: number | null;
+  tags: string[] | null;
 }
 
 type SortOption = "start_date" | "bookmark_count";
@@ -162,23 +163,14 @@ export default function ConcertBrowse() {
 
       let query = supabase
         .from("concerts")
-        .select("id, title, poster, synopsis, bookmark_count, rank")
+        .select("id, title, poster, synopsis, bookmark_count, rank, tags")
         .in("status", ["공연예정", "공연중"]);
 
       if (currentTab.rankOnly) {
         query = query.not("rank", "is", null).order("rank", { ascending: true });
       } else {
-        if (!activeItem!.showOthers) {
-          const orFilter = activeItem!.keywords
-            .flatMap((keyword) =>
-              currentTab.searchFields.map((f) => `${f}.ilike.%${keyword}%`)
-            )
-            .join(",");
-          query = query.or(orFilter);
-
-          for (const kw of activeItem!.excludeKeywords ?? []) {
-            query = query.not("title", "ilike", `%${kw}%`);
-          }
+        if (activeItem && !activeItem.showOthers && activeItem.tag) {
+          query = query.contains("tags", [activeItem.tag]);
         }
 
         if (filterSort === "bookmark_count") {
@@ -208,30 +200,16 @@ export default function ConcertBrowse() {
         let filtered: Concert[];
 
         if (currentTab.rankOnly || !activeItem) {
-          filtered = data;
+          filtered = data as Concert[];
         } else if (activeItem.showOthers) {
-          const otherKeywords = currentTab.items
-            .filter((item) => !item.showOthers)
-            .flatMap((item) => item.keywords);
-          filtered = data.filter(
-            (c) =>
-              !otherKeywords.some(
-                (kw) =>
-                  (c.title ?? "").includes(kw) ||
-                  (c.synopsis ?? "").includes(kw)
-              )
+          const knownTags = currentTab.items
+            .filter((item) => !item.showOthers && item.tag)
+            .map((item) => item.tag!);
+          filtered = (data as Concert[]).filter(
+            (c) => !knownTags.some((tag) => (c.tags ?? []).includes(tag))
           );
         } else {
-          const requireAny = activeItem.requireAny;
-          filtered = requireAny
-            ? data.filter((c) =>
-                requireAny.some(
-                  (kw) =>
-                    (c.title ?? "").includes(kw) ||
-                    (c.synopsis ?? "").includes(kw)
-                )
-              )
-            : data;
+          filtered = data as Concert[];
         }
 
         setConcerts(filtered);

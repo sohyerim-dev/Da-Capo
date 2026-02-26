@@ -245,10 +245,12 @@ export default function SupportList() {
 
         <div className="support-list-page__board">
         <div className="support-list-page__toolbar">
-          <div className="support-list-page__tabs">
+          <div className="support-list-page__tabs" role="tablist" aria-label="카테고리">
             {!showMine && CATEGORIES.map((cat) => (
               <button
                 key={cat}
+                role="tab"
+                aria-selected={activeCategory === cat}
                 className={`support-list-page__tab${activeCategory === cat ? " support-list-page__tab--active" : ""}`}
                 onClick={() => handleCategoryChange(cat)}
               >
@@ -257,6 +259,8 @@ export default function SupportList() {
             ))}
             {user && (
               <button
+                role="tab"
+                aria-selected={showMine}
                 className={`support-list-page__tab${showMine ? " support-list-page__tab--active" : ""}`}
                 onClick={handleToggleMine}
               >
@@ -311,7 +315,7 @@ export default function SupportList() {
 
         <div className="support-list-page__bottom-bar">
           {!loading && totalPages > 0 && (
-            <div className="support-list-page__pagination">
+            <nav className="support-list-page__pagination" aria-label="페이지 네비게이션">
               <button
                 className={`support-list-page__page-btn${page === 1 ? " support-list-page__page-btn--disabled" : ""}`}
                 onClick={() => handlePageChange(Math.max(1, page - 1))}
@@ -322,12 +326,14 @@ export default function SupportList() {
               </button>
               {getPageRange(page, totalPages).map((p, i) =>
                 p === "..." ? (
-                  <span key={`ellipsis-${i}`} className="support-list-page__page-ellipsis">…</span>
+                  <span key={`ellipsis-${i}`} className="support-list-page__page-ellipsis" aria-hidden="true">…</span>
                 ) : (
                   <button
                     key={p}
                     className={`support-list-page__page-btn${page === p ? " support-list-page__page-btn--active" : ""}`}
                     onClick={() => handlePageChange(p)}
+                    aria-label={`${p}페이지`}
+                    aria-current={page === p ? "page" : undefined}
                   >
                     {p}
                   </button>
@@ -341,7 +347,7 @@ export default function SupportList() {
               >
                 &gt;
               </button>
-            </div>
+            </nav>
           )}
 
           <form
@@ -361,6 +367,7 @@ export default function SupportList() {
             <select
               className="support-list-page__search-select"
               value={pendingField}
+              aria-label="검색 종류"
               onChange={(e) => setPendingField(e.target.value as SearchField)}
             >
               {SEARCH_FIELDS.map((f) => (
@@ -371,6 +378,7 @@ export default function SupportList() {
               <input
                 className="support-list-page__search-input"
                 type="text"
+                aria-label="검색어 입력"
                 placeholder={`${SEARCH_FIELDS.find((f) => f.value === pendingField)?.label} 검색`}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}

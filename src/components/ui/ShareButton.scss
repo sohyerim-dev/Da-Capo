@@ -37,6 +37,13 @@
   overflow: hidden;
   z-index: 200;
   animation: share-dropdown-in 0.15s ease;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li:not(:last-child) {
+    border-bottom: 1px solid #e5e5e5;
+  }
 
   &__item {
     display: flex;
@@ -55,10 +62,6 @@
 
     &:hover {
       background: #f2f2f2;
-    }
-
-    &:not(:last-child) {
-      border-bottom: 1px solid #e5e5e5;
     }
   }
 

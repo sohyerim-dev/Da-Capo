@@ -355,11 +355,11 @@ export default function MyPage() {
               </button>
             </div>
             {nicknameError ? (
-              <p className="mypage__check-msg mypage__check-msg--err">{nicknameError}</p>
+              <p className="mypage__check-msg mypage__check-msg--err" role="alert" aria-live="assertive">{nicknameError}</p>
             ) : nicknameAvailable === true ? (
-              <p className="mypage__check-msg mypage__check-msg--ok">사용 가능한 닉네임입니다.</p>
+              <p className="mypage__check-msg mypage__check-msg--ok" role="status" aria-live="polite">사용 가능한 닉네임입니다.</p>
             ) : nicknameAvailable === false ? (
-              <p className="mypage__check-msg mypage__check-msg--err">이미 사용 중인 닉네임입니다.</p>
+              <p className="mypage__check-msg mypage__check-msg--err" role="alert" aria-live="assertive">이미 사용 중인 닉네임입니다.</p>
             ) : null}
           </div>
 
@@ -391,7 +391,11 @@ export default function MyPage() {
           />
 
           {infoMessage && (
-            <p className={`mypage__message mypage__message--${infoMessage.type}`}>
+            <p
+              className={`mypage__message mypage__message--${infoMessage.type}`}
+              role={infoMessage.type === "error" ? "alert" : "status"}
+              aria-live={infoMessage.type === "error" ? "assertive" : "polite"}
+            >
               {infoMessage.text}
             </p>
           )}
@@ -446,8 +450,8 @@ export default function MyPage() {
             }}
           />
 
-          {pwError && <p className="mypage__message mypage__message--error">{pwError}</p>}
-          {pwSuccess && <p className="mypage__message mypage__message--success">{pwSuccess}</p>}
+          {pwError && <p className="mypage__message mypage__message--error" role="alert" aria-live="assertive">{pwError}</p>}
+          {pwSuccess && <p className="mypage__message mypage__message--success" role="status" aria-live="polite">{pwSuccess}</p>}
 
           <div className="mypage__save-row">
             <Button

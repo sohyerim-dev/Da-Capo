@@ -71,6 +71,8 @@ export default function ShareButton({ title }: ShareButtonProps) {
         className={`share-btn${open ? " share-btn--open" : ""}`}
         onClick={() => setOpen((v) => !v)}
         aria-label="공유하기"
+        aria-expanded={open}
+        aria-haspopup="menu"
       >
         <svg
           width="14"
@@ -81,6 +83,7 @@ export default function ShareButton({ title }: ShareButtonProps) {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
+          aria-hidden="true"
         >
           <circle cx="18" cy="5" r="3" />
           <circle cx="6" cy="12" r="3" />
@@ -91,39 +94,51 @@ export default function ShareButton({ title }: ShareButtonProps) {
         공유
       </button>
 
+      <span className="sr-only" aria-live="polite" aria-atomic="true">
+        {copied ? "링크가 복사되었습니다" : ""}
+      </span>
+
       {open && (
-        <div className="share-dropdown">
-          <button className="share-dropdown__item" onClick={handleCopy}>
-            <span className="share-dropdown__icon share-dropdown__icon--link">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-              </svg>
-            </span>
-            {copied ? "복사됨!" : "링크 복사"}
-          </button>
+        <ul className="share-dropdown" role="menu" aria-label="공유 옵션">
+          <li role="none">
+            <button className="share-dropdown__item" role="menuitem" onClick={handleCopy}>
+              <span className="share-dropdown__icon share-dropdown__icon--link" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+              </span>
+              {copied ? "복사됨!" : "링크 복사"}
+            </button>
+          </li>
 
-          <button className="share-dropdown__item" onClick={handleTwitter}>
-            <span className="share-dropdown__icon">
-              <img src="/images/x-logo.png" alt="X" width="18" height="18" />
-            </span>
-            X(Twitter)
-          </button>
+          <li role="none">
+            <button className="share-dropdown__item" role="menuitem" onClick={handleTwitter}>
+              <span className="share-dropdown__icon" aria-hidden="true">
+                <img src="/images/x-logo.png" alt="" width="18" height="18" />
+              </span>
+              X(Twitter)
+            </button>
+          </li>
 
-          <button className="share-dropdown__item" onClick={handleFacebook}>
-            <span className="share-dropdown__icon">
-              <img src="/images/facebook-logo.png" alt="Facebook" width="18" height="18" />
-            </span>
-            Facebook
-          </button>
+          <li role="none">
+            <button className="share-dropdown__item" role="menuitem" onClick={handleFacebook}>
+              <span className="share-dropdown__icon" aria-hidden="true">
+                <img src="/images/facebook-logo.png" alt="" width="18" height="18" />
+              </span>
+              Facebook
+            </button>
+          </li>
 
-          <button className="share-dropdown__item" onClick={handleThread}>
-            <span className="share-dropdown__icon">
-              <img src="/images/threads-logo.png" alt="Threads" width="18" height="18" />
-            </span>
-            Threads
-          </button>
-        </div>
+          <li role="none">
+            <button className="share-dropdown__item" role="menuitem" onClick={handleThread}>
+              <span className="share-dropdown__icon" aria-hidden="true">
+                <img src="/images/threads-logo.png" alt="" width="18" height="18" />
+              </span>
+              Threads
+            </button>
+          </li>
+        </ul>
       )}
     </div>
   );

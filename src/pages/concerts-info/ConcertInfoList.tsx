@@ -46,6 +46,7 @@ export default function ConcertInfoList() {
               type="text"
               className={`concert-info__search-input${inputValue ? " concert-info__search-input--has-clear" : ""}`}
               placeholder="검색하기"
+              aria-label="공연 검색어 입력"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -69,14 +70,18 @@ export default function ConcertInfoList() {
         </div>
 
         {!search && (
-          <div className="concert-info__view-toggle">
+          <div className="concert-info__view-toggle" role="tablist" aria-label="보기 방식">
             <button
+              role="tab"
+              aria-selected={view === "list"}
               className={`concert-info__view-toggle-btn${view === "list" ? " concert-info__view-toggle-btn--active" : ""}`}
               onClick={() => setSearchParams({ view: "list" })}
             >
               리스트
             </button>
             <button
+              role="tab"
+              aria-selected={view === "calendar"}
               className={`concert-info__view-toggle-btn${view === "calendar" ? " concert-info__view-toggle-btn--active" : ""}`}
               onClick={() => setSearchParams({ view: "calendar" })}
             >

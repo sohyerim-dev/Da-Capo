@@ -68,6 +68,7 @@ export default function Layout() {
 
   return (
     <>
+      <a href="#main-content" className="skip-link">본문으로 이동</a>
       {pathname === "/" && bannerVisible && (
         <div ref={bannerRef}>
           <AnnouncementBanner onClose={() => setBannerVisible(false)} />
@@ -75,7 +76,7 @@ export default function Layout() {
       )}
       <Header />
       <ScrollRestoration />
-      <main className="layout-main">
+      <main id="main-content" className="layout-main">
         <Outlet />
       </main>
       <Footer />

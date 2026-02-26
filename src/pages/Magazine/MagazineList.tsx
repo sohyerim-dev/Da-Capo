@@ -146,10 +146,12 @@ export default function MagazineList() {
 
         <div className="magazine-list-page__board">
         <div className="magazine-list-page__toolbar">
-          <div className="magazine-list-page__tabs">
+          <div className="magazine-list-page__tabs" role="tablist" aria-label="카테고리">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
+                role="tab"
+                aria-selected={activeCategory === cat}
                 className={`magazine-list-page__tab${activeCategory === cat ? " magazine-list-page__tab--active" : ""}`}
                 onClick={() => {
                   const params: Record<string, string> = {};
@@ -265,7 +267,7 @@ export default function MagazineList() {
 
         <div className="magazine-list-page__bottom-bar">
           {!loading && totalPages > 0 && (
-            <div className="magazine-list-page__pagination">
+            <nav className="magazine-list-page__pagination" aria-label="페이지 네비게이션">
               <button
                 className={`magazine-list-page__page-btn${page === 1 ? " magazine-list-page__page-btn--disabled" : ""}`}
                 onClick={() => goToPage(page - 1)}
@@ -276,12 +278,14 @@ export default function MagazineList() {
               </button>
               {getPageRange(page, totalPages).map((p, i) =>
                 p === "..." ? (
-                  <span key={`ellipsis-${i}`} className="magazine-list-page__page-ellipsis">…</span>
+                  <span key={`ellipsis-${i}`} className="magazine-list-page__page-ellipsis" aria-hidden="true">…</span>
                 ) : (
                   <button
                     key={p}
                     className={`magazine-list-page__page-btn${page === p ? " magazine-list-page__page-btn--active" : ""}`}
                     onClick={() => goToPage(p)}
+                    aria-label={`${p}페이지`}
+                    aria-current={page === p ? "page" : undefined}
                   >
                     {p}
                   </button>
@@ -295,7 +299,7 @@ export default function MagazineList() {
               >
                 &gt;
               </button>
-            </div>
+            </nav>
           )}
           <form
             className="magazine-list-page__search"
@@ -313,6 +317,7 @@ export default function MagazineList() {
             <select
               className="magazine-list-page__search-select"
               value={pendingField}
+              aria-label="검색 종류"
               onChange={(e) => {
                 setPendingField(e.target.value as SearchField);
               }}
@@ -325,6 +330,7 @@ export default function MagazineList() {
               <input
                 className="magazine-list-page__search-input"
                 type="text"
+                aria-label="검색어 입력"
                 placeholder={`${SEARCH_FIELDS.find((f) => f.value === pendingField)?.label} 검색`}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}

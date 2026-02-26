@@ -191,6 +191,7 @@ export type Database = {
           status: string | null
           synced_at: string | null
           synopsis: string | null
+          tags: string[] | null
           ticket_price: string | null
           ticket_sites: Json | null
           title: string | null
@@ -215,6 +216,7 @@ export type Database = {
           status?: string | null
           synced_at?: string | null
           synopsis?: string | null
+          tags?: string[] | null
           ticket_price?: string | null
           ticket_sites?: Json | null
           title?: string | null
@@ -239,6 +241,7 @@ export type Database = {
           status?: string | null
           synced_at?: string | null
           synopsis?: string | null
+          tags?: string[] | null
           ticket_price?: string | null
           ticket_sites?: Json | null
           title?: string | null
@@ -277,6 +280,10 @@ export type Database = {
       }
       magazine_posts: {
         Row: {
+          author_bio_link_text: string | null
+          author_bio_link_url: string | null
+          author_bio_name: string | null
+          author_bio_text: string | null
           author_id: string
           author_nickname: string
           category: string
@@ -288,6 +295,10 @@ export type Database = {
           view_count: number | null
         }
         Insert: {
+          author_bio_link_text?: string | null
+          author_bio_link_url?: string | null
+          author_bio_name?: string | null
+          author_bio_text?: string | null
           author_id: string
           author_nickname: string
           category: string
@@ -299,6 +310,10 @@ export type Database = {
           view_count?: number | null
         }
         Update: {
+          author_bio_link_text?: string | null
+          author_bio_link_url?: string | null
+          author_bio_name?: string | null
+          author_bio_text?: string | null
           author_id?: string
           author_nickname?: string
           category?: string

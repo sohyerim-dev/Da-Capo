@@ -5,6 +5,9 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
+import Link from "@tiptap/extension-link";
+import Highlight from "@tiptap/extension-highlight";
+import Youtube from "@tiptap/extension-youtube";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import MagazineEditorToolbar from "./MagazineEditorToolbar";
@@ -47,12 +50,17 @@ export default function MagazineNew() {
   const [concertSearching, setConcertSearching] = useState(false);
   const [attachedConcerts, setAttachedConcerts] = useState<ConcertResult[]>([]);
 
+  const [bioName, setBioName] = useState("");
+  const [bioText, setBioText] = useState("");
+  const [bioLinkText, setBioLinkText] = useState("");
+  const [bioLinkUrl, setBioLinkUrl] = useState("");
+
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({ link: false }),
       Image.configure({
         inline: false,
         resize: {
@@ -64,6 +72,9 @@ export default function MagazineNew() {
         },
       }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
+      Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" } }),
+      Highlight,
+      Youtube.configure({ width: 640, height: 360, nocookie: true }),
       Placeholder.configure({ placeholder: "내용을 입력하세요..." }),
     ],
     content: "",
@@ -133,6 +144,10 @@ export default function MagazineNew() {
         content,
         author_id: user.id,
         author_nickname: user.nickname,
+        author_bio_name: bioName.trim() || null,
+        author_bio_text: bioText.trim() || null,
+        author_bio_link_text: bioLinkText.trim() || null,
+        author_bio_link_url: bioLinkUrl.trim() || null,
       })
       .select("id")
       .single();
@@ -212,6 +227,52 @@ export default function MagazineNew() {
             }}
           />
           <EditorContent editor={editor} className="magazine-editor-content" />
+        </div>
+
+        <div className="magazine-editor-page__bio-section">
+          <h2 className="magazine-editor-page__section-title">필진 소개</h2>
+          <div className="magazine-editor-page__field">
+            <label className="magazine-editor-page__label">이름</label>
+            <input
+              type="text"
+              className="magazine-editor-page__input"
+              placeholder="필진 이름을 입력하세요"
+              value={bioName}
+              onChange={(e) => setBioName(e.target.value)}
+            />
+          </div>
+          <div className="magazine-editor-page__field magazine-editor-page__field--bio">
+            <label className="magazine-editor-page__label">소개</label>
+            <textarea
+              className="magazine-editor-page__textarea"
+              placeholder="필진 소개를 입력하세요..."
+              rows={4}
+              value={bioText}
+              onChange={(e) => setBioText(e.target.value)}
+            />
+          </div>
+          <div className="magazine-editor-page__bio-link-row">
+            <div className="magazine-editor-page__field magazine-editor-page__field--bio-link">
+              <label className="magazine-editor-page__label">SNS 링크 텍스트</label>
+              <input
+                type="text"
+                className="magazine-editor-page__input"
+                placeholder="예) Instagram, X(Twitter)"
+                value={bioLinkText}
+                onChange={(e) => setBioLinkText(e.target.value)}
+              />
+            </div>
+            <div className="magazine-editor-page__field magazine-editor-page__field--bio-link">
+              <label className="magazine-editor-page__label">SNS URL</label>
+              <input
+                type="url"
+                className="magazine-editor-page__input"
+                placeholder="https://..."
+                value={bioLinkUrl}
+                onChange={(e) => setBioLinkUrl(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
 
         <div className="magazine-editor-page__concert-section">

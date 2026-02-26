@@ -136,6 +136,21 @@
     }
   }
 
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  &__tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    background: #f0ece7;
+    color: #555;
+  }
+
   &__ticket-section {
     margin-top: 32px;
     display: flex;

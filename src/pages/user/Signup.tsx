@@ -241,15 +241,15 @@ export default function Signup() {
               </button>
             </div>
             {nicknameError ? (
-              <p className="auth-check-msg auth-check-msg--err">
+              <p className="auth-check-msg auth-check-msg--err" role="alert" aria-live="assertive">
                 {nicknameError}
               </p>
             ) : nicknameAvailable === true ? (
-              <p className="auth-check-msg auth-check-msg--ok">
+              <p className="auth-check-msg auth-check-msg--ok" role="status" aria-live="polite">
                 사용 가능한 닉네임입니다.
               </p>
             ) : nicknameAvailable === false ? (
-              <p className="auth-check-msg auth-check-msg--err">
+              <p className="auth-check-msg auth-check-msg--err" role="alert" aria-live="assertive">
                 이미 사용 중인 닉네임입니다.
               </p>
             ) : null}
@@ -288,6 +288,7 @@ export default function Signup() {
                 type="button"
                 className="auth-terms__view-btn"
                 onClick={() => setPolicyModal("terms")}
+                aria-haspopup="dialog"
               >
                 보기
               </button>
@@ -305,13 +306,14 @@ export default function Signup() {
                 type="button"
                 className="auth-terms__view-btn"
                 onClick={() => setPolicyModal("privacy")}
+                aria-haspopup="dialog"
               >
                 보기
               </button>
             </div>
           </div>
 
-          {error && <p className="auth-error">{error}</p>}
+          {error && <p className="auth-error" role="alert" aria-live="assertive">{error}</p>}
 
           <Button
             type="submit"

@@ -40,6 +40,7 @@ interface Concert {
   intro_images: string[] | null;
   ticket_sites: TicketSite[] | null;
   rank: number | null;
+  tags: string[] | null;
 }
 
 function formatDate(date: string): string {
@@ -335,6 +336,16 @@ export default function ConcertInfoDetail() {
                 {isBookmarked ? "관심 취소" : "관심 공연"}
               </button>
             </div>
+
+            {concert.tags && concert.tags.length > 0 && (
+              <div className="concert-detail__tags">
+                {concert.tags.map((tag) => (
+                  <span key={tag} className="concert-detail__tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
             <dl className="concert-detail__meta">
               <div className="concert-detail__meta-row">

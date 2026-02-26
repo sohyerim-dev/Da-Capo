@@ -5,6 +5,9 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
+import Link from "@tiptap/extension-link";
+import Highlight from "@tiptap/extension-highlight";
+import Youtube from "@tiptap/extension-youtube";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import EditorToolbar from "@/components/editor/EditorToolbar";
@@ -72,7 +75,7 @@ export default function CommunityNew() {
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({ link: false }),
       Image.configure({
         inline: false,
         resize: {
@@ -84,6 +87,9 @@ export default function CommunityNew() {
         },
       }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
+      Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" } }),
+      Highlight,
+      Youtube.configure({ width: 640, height: 360, nocookie: true }),
       Placeholder.configure({ placeholder: "내용을 입력하세요..." }),
     ],
     content: "",

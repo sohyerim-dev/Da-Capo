@@ -13,6 +13,12 @@
   box-sizing: border-box;
 }
 
+:focus-visible {
+  outline: 2px solid #161616;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
 body {
   font-family: "IBM Plex Sans KR", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -40,8 +46,14 @@ body {
 
 // TipTap 이미지 리사이즈 핸들
 [data-resize-container] {
-  display: inline-flex !important;
+  display: block !important;
   position: relative;
+  width: fit-content;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
 
   [data-resize-wrapper] {
     position: relative;
@@ -49,6 +61,7 @@ body {
   }
 
   [data-resize-handle] {
+    position: absolute;
     width: 14px;
     height: 14px;
     background: #5c6fff;
@@ -60,25 +73,65 @@ body {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 
     &[data-resize-handle="top-left"] {
+      top: 0;
+      left: 0;
       transform: translate(-50%, -50%);
       cursor: nw-resize;
     }
     &[data-resize-handle="top-right"] {
+      top: 0;
+      right: 0;
       transform: translate(50%, -50%);
       cursor: ne-resize;
     }
     &[data-resize-handle="bottom-left"] {
+      bottom: 0;
+      left: 0;
       transform: translate(-50%, 50%);
       cursor: sw-resize;
     }
     &[data-resize-handle="bottom-right"] {
+      bottom: 0;
+      right: 0;
       transform: translate(50%, 50%);
       cursor: se-resize;
     }
   }
 
   &:hover [data-resize-handle],
-  &[data-resize-state="true"] [data-resize-handle] {
+  &[data-resize-state="true"] [data-resize-handle],
+  &.ProseMirror-selectednode [data-resize-handle] {
     opacity: 1;
+  }
+
+  &.ProseMirror-selectednode img {
+    outline: 2px solid #5c6fff;
+    outline-offset: 2px;
+  }
+}
+
+// TipTap 에디터 내 링크 스타일
+.tiptap a {
+  color: #4a6cf7;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+
+  &:hover {
+    color: #2d4fd4;
+  }
+}
+
+// TipTap YouTube 임베드
+div[data-youtube-video] {
+  display: block;
+  margin: 12px 0;
+  width: 100%;
+
+  iframe {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
   }
 }
