@@ -156,7 +156,7 @@ export default function Signup() {
 
   const canSubmit =
     EMAIL_REGEX.test(email) &&
-    password.length >= 6 &&
+    password.length >= 8 &&
     nicknameChecked &&
     nicknameAvailable === true &&
     PHONE_REGEX.test(phone) &&
@@ -205,11 +205,11 @@ export default function Signup() {
           <Input
             type="password"
             label="패스워드"
-            placeholder="패스워드 (6자 이상)"
+            placeholder="패스워드 (8자 이상)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={8}
           />
           <div className="auth-nickname-field">
             <div className="auth-nickname-row">

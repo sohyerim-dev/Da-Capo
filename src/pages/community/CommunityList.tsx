@@ -405,12 +405,26 @@ export default function CommunityList() {
             ))}
           </div>
           {user && (
-            <button
-              className="community-list-page__write-btn"
-              onClick={() => navigate("/community/new")}
-            >
-              글쓰기
-            </button>
+            <div className="community-list-page__btn-group">
+              <button
+                className="community-list-page__my-posts-btn"
+                onClick={() => {
+                  const params: Record<string, string> = { q: user.nickname ?? "", field: "author_nickname" };
+                  if (activeCategory !== "전체") params.category = activeCategory;
+                  setSearchParams(params);
+                  setSearchInput(user.nickname ?? "");
+                  setPendingField("author_nickname");
+                }}
+              >
+                내글보기
+              </button>
+              <button
+                className="community-list-page__write-btn"
+                onClick={() => navigate("/community/new")}
+              >
+                글쓰기
+              </button>
+            </div>
           )}
         </div>
 

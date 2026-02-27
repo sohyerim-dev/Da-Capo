@@ -196,8 +196,8 @@ export default function MyPage() {
       setPwError("새 비밀번호가 일치하지 않습니다.");
       return;
     }
-    if (newPw.length < 6) {
-      setPwError("비밀번호는 6자 이상이어야 합니다.");
+    if (newPw.length < 8) {
+      setPwError("비밀번호는 8자 이상이어야 합니다.");
       return;
     }
 
@@ -430,7 +430,7 @@ export default function MyPage() {
           <Input
             type="password"
             label="새 비밀번호"
-            placeholder="새 비밀번호 (6자 이상)"
+            placeholder="새 비밀번호 (8자 이상)"
             value={newPw}
             onChange={(e) => {
               setNewPw(e.target.value);
