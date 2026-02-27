@@ -41,6 +41,7 @@ export default function ConcertInfoList() {
         {/* 검색 영역 카드 */}
         <div className="concert-info__search-area">
           <p className="concert-info__search-area-title">키워드로 찾기</p>
+          <p className="concert-info__search-area-desc">카테고리에 없는 작곡가, 작품명, 연주자 등을 키워드로 검색해보세요</p>
           <div className="concert-info__search">
             <input
               type="text"

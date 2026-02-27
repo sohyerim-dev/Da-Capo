@@ -41,6 +41,7 @@ interface Concert {
   ticket_sites: TicketSite[] | null;
   rank: number | null;
   tags: string[] | null;
+  ai_keywords: string[] | null;
 }
 
 function formatDate(date: string): string {
@@ -67,6 +68,19 @@ function concertDateToISO(dateStr: string | null): string {
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"] as const;
 
+function isExtractedSchedule(schedule: string): boolean {
+  return /\d{4}년\s*\d{1,2}월\s*\d{1,2}일/.test(schedule);
+}
+
+function addWeekdayToScheduleLine(line: string): string {
+  const match = line.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+  if (!match) return line;
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const dayLabel = WEEKDAY_LABELS[date.getDay()];
+  return line.replace(/(\d{4}년\s*\d{1,2}월\s*\d{1,2}일)/, `$1 (${dayLabel})`);
+}
+
+
 function parseScheduleWeekdays(schedule: string | null): Set<number> | null {
   if (!schedule) return null;
   if (schedule.includes("매일")) return null;
@@ -78,6 +92,23 @@ function parseScheduleWeekdays(schedule: string | null): Set<number> | null {
 }
 
 function getPerformanceDates(concert: Concert): string[] {
+  // 추출된 구체적 날짜가 있으면 각 회차(시간 포함)를 그대로 반환
+  if (concert.schedule && isExtractedSchedule(concert.schedule)) {
+    const lines = concert.schedule.split("\n").filter(Boolean);
+    if (lines.length > 0) {
+      const todayStr = new Date().toISOString().split("T")[0]!;
+      const linesWithDay = lines.map(addWeekdayToScheduleLine);
+      const futureLines = linesWithDay.filter((line) => {
+        const match = line.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+        if (!match) return true;
+        const iso = `${match[1]}-${String(Number(match[2])).padStart(2, "0")}-${String(Number(match[3])).padStart(2, "0")}`;
+        return iso >= todayStr;
+      });
+      return futureLines.length > 0 ? futureLines : linesWithDay.slice(-90);
+    }
+  }
+
+  // 기존 로직 (KOPIS 요일 패턴)
   const startISO = concertDateToISO(concert.start_date);
   const endISO = concertDateToISO(concert.end_date ?? concert.start_date);
   if (!startISO) return [];
@@ -111,6 +142,9 @@ function getPerformanceDates(concert: Concert): string[] {
 }
 
 function formatPickerDate(dateStr: string): string {
+  // 추출된 스케줄 라인 (이미 요일 포함) — 그대로 반환
+  if (dateStr.includes("년")) return dateStr;
+  // KOPIS 요일 패턴 기반 ISO 날짜
   const d = new Date(dateStr + "T00:00:00");
   const dayLabel = WEEKDAY_LABELS[d.getDay()];
   return `${formatDate(dateStr)} (${dayLabel})`;
@@ -347,6 +381,16 @@ export default function ConcertInfoDetail() {
               </div>
             )}
 
+            {concert.ai_keywords && concert.ai_keywords.length > 0 && (
+              <div className="concert-detail__tags">
+                {concert.ai_keywords.map((kw) => (
+                  <span key={kw} className="concert-detail__keyword">
+                    {kw}
+                  </span>
+                ))}
+              </div>
+            )}
+
             <dl className="concert-detail__meta">
               <div className="concert-detail__meta-row">
                 <dt>공연 기간</dt>
@@ -365,7 +409,18 @@ export default function ConcertInfoDetail() {
               {concert.schedule && (
                 <div className="concert-detail__meta-row">
                   <dt>일정</dt>
-                  <dd>{concert.schedule}</dd>
+                  <dd>
+                    {isExtractedSchedule(concert.schedule)
+                      ? concert.schedule
+                          .split("\n")
+                          .filter(Boolean)
+                          .map((line, i) => (
+                            <span key={i} className="concert-detail__schedule-line">
+                              {addWeekdayToScheduleLine(line)}
+                            </span>
+                          ))
+                      : concert.schedule}
+                  </dd>
                 </div>
               )}
               {concert.age_limit && (

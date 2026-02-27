@@ -253,6 +253,27 @@
     color: #aaa;
   }
 
+  &__toggle-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #161616;
+    cursor: pointer;
+    padding: 11px 14px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    user-select: none;
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #161616;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+  }
+
   &__editor-wrap {
     border: 1px solid #e5e5e5;
     border-radius: 8px;

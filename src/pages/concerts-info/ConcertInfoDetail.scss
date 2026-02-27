@@ -136,6 +136,10 @@
     }
   }
 
+  &__schedule-line {
+    display: block;
+  }
+
   &__tags {
     display: flex;
     flex-wrap: wrap;
@@ -149,6 +153,14 @@
     border-radius: 100px;
     background: #f0ece7;
     color: #555;
+  }
+
+  &__keyword {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    background: #f0f4ff;
+    color: #4a6fa5;
   }
 
   &__ticket-section {
@@ -310,7 +322,7 @@
 
   /* 소개 이미지 */
   &__intro-images {
-    padding-top: 36px;
+    padding: 36px 0 48px;
     border-top: 1px solid #ddd;
     display: flex;
     flex-direction: column;

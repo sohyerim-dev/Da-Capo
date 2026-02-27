@@ -13,9 +13,9 @@ import useUserStore from "@/zustand/userStore";
 import EditorToolbar from "@/components/editor/EditorToolbar";
 import "./CommunityNew.scss";
 
-type CommunityCategory = "공지" | "자유" | "후기" | "정보";
+type CommunityCategory = "공지" | "자유" | "후기" | "정보" | "이벤트";
 
-const EDITABLE_CATEGORIES: CommunityCategory[] = ["공지", "자유", "정보"];
+const EDITABLE_CATEGORIES: CommunityCategory[] = ["공지", "이벤트", "자유", "정보"];
 
 export default function CommunityEdit() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +28,7 @@ export default function CommunityEdit() {
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<CommunityCategory>("자유");
+  const [commentsEnabled, setCommentsEnabled] = useState(true);
   const [initialContent, setInitialContent] = useState<string | null>(null);
   const [sourceNoteId, setSourceNoteId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +63,7 @@ export default function CommunityEdit() {
     const fetchData = async () => {
       const { data, error: fetchError } = await supabase
         .from("community_posts")
-        .select("title, category, content, author_id, source_note_id")
+        .select("title, category, content, author_id, source_note_id, comments_enabled")
         .eq("id", Number(id))
         .single();
 
@@ -79,6 +80,7 @@ export default function CommunityEdit() {
 
       setTitle(data.title);
       setCategory(data.category as CommunityCategory);
+      setCommentsEnabled(data.comments_enabled ?? true);
       setInitialContent(data.content);
       if (data.source_note_id) setSourceNoteId(data.source_note_id);
       setLoading(false);
@@ -124,8 +126,8 @@ export default function CommunityEdit() {
       setError("내용을 입력해주세요.");
       return;
     }
-    if (category === "공지" && !isAdmin) {
-      setError("공지 카테고리는 관리자만 작성할 수 있습니다.");
+    if ((category === "공지" || category === "이벤트") && !isAdmin) {
+      setError("해당 카테고리는 관리자만 작성할 수 있습니다.");
       return;
     }
 
@@ -138,6 +140,7 @@ export default function CommunityEdit() {
         title: title.trim(),
         category,
         content,
+        comments_enabled: category === "이벤트" ? commentsEnabled : true,
         updated_at: new Date().toISOString(),
       })
       .eq("id", Number(id));
@@ -177,7 +180,7 @@ export default function CommunityEdit() {
 
   const availableCategories = isAdmin
     ? EDITABLE_CATEGORIES
-    : EDITABLE_CATEGORIES.filter((c) => c !== "공지");
+    : EDITABLE_CATEGORIES.filter((c) => c !== "공지" && c !== "이벤트");
 
   return (
     <div className="community-editor-page">
@@ -217,6 +220,20 @@ export default function CommunityEdit() {
             )}
           </div>
         </div>
+
+        {category === "이벤트" && (
+          <div className="community-editor-page__field">
+            <label className="community-editor-page__label">댓글 설정</label>
+            <label className="community-editor-page__toggle-label">
+              <input
+                type="checkbox"
+                checked={commentsEnabled}
+                onChange={(e) => setCommentsEnabled(e.target.checked)}
+              />
+              댓글 허용
+            </label>
+          </div>
+        )}
 
         <div className="community-editor-page__editor-wrap">
           <EditorToolbar

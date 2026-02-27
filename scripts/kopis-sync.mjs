@@ -201,11 +201,31 @@ async function main() {
   const BATCH = 100;
   for (let i = 0; i < allRows.length; i += BATCH) {
     const batch = allRows.slice(i, i + BATCH);
+    const batchIds = batch.map((r) => r.id);
+
+    // 이미 태그가 있는 기존 공연 ID 조회 (upsert 후 need_review 표시용)
+    const { data: existingTagged } = await supabase
+      .from("concerts")
+      .select("id")
+      .in("id", batchIds)
+      .not("tags", "is", null);
+    const taggedIds = (existingTagged ?? []).map((r) => r.id);
+
     const { error } = await supabase
       .from("concerts")
       .upsert(batch, { onConflict: "id" });
     if (error) {
       console.error(`upsert 실패 (${i}~${i + BATCH}):`, error.message);
+      continue;
+    }
+
+    // 태그가 있던 공연이 업데이트됐으면 need_review = true
+    if (taggedIds.length > 0) {
+      await supabase
+        .from("concerts")
+        .update({ need_review: true })
+        .in("id", taggedIds);
+      console.log(`  태그 재검수 표시: ${taggedIds.length}건`);
     }
   }
 

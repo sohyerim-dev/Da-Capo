@@ -254,7 +254,17 @@ export default function NoteDatePanel({
                     <span className="note-panel__concert-title">
                       공연명 : {concertMap[note.concert_id].title}
                     </span>
+                    {concertMap[note.concert_id].start_date && (
+                      <span className="note-panel__concert-date">
+                        {formatConcertDate(concertMap[note.concert_id].start_date!)}
+                      </span>
+                    )}
                   </div>
+                )}
+                {note.created_at && (
+                  <span className="note-panel__note-created">
+                    작성일 {note.created_at.slice(0, 10).replace(/-/g, ".")}
+                  </span>
                 )}
                 {note.content && (
                   <>

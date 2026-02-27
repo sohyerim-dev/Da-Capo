@@ -13,7 +13,7 @@ import useUserStore from "@/zustand/userStore";
 import EditorToolbar from "@/components/editor/EditorToolbar";
 import "./CommunityNew.scss";
 
-type CommunityCategory = "자유" | "정보" | "공지" | "후기";
+type CommunityCategory = "자유" | "정보" | "공지" | "후기" | "이벤트";
 
 interface CategoryOption {
   value: CommunityCategory;
@@ -34,7 +34,11 @@ function getAvailableCategories(isAdmin: boolean): CategoryOption[] {
     { value: "후기", label: "후기" },
   ];
   if (isAdmin) {
-    return [{ value: "공지", label: "공지" }, ...base];
+    return [
+      { value: "공지", label: "공지" },
+      { value: "이벤트", label: "이벤트" },
+      ...base,
+    ];
   }
   return base;
 }
@@ -65,6 +69,7 @@ export default function CommunityNew() {
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<CommunityCategory>(isAdmin ? "공지" : "자유");
+  const [commentsEnabled, setCommentsEnabled] = useState(true);
   const [concertQuery, setConcertQuery] = useState("");
   const [concertResults, setConcertResults] = useState<ConcertResult[]>([]);
   const [concertSearching, setConcertSearching] = useState(false);
@@ -152,8 +157,8 @@ export default function CommunityNew() {
       setError("내용을 입력해주세요.");
       return;
     }
-    if (category === "공지" && !isAdmin) {
-      setError("공지 카테고리는 관리자만 작성할 수 있습니다.");
+    if ((category === "공지" || category === "이벤트") && !isAdmin) {
+      setError("해당 카테고리는 관리자만 작성할 수 있습니다.");
       return;
     }
 
@@ -197,6 +202,7 @@ export default function CommunityNew() {
         author_role: user.role,
         source_note_id: noteId,
         concert_id: attachedConcert?.id ?? null,
+        comments_enabled: category === "이벤트" ? commentsEnabled : true,
       })
       .select("id")
       .single();
@@ -242,6 +248,20 @@ export default function CommunityNew() {
             </select>
           </div>
         </div>
+
+        {category === "이벤트" && (
+          <div className="community-editor-page__field">
+            <label className="community-editor-page__label">댓글 설정</label>
+            <label className="community-editor-page__toggle-label">
+              <input
+                type="checkbox"
+                checked={commentsEnabled}
+                onChange={(e) => setCommentsEnabled(e.target.checked)}
+              />
+              댓글 허용
+            </label>
+          </div>
+        )}
 
         {category === "후기" && (
           <div className="community-editor-page__field">

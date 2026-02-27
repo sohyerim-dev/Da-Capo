@@ -19,15 +19,22 @@ interface CalendarConcert {
   schedule: string | null;
 }
 
-const WEEKDAY_LABELS = [
-  "일요일",
-  "월요일",
-  "화요일",
-  "수요일",
-  "목요일",
-  "금요일",
-  "토요일",
-] as const;
+const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"] as const;
+
+function isExtractedSchedule(schedule: string): boolean {
+  return /\d{4}년\s*\d{1,2}월\s*\d{1,2}일/.test(schedule);
+}
+
+function getExtractedIsoDates(schedule: string): Set<string> {
+  const dates = new Set<string>();
+  schedule.split("\n").filter(Boolean).forEach((line) => {
+    const match = line.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+    if (!match) return;
+    const iso = `${match[1]}-${String(Number(match[2])).padStart(2, "0")}-${String(Number(match[3])).padStart(2, "0")}`;
+    dates.add(iso);
+  });
+  return dates;
+}
 
 function parseScheduleWeekdays(schedule: string | null): Set<number> | null {
   if (!schedule) return null;
@@ -47,6 +54,13 @@ function isPerformingOnDate(
   const isoStart = concertDateToISO(c.start_date);
   const isoEnd = concertDateToISO(c.end_date);
   if (!(isoStart <= dateStr && isoEnd >= dateStr)) return false;
+
+  // 추출된 구체적 날짜가 있으면 해당 날짜만 확인
+  if (c.schedule && isExtractedSchedule(c.schedule)) {
+    return getExtractedIsoDates(c.schedule).has(dateStr);
+  }
+
+  // KOPIS 요일 패턴
   const scheduledDays = parseScheduleWeekdays(c.schedule);
   if (!scheduledDays) return true;
   return scheduledDays.has(date.getDay());

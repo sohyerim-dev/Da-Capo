@@ -63,36 +63,36 @@
   }
 
   &__inner {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    column-gap: 80px;
+    display: flex;
     align-items: center;
     height: 100%;
+    position: relative;
+    justify-content: space-between;
   }
 
   &__logo {
-    justify-self: center;
+    flex-shrink: 0;
 
     img {
-      width: 180px;
+      width: 160px;
       height: auto;
       display: block;
     }
   }
 
-  &__nav-left {
-    justify-self: end;
-  }
-
   &__right {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 48px;
+    flex-shrink: 0;
   }
 
   &__nav {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    gap: 40px;
+    gap: 50px;
 
     a {
       font-size: 17px;
@@ -213,7 +213,7 @@
   &__overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0, 0, 0, 0.4);
     z-index: 99;
   }
 

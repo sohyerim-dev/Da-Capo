@@ -14,16 +14,10 @@ interface Concert {
 
 const HOME_LABELS_PER_TAB: string[][] = [
   ["바흐", "모차르트", "베토벤", "브람스", "차이코프스키", "쇼팽"],
-  [
-    "서울시립교향악단",
-    "경기필하모닉",
-    "KBS교향악단",
-    "임윤찬",
-    "조성진",
-    "정명훈",
-  ],
-  [], // 작품 형태: 전체 6개 그대로
-  [], // 악기: 전체 6개 그대로
+  ["양인모", "조성진", "정명훈", "서울시립교향악단", "KBS교향악단", "경기필하모닉"],
+  [], // 작품 형태: 전체
+  ["피아노", "바이올린", "첼로", "플루트", "성악"], // 악기
+  [], // 시대: 전체
   [], // 박스오피스: rankOnly, 사용 안 함
 ];
 
@@ -47,7 +41,7 @@ export default function HomeConcertSection() {
           .filter(
             (item): item is NonNullable<typeof item> => item !== undefined
           )
-      : currentTab.items;
+      : currentTab.items.filter((item) => !item.showOthers);
 
   // 탭 변경 시 소제목 초기화
   useEffect(() => {
@@ -101,54 +95,23 @@ export default function HomeConcertSection() {
         .select("id, title, poster, synopsis, rank")
         .in("status", ["공연예정", "공연중"]);
 
-      if (!activeItem.showOthers) {
-        const orFilter = activeItem.keywords
-          .flatMap((keyword) =>
-            currentTab.searchFields.map((f) => `${f}.ilike.%${keyword}%`)
-          )
-          .join(",");
-        if (orFilter) query = query.or(orFilter);
-
-        for (const kw of activeItem.excludeKeywords ?? []) {
-          query = query.not("title", "ilike", `%${kw}%`);
+      if (activeItem) {
+        if (currentTab.usePerformers && activeItem.tag) {
+          query = query.ilike("performers", `%${activeItem.tag}%`);
+        } else if (activeItem.tags && activeItem.tags.length > 0) {
+          query = query.or(activeItem.tags.map((t) => `tags.cs.{${t}}`).join(","));
+        } else if (activeItem.tag) {
+          query = query.contains("tags", [activeItem.tag]);
         }
       }
 
       const { data, error } = await query
         .order("start_date", { ascending: true })
-        .limit(100);
+        .limit(4);
 
       if (!error && data) {
-        let filtered: Concert[];
-
-        if (activeItem.showOthers) {
-          const otherKeywords = currentTab.items
-            .filter((item) => !item.showOthers)
-            .flatMap((item) => item.keywords);
-          filtered = data.filter(
-            (c) =>
-              !otherKeywords.some(
-                (kw) =>
-                  (c.title ?? "").includes(kw) ||
-                  (c.synopsis ?? "").includes(kw)
-              )
-          );
-        } else {
-          const requireAny = activeItem.requireAny;
-          filtered = requireAny
-            ? data.filter((c) =>
-                requireAny.some(
-                  (kw) =>
-                    (c.title ?? "").includes(kw) ||
-                    (c.synopsis ?? "").includes(kw)
-                )
-              )
-            : data;
-        }
-
-        const result = filtered.slice(0, 4);
-        cacheRef.current[cacheKey] = result;
-        setConcerts(result);
+        cacheRef.current[cacheKey] = data as Concert[];
+        setConcerts(data as Concert[]);
       }
       setIsVisible(true);
     };

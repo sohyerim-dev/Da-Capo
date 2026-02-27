@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Link, useLocation, useNavigationType } from "react-router";
 import { supabase } from "../../lib/supabase";
 import { concertTabData } from "../../data/concertTabData";
@@ -11,6 +11,7 @@ interface Concert {
   bookmark_count: number;
   rank: number | null;
   tags: string[] | null;
+  performers: string | null;
 }
 
 type SortOption = "start_date" | "bookmark_count";
@@ -22,21 +23,6 @@ const SORT_OPTIONS: { label: string; value: SortOption }[] = [
 
 const PAGE_SIZE = 8;
 const BOXOFFICE_PAGE_SIZE = 8;
-const SUB_PAGE_SIZE = 6;
-const SUB_PAGE_SIZE_MOBILE = 3;
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(
-    () => window.matchMedia("(max-width: 1200px)").matches
-  );
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1200px)");
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isMobile;
-}
 
 const AREAS = [
   "서울특별시",
@@ -114,14 +100,11 @@ export default function ConcertBrowse() {
   const shouldRestore =
     navType === "POP" || location.state?.fromDetail === true;
   const saved = shouldRestore ? loadSession() : null;
-  const isMobile = useIsMobile();
-  const subPageSize = isMobile ? SUB_PAGE_SIZE_MOBILE : SUB_PAGE_SIZE;
-
   const [activeTab, setActiveTab] = useState<number>(saved?.activeTab ?? 0);
-  const [activeSubIndex, setActiveSubIndex] = useState<number>(
-    saved?.activeSubIndex ?? 0
+  const [activeSubIndex, setActiveSubIndex] = useState<number | null>(
+    saved?.activeSubIndex ?? null
   );
-  const [subPage, setSubPage] = useState<number>(saved?.subPage ?? 0);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(false);
@@ -138,24 +121,21 @@ export default function ConcertBrowse() {
       JSON.stringify({
         activeTab,
         activeSubIndex,
-        subPage,
         filterArea,
         filterDate,
         filterSort,
       })
     );
-  }, [activeTab, activeSubIndex, subPage, filterArea, filterDate, filterSort]);
+  }, [activeTab, activeSubIndex, filterArea, filterDate, filterSort]);
 
   const hasFilter = filterArea !== "" || filterDate !== "";
 
   const currentTab = concertTabData[activeTab];
   const currentItems = currentTab.items;
-  const totalSubPages = Math.ceil(currentItems.length / subPageSize);
-  const visibleSubItems = currentItems.slice(
-    subPage * subPageSize,
-    (subPage + 1) * subPageSize
-  );
-  const activeItem = currentTab.rankOnly ? null : currentItems[activeSubIndex];
+  const activeItem =
+    currentTab.rankOnly || activeSubIndex === null
+      ? null
+      : currentItems[activeSubIndex];
 
   useEffect(() => {
     const fetchConcerts = async () => {
@@ -163,14 +143,20 @@ export default function ConcertBrowse() {
 
       let query = supabase
         .from("concerts")
-        .select("id, title, poster, synopsis, bookmark_count, rank, tags")
+        .select("id, title, poster, synopsis, bookmark_count, rank, tags, performers")
         .in("status", ["공연예정", "공연중"]);
 
       if (currentTab.rankOnly) {
         query = query.not("rank", "is", null).order("rank", { ascending: true });
       } else {
-        if (activeItem && !activeItem.showOthers && activeItem.tag) {
-          query = query.contains("tags", [activeItem.tag]);
+        if (activeItem && !activeItem.isSeparator) {
+          if (currentTab.usePerformers && activeItem.tag) {
+            query = query.or(`performers.ilike.%${activeItem.tag}%,tags.cs.{${activeItem.tag}}`);
+          } else if (activeItem.tags && activeItem.tags.length > 0) {
+            query = query.or(activeItem.tags.map((t) => `tags.cs.{${t}}`).join(","));
+          } else if (activeItem.tag) {
+            query = query.contains("tags", [activeItem.tag]);
+          }
         }
 
         if (filterSort === "bookmark_count") {
@@ -199,18 +185,7 @@ export default function ConcertBrowse() {
       if (!error && data) {
         let filtered: Concert[];
 
-        if (currentTab.rankOnly || !activeItem) {
-          filtered = data as Concert[];
-        } else if (activeItem.showOthers) {
-          const knownTags = currentTab.items
-            .filter((item) => !item.showOthers && item.tag)
-            .map((item) => item.tag!);
-          filtered = (data as Concert[]).filter(
-            (c) => !knownTags.some((tag) => (c.tags ?? []).includes(tag))
-          );
-        } else {
-          filtered = data as Concert[];
-        }
+        filtered = data as Concert[];
 
         setConcerts(filtered);
       }
@@ -221,17 +196,32 @@ export default function ConcertBrowse() {
   }, [activeTab, activeSubIndex, filterArea, filterDate, filterSort]);
 
   const handleTabChange = (i: number) => {
-    setActiveTab(i);
-    setActiveSubIndex(0);
-    setSubPage(0);
-    setVisibleCount(concertTabData[i].rankOnly ? BOXOFFICE_PAGE_SIZE : PAGE_SIZE);
-    setFilterSort("start_date");
-    setFilterArea("");
-    setFilterDate("");
+    const tab = concertTabData[i];
+    if (tab.rankOnly) {
+      setActiveTab(i);
+      setActiveSubIndex(null);
+      setVisibleCount(BOXOFFICE_PAGE_SIZE);
+      setFilterSort("start_date");
+      setFilterArea("");
+      setFilterDate("");
+      setIsPanelOpen(false);
+      return;
+    }
+    if (activeTab === i) {
+      setIsPanelOpen((prev) => !prev);
+    } else {
+      setActiveTab(i);
+      setActiveSubIndex(null);
+      setVisibleCount(PAGE_SIZE);
+      setFilterSort("start_date");
+      setFilterArea("");
+      setFilterDate("");
+      setIsPanelOpen(true);
+    }
   };
 
-  const handleSubItemClick = (globalIndex: number) => {
-    setActiveSubIndex(globalIndex);
+  const handleSubItemClick = (index: number | null) => {
+    setActiveSubIndex(index);
     setVisibleCount(PAGE_SIZE);
     setFilterSort("start_date");
     setFilterArea("");
@@ -245,75 +235,52 @@ export default function ConcertBrowse() {
       {/* 대분류 탭 */}
       <div className="concert-info__tabs">
         {concertTabData.map((tab, i) => (
-          <button
-            key={tab.label}
-            className={`concert-info__tab${activeTab === i ? " concert-info__tab--active" : ""}`}
-            onClick={() => handleTabChange(i)}
-          >
-            {tab.label}
-          </button>
+          <Fragment key={tab.label}>
+            {tab.rankOnly && <span className="concert-info__tab-sep">/</span>}
+            <button
+              className={`concert-info__tab${activeTab === i ? " concert-info__tab--active" : ""}`}
+              onClick={() => handleTabChange(i)}
+            >
+              {tab.label}
+            </button>
+          </Fragment>
         ))}
       </div>
 
-      {/* 소분류 */}
-      {!currentTab.rankOnly && (
-        <div className="concert-info__sub-wrap">
+      {/* 소분류 패널 */}
+      {isPanelOpen && !currentTab.rankOnly && (
+        <div className="concert-info__panel">
           <button
-            className="concert-info__sub-arrow"
-            onClick={() => setSubPage((p: number) => Math.max(0, p - 1))}
-            disabled={subPage === 0}
-            aria-label="이전"
+            className={`concert-info__panel-item${activeSubIndex === null ? " concert-info__panel-item--active" : ""}`}
+            onClick={() => handleSubItemClick(null)}
           >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15 18l-6-6 6-6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            {activeSubIndex === null && (
+              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+            전체
           </button>
-          <div className="concert-info__sub-list">
-            {visibleSubItems.map((item, i) => {
-              const globalIndex = subPage * subPageSize + i;
-              return (
-                <button
-                  key={item.label}
-                  className={`concert-info__sub-item${activeSubIndex === globalIndex ? " concert-info__sub-item--active" : ""}`}
-                  onClick={() => handleSubItemClick(globalIndex)}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
-          <button
-            className="concert-info__sub-arrow"
-            onClick={() =>
-              setSubPage((p: number) => Math.min(totalSubPages - 1, p + 1))
-            }
-            disabled={subPage === totalSubPages - 1}
-            aria-label="다음"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M9 18l6-6-6-6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+          {currentItems.map((item, i) =>
+            item.isSeparator ? (
+              <span key={item.label} className="concert-info__panel-separator">
+                {item.label}
+              </span>
+            ) : (
+              <button
+                key={item.label}
+                className={`concert-info__panel-item${activeSubIndex === i ? " concert-info__panel-item--active" : ""}`}
+                onClick={() => handleSubItemClick(i)}
+              >
+                {activeSubIndex === i && (
+                  <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+                {item.label}
+              </button>
+            )
+          )}
         </div>
       )}
 
@@ -399,7 +366,12 @@ export default function ConcertBrowse() {
       )}
 
       {/* 카드 그리드 */}
-      {loading ? (
+      {!currentTab.rankOnly && activeSubIndex === null && !isPanelOpen ? (
+        <div className="concert-info__guide">
+          <p className="concert-info__guide-title">카테고리를 선택해 공연을 탐색해보세요</p>
+          <p className="concert-info__guide-sub">탭을 클릭하면 세부 장르를 고를 수 있어요</p>
+        </div>
+      ) : loading ? (
         <div className="concert-info__cards">
           {Array.from({ length: PAGE_SIZE }).map((_, i) => (
             <div key={i} className="concert-info__skeleton">
@@ -408,7 +380,7 @@ export default function ConcertBrowse() {
             </div>
           ))}
         </div>
-      ) : concerts.length === 0 ? (
+      ) : !loading && concerts.length === 0 ? (
         <p className="concert-info__search-empty">해당 공연이 없습니다.</p>
       ) : (
         <>

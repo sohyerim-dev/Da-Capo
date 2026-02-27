@@ -26,11 +26,6 @@ export default function Header() {
     <>
       <header className="header header--black">
         <div className="wrap header__inner">
-          <nav className="header__nav header__nav-left" aria-label="주 메뉴">
-            <NavLink to="/concert-info" aria-current={location.pathname.startsWith("/concert-info") ? "page" : undefined}>공연</NavLink>
-            <NavLink to="/magazine" aria-current={location.pathname.startsWith("/magazine") ? "page" : undefined}>매거진</NavLink>
-          </nav>
-
           <Link to="/" className="header__logo" aria-label="Da Capo 홈">
             <img
               src="/images/logo-black.png"
@@ -40,7 +35,9 @@ export default function Header() {
           </Link>
 
           <div className="header__right">
-            <nav className="header__nav header__nav-right" aria-label="주 메뉴">
+            <nav className="header__nav" aria-label="주 메뉴">
+              <NavLink to="/concert-info" aria-current={location.pathname.startsWith("/concert-info") ? "page" : undefined}>공연</NavLink>
+              <NavLink to="/magazine" aria-current={location.pathname.startsWith("/magazine") ? "page" : undefined}>매거진</NavLink>
               <NavLink
                 to="/community"
                 className={({ isActive }) => isActive || !!isClassicNotePublic ? "active" : ""}

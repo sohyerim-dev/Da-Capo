@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookmarks: {
+        Row: {
+          concert_id: string
+          created_at: string | null
+          id: number
+          scheduled_dates: string[] | null
+          user_id: string
+        }
+        Insert: {
+          concert_id: string
+          created_at?: string | null
+          id?: number
+          scheduled_dates?: string[] | null
+          user_id: string
+        }
+        Update: {
+          concert_id?: string
+          created_at?: string | null
+          id?: number
+          scheduled_dates?: string[] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_concert_id_fkey"
+            columns: ["concert_id"]
+            isOneToOne: false
+            referencedRelation: "concerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classic_note_subscriptions: {
         Row: {
           created_at: string | null
@@ -33,54 +65,7 @@ export type Database = {
           following_id?: string
           id?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "classic_note_subscriptions_follower_id_fkey"
-            columns: ["follower_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "classic_note_subscriptions_following_id_fkey"
-            columns: ["following_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      bookmarks: {
-        Row: {
-          concert_id: string
-          created_at: string | null
-          id: number
-          user_id: string
-          scheduled_dates: string[] | null
-        }
-        Insert: {
-          concert_id: string
-          created_at?: string | null
-          id?: number
-          user_id: string
-          scheduled_dates?: string[] | null
-        }
-        Update: {
-          concert_id?: string
-          created_at?: string | null
-          id?: number
-          user_id?: string
-          scheduled_dates?: string[] | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bookmarks_concert_id_fkey"
-            columns: ["concert_id"]
-            isOneToOne: false
-            referencedRelation: "concerts"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       community_comments: {
         Row: {
@@ -123,13 +108,43 @@ export type Database = {
           },
         ]
       }
+      community_likes: {
+        Row: {
+          created_at: string | null
+          id: number
+          post_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          post_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          post_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_posts: {
         Row: {
           author_id: string
           author_nickname: string
+          author_role: string | null
           author_username: string | null
-          author_role: string
           category: string
+          comments_enabled: boolean
           concert_id: string | null
           content: string
           created_at: string | null
@@ -142,9 +157,10 @@ export type Database = {
         Insert: {
           author_id: string
           author_nickname: string
+          author_role?: string | null
           author_username?: string | null
-          author_role?: string
           category: string
+          comments_enabled?: boolean
           concert_id?: string | null
           content?: string
           created_at?: string | null
@@ -157,9 +173,10 @@ export type Database = {
         Update: {
           author_id?: string
           author_nickname?: string
+          author_role?: string | null
           author_username?: string | null
-          author_role?: string
           category?: string
+          comments_enabled?: boolean
           concert_id?: string | null
           content?: string
           created_at?: string | null
@@ -174,13 +191,15 @@ export type Database = {
       concerts: {
         Row: {
           age_limit: string | null
+          ai_keywords: string[] | null
           area: string | null
-          bookmark_count: number
+          bookmark_count: number | null
           crew: string | null
           end_date: string | null
           genre: string | null
           id: string
           intro_images: Json | null
+          need_review: boolean | null
           open_run: string | null
           performers: string | null
           poster: string | null
@@ -199,13 +218,15 @@ export type Database = {
         }
         Insert: {
           age_limit?: string | null
+          ai_keywords?: string[] | null
           area?: string | null
-          bookmark_count?: number
+          bookmark_count?: number | null
           crew?: string | null
           end_date?: string | null
           genre?: string | null
           id: string
           intro_images?: Json | null
+          need_review?: boolean | null
           open_run?: string | null
           performers?: string | null
           poster?: string | null
@@ -224,13 +245,15 @@ export type Database = {
         }
         Update: {
           age_limit?: string | null
+          ai_keywords?: string[] | null
           area?: string | null
-          bookmark_count?: number
+          bookmark_count?: number | null
           crew?: string | null
           end_date?: string | null
           genre?: string | null
           id?: string
           intro_images?: Json | null
+          need_review?: boolean | null
           open_run?: string | null
           performers?: string | null
           poster?: string | null
@@ -271,6 +294,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "magazine_concerts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "magazine_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      magazine_likes: {
+        Row: {
+          created_at: string | null
+          id: number
+          post_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          post_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          post_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "magazine_likes_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "magazine_posts"
@@ -424,7 +476,7 @@ export type Database = {
           is_private: boolean
           title: string
           updated_at: string | null
-          view_count: number
+          view_count: number | null
         }
         Insert: {
           author_id: string
@@ -437,7 +489,7 @@ export type Database = {
           is_private?: boolean
           title: string
           updated_at?: string | null
-          view_count?: number
+          view_count?: number | null
         }
         Update: {
           author_id?: string
@@ -450,7 +502,7 @@ export type Database = {
           is_private?: boolean
           title?: string
           updated_at?: string | null
-          view_count?: number
+          view_count?: number | null
         }
         Relationships: []
       }
@@ -509,6 +561,7 @@ export type Database = {
         Args: { p_post_id: number }
         Returns: undefined
       }
+      auth_user_role: { Args: never; Returns: string }
       check_nickname_exists: { Args: { p_nickname: string }; Returns: boolean }
       delete_user: { Args: never; Returns: undefined }
       increment_community_view_count: {

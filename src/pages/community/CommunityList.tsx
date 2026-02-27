@@ -4,12 +4,12 @@ import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import "./CommunityList.scss";
 
-type Category = "전체" | "공지" | "자유" | "후기" | "정보";
+type Category = "전체" | "공지" | "이벤트" | "자유" | "후기" | "정보";
 
 interface CommunityPost {
   id: number;
   title: string;
-  category: "공지" | "자유" | "후기" | "정보";
+  category: "공지" | "이벤트" | "자유" | "후기" | "정보";
   author_id: string;
   author_nickname: string;
   author_username: string | null;
@@ -27,7 +27,7 @@ const SEARCH_FIELDS: { label: string; value: SearchField }[] = [
   { label: "작성자", value: "author_nickname" },
 ];
 
-const CATEGORIES: Category[] = ["전체", "공지", "자유", "후기", "정보"];
+const CATEGORIES: Category[] = ["전체", "공지", "이벤트", "자유", "후기", "정보"];
 const PAGE_SIZE = 20;
 
 function formatDate(str: string): string {
@@ -54,6 +54,7 @@ export default function CommunityList() {
 
   // 로컬 상태 (입력 중인 값)
   const [notices, setNotices] = useState<CommunityPost[]>([]);
+  const [events, setEvents] = useState<CommunityPost[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -146,8 +147,35 @@ export default function CommunityList() {
         setNotices([]);
       }
 
-      // 일반 글 (공지 탭이면 빈 리스트)
-      if (activeCategory === "공지") {
+      // 이벤트 고정 (전체/이벤트 탭에서만, 검색 중엔 표시 안 함)
+      if (!searchQuery && (activeCategory === "전체" || activeCategory === "이벤트")) {
+        const { data: eventData } = await supabase
+          .from("community_posts")
+          .select(
+            "id, title, category, author_id, author_nickname, author_username, author_role, view_count, created_at, community_comments(count)"
+          )
+          .eq("category", "이벤트")
+          .order("created_at", { ascending: false });
+
+        const eventWithCount: CommunityPost[] = (eventData ?? []).map((p) => ({
+          id: p.id,
+          title: p.title,
+          category: p.category as CommunityPost["category"],
+          author_id: p.author_id,
+          author_nickname: p.author_nickname,
+          author_username: p.author_username,
+          author_role: p.author_role,
+          view_count: p.view_count ?? 0,
+          created_at: p.created_at ?? "",
+          comment_count: (p.community_comments as { count: number }[])[0]?.count ?? 0,
+        }));
+        setEvents(eventWithCount);
+      } else {
+        setEvents([]);
+      }
+
+      // 일반 글 (공지/이벤트 탭이면 빈 리스트)
+      if (activeCategory === "공지" || activeCategory === "이벤트") {
         setPosts([]);
         setTotalCount(0);
         setLoading(false);
@@ -160,6 +188,7 @@ export default function CommunityList() {
           count: "exact",
         })
         .neq("category", "공지")
+        .neq("category", "이벤트")
         .order("created_at", { ascending: false })
         .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
@@ -399,7 +428,7 @@ export default function CommunityList() {
             </thead>
             <tbody>{renderSkeletonRows()}</tbody>
           </table>
-        ) : notices.length === 0 && posts.length === 0 ? (
+        ) : notices.length === 0 && events.length === 0 && posts.length === 0 ? (
           <div className="community-list-page__empty">
             {searchQuery ? `"${searchQuery}" 검색 결과가 없습니다.` : "등록된 글이 없습니다."}
           </div>
@@ -417,6 +446,7 @@ export default function CommunityList() {
             </thead>
             <tbody>
               {notices.map((post, idx) => renderRow(post, idx, true))}
+              {events.map((post, idx) => renderRow(post, idx, true))}
               {posts.map((post, idx) => renderRow(post, idx))}
             </tbody>
           </table>

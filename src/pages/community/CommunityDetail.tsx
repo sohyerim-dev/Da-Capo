@@ -12,6 +12,7 @@ interface CommunityPost {
   title: string;
   category: string;
   content: string;
+  comments_enabled: boolean | null;
   author_id: string;
   author_nickname: string;
   author_username: string | null;
@@ -233,7 +234,7 @@ export default function CommunityDetail() {
 
   const canEdit = user?.id === post.author_id || isAdmin;
   const canDelete = user?.id === post.author_id || isAdmin;
-  const showComments = post.category !== "공지";
+  const showComments = post.category !== "공지" && post.comments_enabled !== false;
 
   return (
     <>
