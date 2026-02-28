@@ -255,6 +255,43 @@ async function main() {
     console.log("순위 업데이트 완료");
   }
 
+  // 제목 기반 출연진 자동 보정
+  console.log("출연진 자동 보정 중...");
+  const PERFORMER_RULES = [
+    { patterns: ["%서울시향%", "%서울시립교향악단%"], name: "서울시립교향악단" },
+    { patterns: ["%인천시향%", "%인천시립교향악단%"], name: "인천시립교향악단" },
+    { patterns: ["%대전시립교향악단%"], name: "대전시립교향악단" },
+    { patterns: ["%국립심포니오케스트라%"], name: "국립심포니오케스트라" },
+    { patterns: ["%경기필하모닉%", "%경기필%"], name: "경기필하모닉" },
+    { patterns: ["%KBS교향악단%"], name: "KBS교향악단" },
+    { patterns: ["%고잉홈프로젝트%"], name: "고잉홈프로젝트" },
+  ];
+
+  let fixCount = 0;
+  for (const rule of PERFORMER_RULES) {
+    for (const pattern of rule.patterns) {
+      const { data } = await supabase
+        .from("concerts")
+        .select("id, performers")
+        .ilike("title", pattern);
+
+      if (!data) continue;
+
+      for (const concert of data) {
+        if (concert.performers?.includes(rule.name)) continue;
+        const newPerformers = !concert.performers
+          ? rule.name
+          : `${rule.name}, ${concert.performers}`;
+        await supabase
+          .from("concerts")
+          .update({ performers: newPerformers })
+          .eq("id", concert.id);
+        fixCount++;
+      }
+    }
+  }
+  console.log(`출연진 보정 완료: ${fixCount}건`);
+
   console.log("동기화 완료");
 }
 
