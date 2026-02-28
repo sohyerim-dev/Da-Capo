@@ -2,7 +2,7 @@ name: KOPIS 공연 데이터 동기화
 
 on:
   schedule:
-    - cron: "0 16 * * *" # 매일 새벽 1시 KST (UTC 16:00)
+    - cron: "0 13 * * *" # 매일 밤 10시 KST (UTC 13:00)
   workflow_dispatch: # 수동 실행 가능
 
 jobs:
@@ -33,5 +33,5 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node scripts/tag-concerts.mjs

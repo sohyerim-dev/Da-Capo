@@ -9,7 +9,7 @@
 
   .wrap {
     width: 85%;
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
   }
 
@@ -280,6 +280,53 @@
 
     &:hover:not(&--active) {
       border-color: #161616;
+      color: #161616;
+    }
+  }
+
+  &__filter-date-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  &__filter-date-input {
+    height: 38px;
+    padding: 0 12px;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+    color: #161616;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: #161616;
+    }
+  }
+
+  &__filter-date-sep {
+    font-size: 14px;
+    color: #888;
+  }
+
+  &__filter-reset {
+    display: block;
+    margin: 12px auto 0;
+    padding: 6px 20px;
+    font-size: 13px;
+    color: #888;
+    background: transparent;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+      background: #f0f0f0;
       color: #161616;
     }
   }

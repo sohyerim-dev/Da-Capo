@@ -1,7 +1,14 @@
+import { Helmet } from "react-helmet-async";
 import "./About.scss";
 
 export default function About() {
   return (
+    <>
+    <Helmet>
+      <title>Da Capo 소개 | 클래식 공연 중심 플랫폼</title>
+      <meta name="description" content="Da Capo는 클래식 공연을 사랑하는 사람들을 위한 플랫폼입니다. 공연 정보 탐색, 관람 기록, 매거진 콘텐츠를 만나보세요." />
+      <link rel="canonical" href="https://da-capo.co.kr/about" />
+    </Helmet>
     <div className="about">
       <div className="wrap">
         <h1 className="sr-only">Da Capo 소개</h1>
@@ -43,5 +50,6 @@ export default function About() {
         </div>
       </div>
     </div>
+    </>
   );
 }

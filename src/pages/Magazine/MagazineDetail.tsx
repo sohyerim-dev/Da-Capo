@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import ShareButton from "@/components/ui/ShareButton";
@@ -222,8 +223,21 @@ export default function MagazineDetail() {
     );
   }
 
+  const seoDescription = post.content
+    .replace(/<[^>]*>/g, "")
+    .replace(/&[^;]+;/g, " ")
+    .slice(0, 160)
+    .trim();
+
   return (
     <>
+      <Helmet>
+        <title>{post.title} | Da Capo 매거진</title>
+        <meta name="description" content={seoDescription} />
+        <meta property="og:title" content={`${post.title} | Da Capo 매거진`} />
+        <meta property="og:description" content={seoDescription} />
+        <link rel="canonical" href={`https://da-capo.co.kr/magazine/${post.id}`} />
+      </Helmet>
     <div className="magazine-detail-page">
       <div className="wrap magazine-detail-page__inner">
 

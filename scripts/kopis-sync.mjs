@@ -56,7 +56,12 @@ async function fetchPage(stdate, eddate, cpage) {
   url.searchParams.set("rows", "100");
 
   const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`KOPIS fetch 실패: ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text();
+    console.error(`KOPIS fetch 실패: ${res.status}`, body);
+    console.error("요청 URL:", url.toString());
+    throw new Error(`KOPIS fetch 실패: ${res.status}`);
+  }
   const xml = await res.text();
   const parsed = parser.parse(xml);
 
@@ -140,7 +145,7 @@ async function fetchBoxoffice() {
 
 // KOPIS 응답 → Supabase 행 변환
 function toRow(item, detail) {
-  return {
+  const row = {
     id: item.mt20id,
     title: item.prfnm,
     genre: item.genrenm,
@@ -151,17 +156,22 @@ function toRow(item, detail) {
     venue: item.fcltynm,
     area: item.area,
     open_run: item.openrun,
-    synopsis: detail?.sty ?? null,
-    performers: detail?.prfcast ?? null,
-    intro_images: parseIntroImages(detail),
-    schedule: detail?.dtguidance ?? null,
-    producer: detail?.entrpsnmP ?? null,
-    ticket_price: detail?.pcseguidance ?? null,
-    crew: detail?.prfcrew ?? null,
-    age_limit: detail?.prfage ?? null,
-    ticket_sites: parseTicketSites(detail),
     synced_at: new Date().toISOString(),
   };
+
+  if (detail) {
+    row.synopsis = detail.sty ?? null;
+    row.performers = detail.prfcast ?? null;
+    row.intro_images = parseIntroImages(detail);
+    row.schedule = detail.dtguidance ?? null;
+    row.producer = detail.entrpsnmP ?? null;
+    row.ticket_price = detail.pcseguidance ?? null;
+    row.crew = detail.prfcrew ?? null;
+    row.age_limit = detail.prfage ?? null;
+    row.ticket_sites = parseTicketSites(detail);
+  }
+
+  return row;
 }
 
 async function main() {

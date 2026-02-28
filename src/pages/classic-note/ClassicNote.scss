@@ -41,6 +41,7 @@
   }
 
   &__public-badge {
+    position: relative;
     font-size: 11px;
     font-weight: 600;
     padding: 3px 9px;
@@ -50,15 +51,34 @@
     background: none;
     text-decoration: none;
     cursor: pointer;
-    transition: opacity 0.15s;
+    transition: color 0.15s;
+
+    &::after {
+      content: "변경";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
 
     &:hover {
-      opacity: 0.65;
+      color: transparent;
+      &::after { opacity: 1; color: #aaa; }
     }
 
     &--on {
       border-color: #161616;
       color: #161616;
+
+      &:hover {
+        color: transparent;
+        &::after { color: #161616; }
+      }
     }
   }
 

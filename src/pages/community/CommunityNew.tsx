@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -74,6 +74,8 @@ export default function CommunityNew() {
   const [concertResults, setConcertResults] = useState<ConcertResult[]>([]);
   const [concertSearching, setConcertSearching] = useState(false);
   const [attachedConcert, setAttachedConcert] = useState<ConcertResult | null>(null);
+  const [searchDateFrom, setSearchDateFrom] = useState("");
+  const [searchDateTo, setSearchDateTo] = useState("");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,21 +108,39 @@ export default function CommunityNew() {
       setAttachedConcert(null);
       setConcertResults([]);
       setConcertQuery("");
+      setSearchDateFrom("");
+      setSearchDateTo("");
     }
   };
 
   const handleConcertSearch = async () => {
-    if (!concertQuery.trim()) return;
+    if (!concertQuery.trim() && !searchDateFrom && !searchDateTo) return;
     setConcertSearching(true);
-    const { data } = await supabase
+    const toDot = (iso: string) => iso.replace(/-/g, ".");
+    let query = supabase
       .from("concerts")
       .select("id, title, start_date, end_date")
-      .ilike("title", `%${concertQuery.trim()}%`)
-      .eq("status", "공연완료")
-      .limit(10);
+      .eq("status", "공연완료");
+    if (concertQuery.trim()) {
+      query = query.ilike("title", `%${concertQuery.trim()}%`);
+    }
+    if (searchDateFrom) {
+      query = query.gte("start_date", toDot(searchDateFrom));
+    }
+    if (searchDateTo) {
+      query = query.lte("start_date", toDot(searchDateTo));
+    }
+    const { data } = await query.limit(10);
     setConcertResults(data ?? []);
     setConcertSearching(false);
   };
+
+  useEffect(() => {
+    if (searchDateFrom || searchDateTo) {
+      handleConcertSearch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchDateFrom, searchDateTo]);
 
   const handleImageUpload = async (file: File) => {
     if (!editor || !user) return;
@@ -282,7 +302,7 @@ export default function CommunityNew() {
                   <button
                     type="button"
                     className="community-editor-page__attached-concert-remove"
-                    onClick={() => { setAttachedConcert(null); setSelectedDate(""); }}
+                    onClick={() => { setAttachedConcert(null); setSelectedDate(""); setSearchDateFrom(""); setSearchDateTo(""); }}
                   >
                     ×
                   </button>
@@ -305,24 +325,42 @@ export default function CommunityNew() {
                 )}
               </>
             ) : (
-              <div className="community-editor-page__concert-search-row">
+              <>
+                <div className="community-editor-page__concert-search-row">
+                  <input
+                    type="text"
+                    className="community-editor-page__input"
+                    placeholder="공연명으로 검색"
+                    value={concertQuery}
+                    onChange={(e) => setConcertQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleConcertSearch()}
+                  />
+                  <button
+                    type="button"
+                    className="community-editor-page__search-btn"
+                    onClick={handleConcertSearch}
+                    disabled={concertSearching}
+                  >
+                    {concertSearching ? "검색 중..." : "검색"}
+                  </button>
+                </div>
+                <div className="community-editor-page__search-date-row">
                 <input
-                  type="text"
-                  className="community-editor-page__input"
-                  placeholder="공연명으로 검색"
-                  value={concertQuery}
-                  onChange={(e) => setConcertQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleConcertSearch()}
+                  type="date"
+                  className="community-editor-page__search-date-input"
+                  value={searchDateFrom}
+                  onChange={(e) => setSearchDateFrom(e.target.value)}
                 />
-                <button
-                  type="button"
-                  className="community-editor-page__search-btn"
-                  onClick={handleConcertSearch}
-                  disabled={concertSearching}
-                >
-                  {concertSearching ? "검색 중..." : "검색"}
-                </button>
-              </div>
+                <span className="community-editor-page__search-date-sep">~</span>
+                <input
+                  type="date"
+                  className="community-editor-page__search-date-input"
+                  value={searchDateTo}
+                  min={searchDateFrom}
+                  onChange={(e) => setSearchDateTo(e.target.value)}
+                />
+                </div>
+              </>
             )}
             {concertResults.length > 0 && !attachedConcert && (
               <ul className="community-editor-page__concert-results">

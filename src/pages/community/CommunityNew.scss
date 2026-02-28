@@ -143,6 +143,34 @@
     }
   }
 
+  &__search-date-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  &__search-date-input {
+    height: 38px;
+    padding: 0 10px;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+    color: #161616;
+
+    &:focus {
+      border-color: #161616;
+      outline: none;
+    }
+  }
+
+  &__search-date-sep {
+    font-size: 14px;
+    color: #888;
+  }
+
   &__concert-results {
     list-style: none;
     padding: 0;
@@ -150,7 +178,8 @@
     border: 1px solid #e5e5e5;
     border-radius: 8px;
     background: #fafafa;
-    overflow: hidden;
+    max-height: 360px;
+    overflow-y: auto;
   }
 
   &__concert-result-item {

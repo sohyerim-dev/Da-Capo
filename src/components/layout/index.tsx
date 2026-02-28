@@ -6,7 +6,7 @@ import AnnouncementBanner from "@/components/ui/AnnouncementBanner";
 import "./Layout.scss";
 
 const PAGE_TITLES: Record<string, string> = {
-  "/": "Da Capo | 클래식을 발견하는 가장 좋은 방법",
+  "/": "Da Capo | 클래식 공연 중심 플랫폼",
   "/about": "Da Capo 소개 | Da Capo",
   "/concert-info": "공연 정보 | Da Capo",
   "/magazine": "매거진 | Da Capo",
@@ -34,10 +34,16 @@ export default function Layout() {
     const el = bannerRef.current;
     if (!el) return;
     const ro = new ResizeObserver(() => {
-      document.documentElement.style.setProperty("--banner-h", `${el.offsetHeight}px`);
+      document.documentElement.style.setProperty(
+        "--banner-h",
+        `${el.offsetHeight}px`
+      );
     });
     ro.observe(el);
-    document.documentElement.style.setProperty("--banner-h", `${el.offsetHeight}px`);
+    document.documentElement.style.setProperty(
+      "--banner-h",
+      `${el.offsetHeight}px`
+    );
     return () => ro.disconnect();
   }, [pathname, bannerVisible]);
 
@@ -68,7 +74,9 @@ export default function Layout() {
 
   return (
     <>
-      <a href="#main-content" className="skip-link">본문으로 이동</a>
+      <a href="#main-content" className="skip-link">
+        본문으로 이동
+      </a>
       {pathname === "/" && bannerVisible && (
         <div ref={bannerRef}>
           <AnnouncementBanner onClose={() => setBannerVisible(false)} />

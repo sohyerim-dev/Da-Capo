@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -49,6 +49,8 @@ export default function MagazineNew() {
   const [concertResults, setConcertResults] = useState<ConcertResult[]>([]);
   const [concertSearching, setConcertSearching] = useState(false);
   const [attachedConcerts, setAttachedConcerts] = useState<ConcertResult[]>([]);
+  const [searchDateFrom, setSearchDateFrom] = useState("");
+  const [searchDateTo, setSearchDateTo] = useState("");
 
   const [bioName, setBioName] = useState("");
   const [bioText, setBioText] = useState("");
@@ -101,16 +103,32 @@ export default function MagazineNew() {
   };
 
   const handleConcertSearch = async () => {
-    if (!concertQuery.trim()) return;
+    if (!concertQuery.trim() && !searchDateFrom && !searchDateTo) return;
     setConcertSearching(true);
-    const { data } = await supabase
+    const toDot = (iso: string) => iso.replace(/-/g, ".");
+    let query = supabase
       .from("concerts")
-      .select("id, title, poster, start_date, end_date")
-      .ilike("title", `%${concertQuery.trim()}%`)
-      .limit(10);
+      .select("id, title, poster, start_date, end_date");
+    if (concertQuery.trim()) {
+      query = query.ilike("title", `%${concertQuery.trim()}%`);
+    }
+    if (searchDateFrom) {
+      query = query.gte("start_date", toDot(searchDateFrom));
+    }
+    if (searchDateTo) {
+      query = query.lte("start_date", toDot(searchDateTo));
+    }
+    const { data } = await query.limit(10);
     setConcertResults(data ?? []);
     setConcertSearching(false);
   };
+
+  useEffect(() => {
+    if (searchDateFrom || searchDateTo) {
+      handleConcertSearch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchDateFrom, searchDateTo]);
 
   const handleAttachConcert = (concert: ConcertResult) => {
     if (attachedConcerts.some((c) => c.id === concert.id)) return;
@@ -299,6 +317,22 @@ export default function MagazineNew() {
             >
               {concertSearching ? "검색 중..." : "검색"}
             </button>
+          </div>
+          <div className="magazine-editor-page__search-date-row">
+            <input
+              type="date"
+              className="magazine-editor-page__search-date-input"
+              value={searchDateFrom}
+              onChange={(e) => setSearchDateFrom(e.target.value)}
+            />
+            <span className="magazine-editor-page__search-date-sep">~</span>
+            <input
+              type="date"
+              className="magazine-editor-page__search-date-input"
+              value={searchDateTo}
+              min={searchDateFrom}
+              onChange={(e) => setSearchDateTo(e.target.value)}
+            />
           </div>
 
           {concertResults.length > 0 && (

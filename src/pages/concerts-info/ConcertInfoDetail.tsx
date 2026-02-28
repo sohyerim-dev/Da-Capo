@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useLocation } from "react-router";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "../../lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import "./ConcertInfoDetail.scss";
@@ -307,7 +308,20 @@ export default function ConcertInfoDetail() {
       ? `${concert.start_date ? formatDate(concert.start_date) : ""} ~ 오픈런`
       : `${concert.start_date ? formatDate(concert.start_date) : ""} ~ ${concert.end_date ? formatDate(concert.end_date) : ""}`;
 
+  const seoDescription = [concert.venue, dateRange, concert.performers?.slice(0, 80)]
+    .filter(Boolean)
+    .join(" | ");
+
   return (
+    <>
+      <Helmet>
+        <title>{concert.title ?? "공연 정보"} | Da Capo</title>
+        <meta name="description" content={seoDescription} />
+        <meta property="og:title" content={`${concert.title ?? "공연 정보"} | Da Capo`} />
+        <meta property="og:description" content={seoDescription} />
+        {concert.poster && <meta property="og:image" content={concert.poster} />}
+        <link rel="canonical" href={`https://da-capo.co.kr/concert-info/${concert.id}`} />
+      </Helmet>
     <div className="concert-detail">
       <div className="wrap">
         <Link
@@ -627,5 +641,6 @@ export default function ConcertInfoDetail() {
         </div>
       )}
     </div>
+    </>
   );
 }

@@ -9,7 +9,7 @@
 
   .wrap {
     width: 85%;
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
   }
 
@@ -39,7 +39,7 @@
 
   &__image {
     width: 100%;
-    aspect-ratio: 2000 / 1300;
+    aspect-ratio: 2000 / 800;
     object-fit: cover;
     border-radius: 16px;
     display: block;

@@ -105,6 +105,8 @@ export default function NoteFormPanel({
   const [concertResults, setConcertResults] = useState<ConcertResult[]>([]);
   const [attachedConcert, setAttachedConcert] = useState<ConcertResult | null>(null);
   const [concertSearching, setConcertSearching] = useState(false);
+  const [searchDateFrom, setSearchDateFrom] = useState("");
+  const [searchDateTo, setSearchDateTo] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -177,6 +179,8 @@ export default function NoteFormPanel({
 
     setConcertQuery("");
     setConcertResults([]);
+    setSearchDateFrom("");
+    setSearchDateTo("");
     setError(null);
   }, [open, editingNote, defaultDate, editor]);
 
@@ -201,17 +205,33 @@ export default function NoteFormPanel({
   };
 
   const handleConcertSearch = async () => {
-    if (!concertQuery.trim()) return;
+    if (!concertQuery.trim() && !searchDateFrom && !searchDateTo) return;
     setConcertSearching(true);
-    const { data } = await supabase
+    const toDot = (iso: string) => iso.replace(/-/g, ".");
+    let query = supabase
       .from("concerts")
       .select("id, title, start_date, end_date, schedule, open_run")
-      .ilike("title", `%${concertQuery.trim()}%`)
-      .eq("status", "공연완료")
-      .limit(10);
+      .eq("status", "공연완료");
+    if (concertQuery.trim()) {
+      query = query.ilike("title", `%${concertQuery.trim()}%`);
+    }
+    if (searchDateFrom) {
+      query = query.gte("start_date", toDot(searchDateFrom));
+    }
+    if (searchDateTo) {
+      query = query.lte("start_date", toDot(searchDateTo));
+    }
+    const { data } = await query.limit(10);
     setConcertResults(data ?? []);
     setConcertSearching(false);
   };
+
+  useEffect(() => {
+    if (searchDateFrom || searchDateTo) {
+      handleConcertSearch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchDateFrom, searchDateTo]);
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -468,23 +488,41 @@ export default function NoteFormPanel({
                   </button>
                 </div>
               ) : (
-                <div className="note-form__search-row">
-                  <input
-                    type="text"
-                    className="note-form__input"
-                    placeholder="공연명 검색"
-                    value={concertQuery}
-                    onChange={(e) => setConcertQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleConcertSearch()}
-                  />
-                  <button
-                    className="note-form__search-btn"
-                    onClick={handleConcertSearch}
-                    disabled={concertSearching}
-                  >
-                    검색
-                  </button>
-                </div>
+                <>
+                  <div className="note-form__search-row">
+                    <input
+                      type="text"
+                      className="note-form__input"
+                      placeholder="공연명 검색"
+                      value={concertQuery}
+                      onChange={(e) => setConcertQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleConcertSearch()}
+                    />
+                    <button
+                      className="note-form__search-btn"
+                      onClick={handleConcertSearch}
+                      disabled={concertSearching}
+                    >
+                      검색
+                    </button>
+                  </div>
+                  <div className="note-form__search-date-row">
+                    <input
+                      type="date"
+                      className="note-form__search-date-input"
+                      value={searchDateFrom}
+                      onChange={(e) => setSearchDateFrom(e.target.value)}
+                    />
+                    <span className="note-form__search-date-sep">~</span>
+                    <input
+                      type="date"
+                      className="note-form__search-date-input"
+                      value={searchDateTo}
+                      min={searchDateFrom}
+                      onChange={(e) => setSearchDateTo(e.target.value)}
+                    />
+                  </div>
+                </>
               )}
             </div>
 

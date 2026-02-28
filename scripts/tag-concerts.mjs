@@ -1,20 +1,20 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !ANTHROPIC_API_KEY) {
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !OPENAI_API_KEY) {
   console.error(
-    "환경변수 SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY 가 필요합니다."
+    "환경변수 SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OPENAI_API_KEY 가 필요합니다."
   );
   process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 const TAXONOMY = {
   작곡가: [
@@ -228,15 +228,9 @@ function addEraTags(tags) {
   return uniq([...tags, ...eraTags]);
 }
 
-// Anthropic 응답에서 text 블록만 안전하게 합치기
-function extractTextFromAnthropic(response) {
-  const blocks = Array.isArray(response?.content) ? response.content : [];
-  const text = blocks
-    .filter((b) => b && b.type === "text" && typeof b.text === "string")
-    .map((b) => b.text)
-    .join("\n")
-    .trim();
-  return text;
+// OpenAI 응답에서 텍스트 추출
+function extractText(response) {
+  return response?.choices?.[0]?.message?.content?.trim() ?? "";
 }
 
 // JSON 덩어리만 안전하게 추출 (앞뒤 설명 섞여도 파싱 가능)
@@ -412,16 +406,18 @@ async function fetchImageAsBase64(url) {
 
 async function tagTextBatch(concerts) {
   const call = async () =>
-    anthropic.messages.create({
-      model: "claude-sonnet-4-6",
+    openai.chat.completions.create({
+      model: "gpt-4o-mini",
       max_tokens: 1024,
       temperature: 0,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: buildTextPrompt(concerts) }],
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: buildTextPrompt(concerts) },
+      ],
     });
 
   const response = await withRetry(call, { tries: 3, baseDelayMs: 700 });
-  const text = extractTextFromAnthropic(response);
+  const text = extractText(response);
   const parsed = extractJsonObject(text);
 
   if (!parsed) {
@@ -453,21 +449,19 @@ async function tagImageConcert(concert) {
   }
 
   const imageBlocks = imgDataList.map((img) => ({
-    type: "image",
-    source: {
-      type: "base64",
-      media_type: img.mediaType,
-      data: img.base64,
+    type: "image_url",
+    image_url: {
+      url: `data:${img.mediaType};base64,${img.base64}`,
     },
   }));
 
   const call = async () =>
-    anthropic.messages.create({
-      model: "claude-sonnet-4-6",
+    openai.chat.completions.create({
+      model: "gpt-4o-mini",
       max_tokens: 512,
       temperature: 0,
-      system: SYSTEM_PROMPT,
       messages: [
+        { role: "system", content: SYSTEM_PROMPT },
         {
           role: "user",
           content: [
@@ -486,7 +480,7 @@ async function tagImageConcert(concert) {
     });
 
   const response = await withRetry(call, { tries: 3, baseDelayMs: 700 });
-  const text = extractTextFromAnthropic(response);
+  const text = extractText(response);
   const parsed = extractJsonObject(text);
 
   if (!parsed) {
@@ -554,9 +548,23 @@ async function main() {
           confidence: "low",
         };
 
-        const tags = finalizeTags(out.tags);
-        const keywords = Array.isArray(out.keywords) ? out.keywords : [];
-        const needReview = out.confidence !== "high";
+        let tags = finalizeTags(out.tags);
+        let keywords = Array.isArray(out.keywords) ? out.keywords : [];
+        let needReview = out.confidence !== "high";
+
+        // 텍스트 태깅 결과가 low이고 이미지가 있으면 이미지로 재시도
+        if (needReview && (concert.intro_images?.length ?? 0) > 0) {
+          try {
+            console.log(`  이미지로 재시도: ${concert.title || concert.id}`);
+            const imgResult = await tagImageConcert(concert);
+            const imgOut = imgResult[concert.id] ?? { tags: [], keywords: [], confidence: "low" };
+            tags = finalizeTags(imgOut.tags);
+            keywords = Array.isArray(imgOut.keywords) ? imgOut.keywords : [];
+            needReview = imgOut.confidence !== "high";
+          } catch {
+            // 이미지 재시도 실패 시 텍스트 결과 유지
+          }
+        }
 
         await updateTags(concert.id, tags, keywords, needReview);
 

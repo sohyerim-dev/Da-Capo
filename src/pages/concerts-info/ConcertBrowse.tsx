@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigationType } from "react-router";
 import { supabase } from "../../lib/supabase";
 import { concertTabData } from "../../data/concertTabData";
@@ -50,6 +50,7 @@ const DATE_OPTIONS = [
   { label: "다음 달", value: "nextMonth" },
   { label: "3개월 이내", value: "3months" },
   { label: "6개월 이내", value: "6months" },
+  { label: "직접 선택", value: "custom" },
 ];
 
 function getDateRange(filter: string): { from: string; to: string } | null {
@@ -83,6 +84,10 @@ function getDateRange(filter: string): { from: string; to: string } | null {
   return null;
 }
 
+function isoToDot(iso: string): string {
+  return iso.replace(/-/g, ".");
+}
+
 const SESSION_KEY = "concertBrowse";
 
 function loadSession() {
@@ -104,9 +109,10 @@ export default function ConcertBrowse() {
   const [activeSubIndex, setActiveSubIndex] = useState<number | null>(
     saved?.activeSubIndex ?? null
   );
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(saved?.isPanelOpen ?? false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [visibleCount, setVisibleCount] = useState(saved?.visibleCount ?? PAGE_SIZE);
+  const scrollRestored = useRef(false);
   const [loading, setLoading] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterArea, setFilterArea] = useState<string>(saved?.filterArea ?? "");
@@ -114,6 +120,8 @@ export default function ConcertBrowse() {
   const [filterSort, setFilterSort] = useState<SortOption>(
     saved?.filterSort ?? "start_date"
   );
+  const [customFrom, setCustomFrom] = useState<string>(saved?.customFrom ?? "");
+  const [customTo, setCustomTo] = useState<string>(saved?.customTo ?? "");
 
   useEffect(() => {
     sessionStorage.setItem(
@@ -121,14 +129,31 @@ export default function ConcertBrowse() {
       JSON.stringify({
         activeTab,
         activeSubIndex,
+        isPanelOpen,
         filterArea,
         filterDate,
         filterSort,
+        customFrom,
+        customTo,
+        visibleCount,
       })
     );
-  }, [activeTab, activeSubIndex, filterArea, filterDate, filterSort]);
+  }, [activeTab, activeSubIndex, isPanelOpen, filterArea, filterDate, filterSort, customFrom, customTo, visibleCount]);
 
-  const hasFilter = filterArea !== "" || filterDate !== "";
+  useEffect(() => {
+    if (concerts.length > 0 && shouldRestore && !scrollRestored.current) {
+      scrollRestored.current = true;
+      const lastId = sessionStorage.getItem(SESSION_KEY + "_lastId");
+      if (lastId) {
+        setTimeout(() => {
+          const el = document.querySelector(`[data-concert-id="${lastId}"]`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 100);
+      }
+    }
+  }, [concerts]);
+
+  const hasFilter = filterArea !== "" || (filterDate !== "" && (filterDate !== "custom" || customFrom !== ""));
 
   const currentTab = concertTabData[activeTab];
   const currentItems = currentTab.items;
@@ -173,7 +198,13 @@ export default function ConcertBrowse() {
         query = query.eq("area", filterArea);
       }
 
-      if (filterDate) {
+      if (filterDate === "custom") {
+        if (customFrom) {
+          const from = isoToDot(customFrom);
+          const to = customTo ? isoToDot(customTo) : from;
+          query = query.lte("start_date", to).gte("end_date", from);
+        }
+      } else if (filterDate) {
         const range = getDateRange(filterDate);
         if (range) {
           query = query.lte("start_date", range.to).gte("end_date", range.from);
@@ -193,7 +224,7 @@ export default function ConcertBrowse() {
     };
 
     fetchConcerts();
-  }, [activeTab, activeSubIndex, filterArea, filterDate, filterSort]);
+  }, [activeTab, activeSubIndex, filterArea, filterDate, filterSort, customFrom, customTo]);
 
   const handleTabChange = (i: number) => {
     const tab = concertTabData[i];
@@ -204,6 +235,8 @@ export default function ConcertBrowse() {
       setFilterSort("start_date");
       setFilterArea("");
       setFilterDate("");
+      setCustomFrom("");
+      setCustomTo("");
       setIsPanelOpen(false);
       return;
     }
@@ -216,6 +249,8 @@ export default function ConcertBrowse() {
       setFilterSort("start_date");
       setFilterArea("");
       setFilterDate("");
+      setCustomFrom("");
+      setCustomTo("");
       setIsPanelOpen(true);
     }
   };
@@ -226,6 +261,8 @@ export default function ConcertBrowse() {
     setFilterSort("start_date");
     setFilterArea("");
     setFilterDate("");
+    setCustomFrom("");
+    setCustomTo("");
   };
 
   return (
@@ -355,13 +392,51 @@ export default function ConcertBrowse() {
                 <button
                   key={opt.value}
                   className={`concert-info__filter-option${filterDate === opt.value ? " concert-info__filter-option--active" : ""}`}
-                  onClick={() => setFilterDate(opt.value)}
+                  onClick={() => {
+                    setFilterDate(opt.value);
+                    if (opt.value !== "custom") {
+                      setCustomFrom("");
+                      setCustomTo("");
+                    }
+                  }}
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
+            {filterDate === "custom" && (
+              <div className="concert-info__filter-date-inputs">
+                <input
+                  type="date"
+                  className="concert-info__filter-date-input"
+                  value={customFrom}
+                  onChange={(e) => setCustomFrom(e.target.value)}
+                />
+                <span className="concert-info__filter-date-sep">~</span>
+                <input
+                  type="date"
+                  className="concert-info__filter-date-input"
+                  value={customTo}
+                  min={customFrom}
+                  onChange={(e) => setCustomTo(e.target.value)}
+                />
+              </div>
+            )}
           </div>
+
+          {hasFilter && (
+            <button
+              className="concert-info__filter-reset"
+              onClick={() => {
+                setFilterArea("");
+                setFilterDate("");
+                setCustomFrom("");
+                setCustomTo("");
+              }}
+            >
+              초기화
+            </button>
+          )}
         </div>
       )}
 
@@ -390,6 +465,8 @@ export default function ConcertBrowse() {
                 key={concert.id}
                 to={`/concert-info/${concert.id}`}
                 className="concert-info__card"
+                data-concert-id={concert.id}
+                onClick={() => sessionStorage.setItem(SESSION_KEY + "_lastId", concert.id)}
               >
                 <div className="concert-info__card-img">
                   <img src={concert.poster ?? ""} alt={concert.title ?? ""} />

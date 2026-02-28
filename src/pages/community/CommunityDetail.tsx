@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import CommentList from "./CommentList";
@@ -236,8 +237,21 @@ export default function CommunityDetail() {
   const canDelete = user?.id === post.author_id || isAdmin;
   const showComments = post.category !== "공지" && post.comments_enabled !== false;
 
+  const seoDescription = post.content
+    .replace(/<[^>]*>/g, "")
+    .replace(/&[^;]+;/g, " ")
+    .slice(0, 160)
+    .trim();
+
   return (
     <>
+      <Helmet>
+        <title>{post.title} | Da Capo 커뮤니티</title>
+        <meta name="description" content={seoDescription} />
+        <meta property="og:title" content={`${post.title} | Da Capo 커뮤니티`} />
+        <meta property="og:description" content={seoDescription} />
+        <link rel="canonical" href={`https://da-capo.co.kr/community/${post.id}`} />
+      </Helmet>
     <div className="community-detail-page">
       <div className="wrap community-detail-page__inner">
 

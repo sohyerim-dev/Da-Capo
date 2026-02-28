@@ -478,6 +478,34 @@
     }
   }
 
+  &__search-date-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  &__search-date-input {
+    height: 38px;
+    padding: 0 10px;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+    color: #161616;
+
+    &:focus {
+      border-color: #161616;
+      outline: none;
+    }
+  }
+
+  &__search-date-sep {
+    font-size: 14px;
+    color: #888;
+  }
+
   &__attached-concert {
     display: flex;
     align-items: center;
@@ -522,20 +550,20 @@
   &__concert-results {
     list-style: none;
     padding: 0;
-    margin: -10px 0 16px;
+    margin: 0 0 16px;
     border: 1px solid #e5e5e5;
     border-radius: 8px;
-    overflow: hidden;
-    max-height: 220px;
+    max-height: 480px;
     overflow-y: auto;
     background: #f5f5f5;
+    flex-shrink: 0;
   }
 
   &__concert-result-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 14px;
+    padding: 14px 16px;
     border-bottom: 1px solid #ece8e2;
     cursor: pointer;
     transition: background 0.15s;
