@@ -357,7 +357,7 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function withRetry(fn, { tries = 3, baseDelayMs = 600 } = {}) {
+async function withRetry(fn, { tries = 3, baseDelayMs = 2000 } = {}) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
     try {
@@ -580,7 +580,7 @@ async function main() {
       fail += batch.length;
     }
 
-    await sleep(300);
+    await sleep(1500);
   }
 
   // 2) 이미지: 1건씩 처리
@@ -616,7 +616,7 @@ async function main() {
       fail++;
     }
 
-    await sleep(200);
+    await sleep(2000);
   }
 
   console.log(
