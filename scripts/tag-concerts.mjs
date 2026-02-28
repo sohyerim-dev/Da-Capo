@@ -253,6 +253,54 @@ function finalizeTags(rawTags) {
   return uniq(filterAllowedTags(withEra));
 }
 
+// 태그 논리 검증: 의심스러운 누락이 있으면 true 반환
+function hasTagInconsistency(concert, tags) {
+  const title = (concert.title || "").toLowerCase();
+  const performers = (concert.performers || "").toLowerCase();
+  const synopsis = (concert.synopsis || "").toLowerCase();
+  const text = `${title} ${performers} ${synopsis}`;
+  const tagSet = new Set(tags);
+
+  const SOLO_INSTRUMENTS = [
+    "피아노", "바이올린", "비올라", "첼로", "플루트", "오보에",
+    "클라리넷", "바순", "호른", "트럼펫", "트롬본", "튜바",
+    "하프", "더블베이스", "오르간", "클래식 기타", "성악",
+  ];
+  const ORCH_KEYWORDS = [
+    "교향악단", "오케스트라", "필하모닉", "심포니", "관현악단", "필하모니",
+  ];
+  const COMPOSER_TAGS = new Set(TAXONOMY["작곡가"]);
+  const ERA_TAGS = new Set(TAXONOMY["시대"]);
+
+  // 1. 제목/시놉시스에 "교향곡"이 있는데 태그에 없음
+  if ((title.includes("교향곡") || synopsis.includes("교향곡")) && !tagSet.has("교향곡")) return true;
+
+  // 2. 제목/시놉시스에 "협주곡"이 있는데 태그에 없음
+  if ((title.includes("협주곡") || synopsis.includes("협주곡")) && !tagSet.has("협주곡")) return true;
+
+  // 3. 협주곡 태그는 있는데 독주 악기 태그가 하나도 없음
+  if (tagSet.has("협주곡") && !SOLO_INSTRUMENTS.some((i) => tagSet.has(i))) return true;
+
+  // 4. 출연진에 오케스트라/교향악단이 있는데 오케스트라 태그 없음
+  if (ORCH_KEYWORDS.some((k) => performers.includes(k)) && !tagSet.has("오케스트라")) return true;
+
+  // 5. 작곡가 태그가 있는데 시대 태그가 하나도 없음
+  const hasComposer = tags.some((t) => COMPOSER_TAGS.has(t));
+  const hasEra = tags.some((t) => ERA_TAGS.has(t));
+  if (hasComposer && !hasEra) return true;
+
+  // 6. 제목에 "독주회/리사이틀"이 있는데 독주곡 태그 없음
+  if ((title.includes("독주회") || title.includes("리사이틀")) && !tagSet.has("독주곡")) return true;
+
+  // 7. 제목에 "오페라"가 있는데 오페라 태그 없음
+  if (title.includes("오페라") && !tagSet.has("오페라")) return true;
+
+  // 8. 태그가 2개 이하면 대부분 누락 가능성 높음
+  if (tags.length <= 2) return true;
+
+  return false;
+}
+
 const SYSTEM_PROMPT = `당신은 클래식 공연 태깅 전문가입니다. 주어진 공연 정보를 분석하여 정해진 태그 목록에서 적절한 태그를 빠짐없이 선택해주세요.
 
 중요: 작곡가명은 한국어 표기가 다양할 수 있습니다. 아래 표기 변형을 모두 같은 작곡가로 인식하고, 반드시 정규명으로 태깅하세요:
@@ -311,7 +359,14 @@ const SYSTEM_PROMPT = `당신은 클래식 공연 태깅 전문가입니다. 주
 12. tags에는 반드시 위 태그 목록에 있는 값만 사용하세요. 목록에 없는 작곡가, 출연진, 악기, 작품형태 등은 tags가 아닌 keywords에 넣으세요.
 13. tags 외에, 공연을 자유롭게 설명하는 키워드를 keywords 필드에 추가로 제공해주세요.
     keywords에는 태그 목록에 없는 작곡가명, 구체적 작품명(예: "운명 교향곡", "사계"), 분위기(예: "웅장한", "서정적"), 특징(예: "초연", "세계 초연"), 협연자 정보 등을 자유롭게 포함할 수 있습니다. 5~15개 이내로 작성하세요.
-14. 반드시 JSON 형식으로만 응답하세요: {"공연ID": {"tags": ["태그1", "태그2"], "keywords": ["키워드1", "키워드2"], "confidence": "high"}}
+14. **최종 점검 (필수)**: 태그를 선택한 후, 아래 5개 카테고리를 하나씩 점검하여 누락이 없는지 반드시 확인하세요.
+    - [작곡가] 제목·시놉시스·프로그램에 언급된 작곡가를 모두 태깅했는가? 태그 목록에 없는 작곡가(예: 요한 슈트라우스, 크라이슬러, 피아졸라, 생텍쥐페리, 한국 작곡가 등)는 반드시 keywords에 넣었는가?
+    - [작품형태] 프로그램에 포함된 작품형태(교향곡, 협주곡, 실내악 등)를 모두 태깅했는가? 혼합 프로그램이면 해당하는 것 전부 태깅했는가?
+    - [악기] 독주/협연 악기를 태깅했는가? 오케스트라 공연이면 "오케스트라" 태그를 넣었는가?
+    - [시대] 태깅한 작곡가에 대응하는 시대 태그를 모두 넣었는가?
+    - [출연] 출연진에 외국인 연주자나 해외 단체가 있는지 확인했는가?
+    하나라도 누락된 태그가 있으면 추가하세요.
+15. 반드시 JSON 형식으로만 응답하세요: {"공연ID": {"tags": ["태그1", "태그2"], "keywords": ["키워드1", "키워드2"], "confidence": "high"}}
     confidence는 high 또는 low만 사용합니다. 다음 경우에 low를 사용하세요:
     - 공연 정보가 너무 부족하거나 제목만으로는 장르 판단이 불확실할 때
     - 작품형태 선택이 두 가지 이상으로 애매할 때
@@ -357,25 +412,35 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function withRetry(fn, { tries = 3, baseDelayMs = 2000 } = {}) {
+async function withRetry(fn, { tries = 4, baseDelayMs = 2000 } = {}) {
   let lastErr;
   for (let i = 0; i < tries; i++) {
     try {
       return await fn();
     } catch (e) {
       lastErr = e;
-      const msg = String(e?.message || e).toLowerCase();
+      const msg = String(e?.message || e);
+      const msgLower = msg.toLowerCase();
       const status = e?.status ?? e?.statusCode ?? 0;
       const shouldRetry =
         status === 429 ||
         status >= 500 ||
-        msg.includes("rate") ||
-        msg.includes("timeout") ||
-        msg.includes("econn") ||
-        msg.includes("enotfound");
+        msgLower.includes("rate") ||
+        msgLower.includes("timeout") ||
+        msgLower.includes("econn") ||
+        msgLower.includes("enotfound");
 
       if (!shouldRetry || i === tries - 1) break;
-      const delay = baseDelayMs * Math.pow(2, i);
+
+      // 429 에러에서 "try again in X.XXXs" 파싱
+      let delay = baseDelayMs * Math.pow(2, i);
+      const retryMatch = msg.match(/try again in (\d+\.?\d*)s/i);
+      if (retryMatch) {
+        const retryAfter = Math.ceil(parseFloat(retryMatch[1]) * 1000) + 500;
+        delay = Math.max(delay, retryAfter);
+      }
+
+      console.log(`  재시도 ${i + 1}/${tries - 1} (${(delay / 1000).toFixed(1)}초 대기)...`);
       await sleep(delay);
     }
   }
@@ -566,6 +631,21 @@ async function main() {
           }
         }
 
+        // AI가 high라고 해도 논리 검증에서 걸리면 개별 재시도
+        if (!needReview && hasTagInconsistency(concert, tags)) {
+          console.log(`  ⚠ 검증 불일치, 재태깅: ${concert.title || concert.id}`);
+          try {
+            await sleep(2000);
+            const retryResult = await tagTextBatch([concert]);
+            const retryOut = retryResult[concert.id] ?? { tags: [], keywords: [], confidence: "low" };
+            tags = finalizeTags(retryOut.tags);
+            keywords = Array.isArray(retryOut.keywords) ? retryOut.keywords : [];
+            needReview = retryOut.confidence !== "high" || hasTagInconsistency(concert, tags);
+          } catch {
+            needReview = true;
+          }
+        }
+
         await updateTags(concert.id, tags, keywords, needReview);
 
         if (needReview) {
@@ -580,7 +660,7 @@ async function main() {
       fail += batch.length;
     }
 
-    await sleep(1500);
+    await sleep(3000);
   }
 
   // 2) 이미지: 1건씩 처리
@@ -599,9 +679,23 @@ async function main() {
         confidence: "low",
       };
 
-      const tags = finalizeTags(out.tags);
-      const keywords = Array.isArray(out.keywords) ? out.keywords : [];
-      const needReview = out.confidence !== "high";
+      let tags = finalizeTags(out.tags);
+      let keywords = Array.isArray(out.keywords) ? out.keywords : [];
+      let needReview = out.confidence !== "high";
+
+      if (!needReview && hasTagInconsistency(concert, tags)) {
+        console.log(`  ⚠ 검증 불일치, 재태깅: ${concert.title || concert.id}`);
+        try {
+          await sleep(2000);
+          const retryResult = await tagImageConcert(concert);
+          const retryOut = retryResult[concert.id] ?? { tags: [], keywords: [], confidence: "low" };
+          tags = finalizeTags(retryOut.tags);
+          keywords = Array.isArray(retryOut.keywords) ? retryOut.keywords : [];
+          needReview = retryOut.confidence !== "high" || hasTagInconsistency(concert, tags);
+        } catch {
+          needReview = true;
+        }
+      }
 
       await updateTags(concert.id, tags, keywords, needReview);
 
@@ -616,7 +710,7 @@ async function main() {
       fail++;
     }
 
-    await sleep(2000);
+    await sleep(4000);
   }
 
   console.log(
