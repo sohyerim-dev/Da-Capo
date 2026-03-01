@@ -25,11 +25,20 @@ export default function ConcertSearchResults({ query }: Props) {
 
     const fetchResults = async () => {
       setLoading(true);
-      const { data, error } = await supabase
+      const words = query.trim().split(/\s+/).filter(Boolean);
+
+      let q = supabase
         .from("concerts")
         .select("id, title, poster, venue, start_date, end_date, status")
-        .or(`title.ilike.%${query}%,synopsis.ilike.%${query}%,performers.ilike.%${query}%,producer.ilike.%${query}%,venue.ilike.%${query}%,tags.cs.{${query}},ai_keywords.cs.{${query}}`)
-        .in("status", ["공연예정", "공연중"])
+        .in("status", ["공연예정", "공연중"]);
+
+      for (const w of words) {
+        q = q.or(
+          `title.ilike.%${w}%,synopsis.ilike.%${w}%,performers.ilike.%${w}%,producer.ilike.%${w}%,venue.ilike.%${w}%,tags.cs.{${w}},ai_keywords.cs.{${w}}`
+        );
+      }
+
+      const { data, error } = await q
         .order("start_date", { ascending: true })
         .limit(40);
 

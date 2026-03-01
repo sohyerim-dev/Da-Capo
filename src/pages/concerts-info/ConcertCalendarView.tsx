@@ -66,6 +66,26 @@ function isPerformingOnDate(
   return scheduledDays.has(date.getDay());
 }
 
+const AREAS = [
+  "서울특별시",
+  "인천광역시",
+  "경기도",
+  "부산광역시",
+  "대구광역시",
+  "광주광역시",
+  "대전광역시",
+  "울산광역시",
+  "세종특별자치시",
+  "강원특별자치도",
+  "충청북도",
+  "충청남도",
+  "전북특별자치도",
+  "전라남도",
+  "경상북도",
+  "경상남도",
+  "제주특별자치도",
+];
+
 const SESSION_KEY = "concertCalendar";
 
 function loadSession() {
@@ -96,6 +116,8 @@ export default function ConcertCalendarView() {
   const [concerts, setConcerts] = useState<CalendarConcert[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(8);
+  const [isFilterOpen, setIsFilterOpen] = useState(saved?.isFilterOpen ?? false);
+  const [filterArea, setFilterArea] = useState<string>(saved?.filterArea ?? "");
 
   useEffect(() => {
     sessionStorage.setItem(
@@ -103,9 +125,11 @@ export default function ConcertCalendarView() {
       JSON.stringify({
         activeMonth: activeMonth.toISOString(),
         selectedDate: selectedDate ? selectedDate.toISOString() : null,
+        filterArea,
+        isFilterOpen,
       })
     );
-  }, [activeMonth, selectedDate]);
+  }, [activeMonth, selectedDate, filterArea, isFilterOpen]);
 
   useEffect(() => {
     const fetchConcerts = async () => {
@@ -133,14 +157,18 @@ export default function ConcertCalendarView() {
     fetchConcerts();
   }, [activeMonth]);
 
+  const filteredConcerts = filterArea
+    ? concerts.filter((c) => c.area === filterArea)
+    : concerts;
+
   const hasConcertOnDate = (dateStr: string): boolean => {
     const date = new Date(dateStr + "T00:00:00");
-    return concerts.some((c) => isPerformingOnDate(c, dateStr, date));
+    return filteredConcerts.some((c) => isPerformingOnDate(c, dateStr, date));
   };
 
   const concertsOnDate = (date: Date): CalendarConcert[] => {
     const dateStr = toDateStr(date);
-    return concerts.filter((c) => isPerformingOnDate(c, dateStr, date));
+    return filteredConcerts.filter((c) => isPerformingOnDate(c, dateStr, date));
   };
 
   const selectedConcerts = selectedDate ? concertsOnDate(selectedDate) : [];
@@ -184,6 +212,48 @@ export default function ConcertCalendarView() {
         />
         {loading && <div className="concert-cal__loading-overlay" />}
       </div>
+
+      <div className="concert-cal__filter-row">
+        <button
+          className={`concert-cal__filter-btn${filterArea ? " concert-cal__filter-btn--active" : ""}`}
+          onClick={() => setIsFilterOpen((v) => !v)}
+        >
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18M7 12h10M11 18h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          지역{filterArea ? " ●" : ""}
+        </button>
+      </div>
+
+      {isFilterOpen && (
+        <div className="concert-cal__filter-panel">
+          <div className="concert-cal__filter-options">
+            <button
+              className={`concert-cal__filter-option${filterArea === "" ? " concert-cal__filter-option--active" : ""}`}
+              onClick={() => { setFilterArea(""); setVisibleCount(8); }}
+            >
+              전체
+            </button>
+            {AREAS.map((area) => (
+              <button
+                key={area}
+                className={`concert-cal__filter-option${filterArea === area ? " concert-cal__filter-option--active" : ""}`}
+                onClick={() => { setFilterArea(filterArea === area ? "" : area); setVisibleCount(8); }}
+              >
+                {area}
+              </button>
+            ))}
+          </div>
+          {filterArea && (
+            <button
+              className="concert-cal__filter-reset"
+              onClick={() => { setFilterArea(""); setVisibleCount(8); }}
+            >
+              초기화
+            </button>
+          )}
+        </div>
+      )}
 
       {selectedDate && (
         <div className="concert-cal__results">

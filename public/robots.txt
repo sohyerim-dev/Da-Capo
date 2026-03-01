@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 
+Disallow: /login
+Disallow: /signup
 Disallow: /mypage
 Disallow: /classic-note
 Disallow: /support/new

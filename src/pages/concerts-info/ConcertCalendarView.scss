@@ -230,6 +230,101 @@
     }
   }
 
+  // ─── 지역 필터 ───
+  &__filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+  }
+
+  &__filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1.5px solid #161616;
+    background: transparent;
+    color: #161616;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &--active {
+      background: #161616;
+      color: #fafafa;
+    }
+
+    &:hover:not(&--active) {
+      background: rgba(22, 22, 22, 0.06);
+    }
+  }
+
+  &__filter-panel {
+    border: 1.5px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 32px;
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__filter-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__filter-option {
+    padding: 6px 16px;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    background: transparent;
+    color: #888;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &--active {
+      background: #161616;
+      color: #fafafa;
+      border-color: #161616;
+    }
+
+    &:hover:not(&--active) {
+      border-color: #161616;
+      color: #161616;
+    }
+  }
+
+  &__filter-reset {
+    display: block;
+    margin: 0 auto;
+    padding: 6px 20px;
+    font-size: 13px;
+    color: #888;
+    background: transparent;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+      background: #f0f0f0;
+      color: #161616;
+    }
+  }
+
   // ─── 선택 날짜 결과 ───
   &__results {
     margin-bottom: 8px;
