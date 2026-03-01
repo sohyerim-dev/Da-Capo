@@ -3,6 +3,23 @@ import { Link, useLocation, useNavigationType } from "react-router";
 import { supabase } from "../../lib/supabase";
 import { concertTabData } from "../../data/concertTabData";
 
+const CHOSUNG_GROUPS: [string, number, number][] = [
+  ["ㄱ~ㄹ", 0, 5],   // ㄱ ㄲ ㄴ ㄷ ㄸ ㄹ (index 0~5)
+  ["ㅁ~ㅇ", 6, 11],  // ㅁ ㅂ ㅃ ㅅ ㅆ ㅇ (index 6~11)
+  ["ㅈ~ㅌ", 12, 16], // ㅈ ㅉ ㅊ ㅋ ㅌ (index 12~16)
+  ["ㅍ~ㅎ", 17, 18], // ㅍ ㅎ (index 17~18)
+];
+function getChosungGroup(str: string): string {
+  const code = str.charCodeAt(0);
+  if (code >= 0xac00 && code <= 0xd7a3) {
+    const idx = Math.floor((code - 0xac00) / 588);
+    for (const [label, from, to] of CHOSUNG_GROUPS) {
+      if (idx >= from && idx <= to) return label;
+    }
+  }
+  return "ㄱ~ㄹ"; // 영문 등 → 첫 그룹에 포함
+}
+
 interface Concert {
   id: string;
   title: string | null;
@@ -109,9 +126,9 @@ export default function ConcertBrowse() {
   const [activeSubIndex, setActiveSubIndex] = useState<number | null>(
     saved?.activeSubIndex ?? null
   );
-  const [isPanelOpen, setIsPanelOpen] = useState(saved?.isPanelOpen ?? false);
+  const [isPanelOpen, setIsPanelOpen] = useState<boolean>(saved?.isPanelOpen ?? false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
-  const [visibleCount, setVisibleCount] = useState(saved?.visibleCount ?? PAGE_SIZE);
+  const [visibleCount, setVisibleCount] = useState<number>(saved?.visibleCount ?? PAGE_SIZE);
   const scrollRestored = useRef(false);
   const [loading, setLoading] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -122,6 +139,7 @@ export default function ConcertBrowse() {
   );
   const [customFrom, setCustomFrom] = useState<string>(saved?.customFrom ?? "");
   const [customTo, setCustomTo] = useState<string>(saved?.customTo ?? "");
+  const [openChosung, setOpenChosung] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     sessionStorage.setItem(
@@ -176,7 +194,7 @@ export default function ConcertBrowse() {
       } else {
         if (activeItem && !activeItem.isSeparator) {
           if (currentTab.usePerformers && activeItem.tag) {
-            query = query.or(`performers.ilike.%${activeItem.tag}%,tags.cs.{${activeItem.tag}}`);
+            query = query.or(`title.ilike.%${activeItem.tag}%,performers.ilike.%${activeItem.tag}%,tags.cs.{${activeItem.tag}},ai_keywords.cs.{${activeItem.tag}}`);
           } else if (activeItem.tags && activeItem.tags.length > 0) {
             query = query.or(activeItem.tags.map((t) => `tags.cs.{${t}}`).join(","));
           } else if (activeItem.tag) {
@@ -238,6 +256,7 @@ export default function ConcertBrowse() {
       setCustomFrom("");
       setCustomTo("");
       setIsPanelOpen(false);
+      setOpenChosung(new Set());
       return;
     }
     if (activeTab === i) {
@@ -252,6 +271,7 @@ export default function ConcertBrowse() {
       setCustomFrom("");
       setCustomTo("");
       setIsPanelOpen(true);
+      setOpenChosung(new Set());
     }
   };
 
@@ -263,6 +283,26 @@ export default function ConcertBrowse() {
     setFilterDate("");
     setCustomFrom("");
     setCustomTo("");
+
+    // 출연진 탭: 선택한 항목의 초성 그룹 자동 열기
+    if (index !== null && currentTab.usePerformers) {
+      const item = currentItems[index];
+      if (item && !item.isSeparator) {
+        const cho = getChosungGroup(item.label);
+        // 해당 항목이 속한 separator 그룹 찾기
+        let separator = "";
+        for (let j = index - 1; j >= 0; j--) {
+          if (currentItems[j].isSeparator) {
+            separator = currentItems[j].label;
+            break;
+          }
+        }
+        if (separator && separator !== "해외") {
+          const key = `${separator}-${cho}`;
+          setOpenChosung((prev) => new Set(prev).add(key));
+        }
+      }
+    }
   };
 
   return (
@@ -298,26 +338,130 @@ export default function ConcertBrowse() {
             )}
             전체
           </button>
-          {currentItems.map((item, i) =>
-            item.isSeparator ? (
-              <span key={item.label} className="concert-info__panel-separator">
-                {item.label}
-              </span>
-            ) : (
-              <button
-                key={item.label}
-                className={`concert-info__panel-item${activeSubIndex === i ? " concert-info__panel-item--active" : ""}`}
-                onClick={() => handleSubItemClick(i)}
-              >
-                {activeSubIndex === i && (
-                  <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-                {item.label}
-              </button>
-            )
-          )}
+          {(() => {
+            if (!currentTab.usePerformers) {
+              return currentItems.map((item, i) =>
+                item.isSeparator ? (
+                  <span key={item.label} className="concert-info__panel-separator">
+                    {item.label}
+                  </span>
+                ) : (
+                  <button
+                    key={item.label}
+                    className={`concert-info__panel-item${activeSubIndex === i ? " concert-info__panel-item--active" : ""}`}
+                    onClick={() => handleSubItemClick(i)}
+                  >
+                    {activeSubIndex === i && (
+                      <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                    {item.label}
+                  </button>
+                )
+              );
+            }
+
+            // 출연진 탭: separator 기준으로 그룹 분리 → 초성 아코디언
+            const groups: { separator: string; items: { item: typeof currentItems[number]; idx: number }[] }[] = [];
+            for (let i = 0; i < currentItems.length; i++) {
+              const item = currentItems[i];
+              if (item.isSeparator) {
+                groups.push({ separator: item.label, items: [] });
+              } else if (groups.length > 0) {
+                groups[groups.length - 1].items.push({ item, idx: i });
+              }
+            }
+
+            return groups.map((group) => {
+              // 해외 그룹: 아코디언 없이 그대로
+              if (group.separator === "해외") {
+                return (
+                  <Fragment key={group.separator}>
+                    <span className="concert-info__panel-separator">{group.separator}</span>
+                    {group.items.map(({ item, idx }) => (
+                      <button
+                        key={item.label}
+                        className={`concert-info__panel-item${activeSubIndex === idx ? " concert-info__panel-item--active" : ""}`}
+                        onClick={() => handleSubItemClick(idx)}
+                      >
+                        {activeSubIndex === idx && (
+                          <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                        {item.label}
+                      </button>
+                    ))}
+                  </Fragment>
+                );
+              }
+
+              // 개인/단체: 초성 범위별 아코디언
+              const chosungGroups: { cho: string; entries: { item: typeof currentItems[number]; idx: number }[] }[] = [];
+              for (const entry of group.items) {
+                const cho = getChosungGroup(entry.item.label);
+                const last = chosungGroups[chosungGroups.length - 1];
+                if (last && last.cho === cho) {
+                  last.entries.push(entry);
+                } else {
+                  chosungGroups.push({ cho, entries: [entry] });
+                }
+              }
+
+              return (
+                <Fragment key={group.separator}>
+                  <span className="concert-info__panel-separator">{group.separator}</span>
+                  {chosungGroups.map(({ cho, entries }) => {
+                    const key = `${group.separator}-${cho}`;
+                    const isOpen = openChosung.has(key);
+                    // 선택된 항목이 이 초성 그룹 안에 있으면 자동 열기
+                    const hasActive = entries.some(({ idx }) => activeSubIndex === idx);
+
+                    return (
+                      <Fragment key={key}>
+                        <button
+                          className={`concert-info__panel-chosung${isOpen || hasActive ? " concert-info__panel-chosung--open" : ""}`}
+                          onClick={() => {
+                            const willClose = openChosung.has(key) || hasActive;
+                            setOpenChosung((prev) => {
+                              const next = new Set(prev);
+                              if (willClose) next.delete(key);
+                              else next.add(key);
+                              return next;
+                            });
+                            if (willClose && hasActive) {
+                              handleSubItemClick(null);
+                            }
+                          }}
+                        >
+                          {cho}
+                          <svg viewBox="0 0 10 6" className="concert-info__panel-chosung-arrow">
+                            <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                          </svg>
+                        </button>
+                        {isOpen &&
+                          entries.map(({ item, idx }) => (
+                            <button
+                              key={item.label}
+                              className={`concert-info__panel-item${activeSubIndex === idx ? " concert-info__panel-item--active" : ""}`}
+                              onClick={() => handleSubItemClick(idx)}
+                            >
+                              {activeSubIndex === idx && (
+                                <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              )}
+                              {item.label}
+                            </button>
+                          ))}
+                      </Fragment>
+                    );
+                  })}
+                </Fragment>
+              );
+            });
+          })()}
         </div>
       )}
 

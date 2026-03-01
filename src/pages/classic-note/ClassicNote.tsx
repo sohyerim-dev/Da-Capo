@@ -463,17 +463,37 @@ export default function ClassicNote() {
             <h3 className="classic-note__subscriptions-label">구독 중인 노트</h3>
             <div className="classic-note__subscriptions-list">
               {subscribedUsers.map((u) => (
-                <Link
-                  key={u.id}
-                  to={`/classic-note/${u.username}`}
-                  className="classic-note__subscription-chip"
-                >
-                  <img
-                    src={u.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${u.id}&backgroundColor=f6f3ec`}
-                    alt={u.nickname ?? ""}
-                  />
-                  <span>{u.nickname}</span>
-                </Link>
+                <div key={u.id} className="classic-note__subscription-chip">
+                  <Link
+                    to={`/classic-note/${u.username}`}
+                    className="classic-note__subscription-chip-link"
+                  >
+                    <img
+                      src={u.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${u.id}&backgroundColor=f6f3ec`}
+                      alt={u.nickname ?? ""}
+                    />
+                    <span>{u.nickname}</span>
+                  </Link>
+                  <button
+                    className="classic-note__subscription-chip-remove"
+                    onClick={async () => {
+                      const { error } = await supabase
+                        .from("classic_note_subscriptions")
+                        .delete()
+                        .eq("follower_id", user!.id)
+                        .eq("following_id", u.id);
+                      if (!error) {
+                        setSubscribedUsers((prev) => prev.filter((s) => s.id !== u.id));
+                      }
+                    }}
+                    aria-label={`${u.nickname} 구독 취소`}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
               ))}
             </div>
           </div>

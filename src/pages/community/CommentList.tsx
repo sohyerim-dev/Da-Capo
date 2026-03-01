@@ -25,31 +25,32 @@ export default function CommentList({ postId, comments, onRefresh }: Props) {
 
   const handleSubmit = async (content: string) => {
     if (!user) return;
-    await supabase.from("community_comments").insert({
+    const { error } = await supabase.from("community_comments").insert({
       post_id: postId,
       author_id: user.id,
       author_nickname: user.nickname,
       author_username: user.username,
       content,
     });
-    onRefresh();
+    if (!error) onRefresh();
   };
 
   const handleUpdate = async (id: number, content: string) => {
-    await supabase
+    const { error } = await supabase
       .from("community_comments")
       .update({ content, updated_at: new Date().toISOString() })
       .eq("id", id);
-    onRefresh();
+    if (!error) onRefresh();
   };
 
   const handleDelete = async (id: number) => {
     if (isAdmin) {
-      await supabase.rpc("admin_delete_community_comment", { p_comment_id: id });
+      const { error } = await supabase.rpc("admin_delete_community_comment", { p_comment_id: id });
+      if (!error) onRefresh();
     } else {
-      await supabase.from("community_comments").delete().eq("id", id);
+      const { error } = await supabase.from("community_comments").delete().eq("id", id);
+      if (!error) onRefresh();
     }
-    onRefresh();
   };
 
   return (

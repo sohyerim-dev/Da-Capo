@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
+import DOMPurify from "dompurify";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import ImageLightbox from "@/components/ui/ImageLightbox";
@@ -150,14 +151,24 @@ export default function SupportDetail() {
     fetchReply();
   }, [id, fetchReply]);
 
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const handleDelete = async () => {
     if (!id || !post) return;
     setDeleteLoading(true);
+    setDeleteError(null);
 
+    let err;
     if (isAdmin && post.author_id !== user?.id) {
-      await supabase.rpc("admin_delete_support_post", { p_post_id: post.id });
+      ({ error: err } = await supabase.rpc("admin_delete_support_post", { p_post_id: post.id }));
     } else {
-      await supabase.from("support_posts").delete().eq("id", Number(id));
+      ({ error: err } = await supabase.from("support_posts").delete().eq("id", Number(id)));
+    }
+
+    if (err) {
+      setDeleteError("삭제에 실패했습니다.");
+      setDeleteLoading(false);
+      return;
     }
 
     setDeleteLoading(false);
@@ -186,22 +197,26 @@ export default function SupportDetail() {
     if (!reply || !replyEditContent.trim()) return;
     setReplyLoading(true);
 
-    await supabase
+    const { error } = await supabase
       .from("support_replies")
       .update({ content: replyEditContent.trim(), updated_at: new Date().toISOString() })
       .eq("id", reply.id);
 
-    setReplyEditing(false);
-    await fetchReply();
+    if (!error) {
+      setReplyEditing(false);
+      await fetchReply();
+    }
     setReplyLoading(false);
   };
 
   const handleReplyDelete = async () => {
     if (!reply) return;
     setReplyDeleteLoading(true);
-    await supabase.from("support_replies").delete().eq("id", reply.id);
-    setReply(null);
-    setShowReplyDeleteConfirm(false);
+    const { error } = await supabase.from("support_replies").delete().eq("id", reply.id);
+    if (!error) {
+      setReply(null);
+      setShowReplyDeleteConfirm(false);
+    }
     setReplyDeleteLoading(false);
   };
 
@@ -317,7 +332,7 @@ export default function SupportDetail() {
               {canDelete && (
                 <button
                   className="support-detail-page__action-btn support-detail-page__action-btn--delete"
-                  onClick={() => setShowDeleteConfirm(true)}
+                  onClick={() => { setDeleteError(null); setShowDeleteConfirm(true); }}
                 >
                   삭제
                 </button>
@@ -329,7 +344,7 @@ export default function SupportDetail() {
         <div
           ref={contentRef}
           className="support-detail-page__content tiptap-content"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
         />
 
         {/* 답글 섹션 */}
@@ -486,6 +501,7 @@ export default function SupportDetail() {
           >
             <p className="support-detail-page__delete-confirm-title">글을 삭제하시겠습니까?</p>
             <p className="support-detail-page__delete-confirm-desc">삭제 후 복구할 수 없습니다.</p>
+            {deleteError && <p className="support-detail-page__delete-confirm-desc" style={{ color: "#e53935" }}>{deleteError}</p>}
             <div className="support-detail-page__delete-actions">
               <button onClick={() => setShowDeleteConfirm(false)} disabled={deleteLoading}>
                 취소

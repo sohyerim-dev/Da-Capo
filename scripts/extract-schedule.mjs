@@ -138,7 +138,7 @@ async function main() {
   const { data: allConcerts, error } = await supabase
     .from("concerts")
     .select("id, title, start_date, end_date, synopsis, intro_images")
-    .is("schedule", null);
+    .eq("schedule_extracted", false);
 
   if (error) throw error;
 
@@ -180,13 +180,18 @@ async function main() {
         const schedule = dates.join("\n");
         const { error: updateError } = await supabase
           .from("concerts")
-          .update({ schedule })
+          .update({ schedule, schedule_extracted: true })
           .eq("id", concert.id);
 
         if (updateError) throw updateError;
         console.log(`  ✓ ${concert.title}: ${dates.length}개 날짜`);
         extracted++;
       } else {
+        // 날짜 없어도 추출 시도 완료 표시
+        await supabase
+          .from("concerts")
+          .update({ schedule_extracted: true })
+          .eq("id", concert.id);
         notFound++;
       }
     } catch (e) {

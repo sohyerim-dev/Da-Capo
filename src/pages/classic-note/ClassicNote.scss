@@ -853,18 +853,27 @@
   &__subscription-chip {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 14px 6px 6px;
     border-radius: 8px;
     border: 1.5px solid #e8e8e8;
-    text-decoration: none;
-    color: #161616;
-    font-size: 13px;
-    font-weight: 500;
     background: #f2f2f2;
     transition:
       background 0.2s,
       border-color 0.2s;
+
+    &:hover {
+      border-color: #161616;
+    }
+  }
+
+  &__subscription-chip-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px 6px 6px;
+    text-decoration: none;
+    color: #161616;
+    font-size: 13px;
+    font-weight: 500;
 
     img {
       width: 28px;
@@ -875,8 +884,25 @@
     }
 
     &:hover {
-      background: rgba(22, 22, 22, 0.08);
-      border-color: #161616;
+      text-decoration: none;
+    }
+  }
+
+  &__subscription-chip-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    border-left: 1px solid #e0e0e0;
+    padding: 0 8px;
+    cursor: pointer;
+    color: #bbb;
+    transition: color 0.2s;
+    align-self: stretch;
+
+    &:hover {
+      color: #e53935;
     }
   }
 

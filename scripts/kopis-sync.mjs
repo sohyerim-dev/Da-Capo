@@ -265,6 +265,8 @@ async function main() {
     { patterns: ["%경기필하모닉%", "%경기필%"], name: "경기필하모닉" },
     { patterns: ["%KBS교향악단%"], name: "KBS교향악단" },
     { patterns: ["%고잉홈프로젝트%"], name: "고잉홈프로젝트" },
+    { patterns: ["%콜레기움 보칼레 서울%"], name: "콜레기움 보칼레 서울" },
+    { patterns: ["%콜레기움 무지쿰 서울%"], name: "콜레기움 무지쿰 서울" },
   ];
 
   let fixCount = 0;

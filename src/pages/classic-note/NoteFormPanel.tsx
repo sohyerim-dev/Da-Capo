@@ -306,7 +306,7 @@ export default function NoteFormPanel({
             .maybeSingle();
 
           if (existing) {
-            await supabase
+            const { error: cpErr } = await supabase
               .from("community_posts")
               .update({
                 title: title.trim() || `${attachedConcert!.title} 관람 후기`,
@@ -315,8 +315,9 @@ export default function NoteFormPanel({
                 updated_at: new Date().toISOString(),
               })
               .eq("id", existing.id);
+            if (cpErr) saveError = { message: "커뮤니티 동기화에 실패했습니다." };
           } else {
-            await supabase.from("community_posts").insert({
+            const { error: cpErr } = await supabase.from("community_posts").insert({
               title: title.trim() || `${attachedConcert!.title} 관람 후기`,
               category: "후기",
               content: cleanContent ?? "",
@@ -327,13 +328,15 @@ export default function NoteFormPanel({
               source_note_id: editingNote.id,
               concert_id: attachedConcert?.id ?? null,
             });
+            if (cpErr) saveError = { message: "커뮤니티 동기화에 실패했습니다." };
           }
         } else {
           // 비공개 전환 시 커뮤니티 후기 글 삭제
-          await supabase
+          const { error: delErr } = await supabase
             .from("community_posts")
             .delete()
             .eq("source_note_id", editingNote.id);
+          if (delErr) saveError = { message: "커뮤니티 글 삭제에 실패했습니다." };
         }
       }
     } else {
@@ -346,7 +349,7 @@ export default function NoteFormPanel({
 
       // 새 노트: 공개 관람 기록이면 커뮤니티 후기 글 생성
       if (!saveError && type === "concert_record" && isPublic && result.data?.id) {
-        await supabase.from("community_posts").insert({
+        const { error: cpErr } = await supabase.from("community_posts").insert({
           title: title.trim() || `${attachedConcert!.title} 관람 후기`,
           category: "후기",
           content: cleanContent ?? "",
@@ -357,6 +360,7 @@ export default function NoteFormPanel({
           source_note_id: result.data.id,
           concert_id: attachedConcert?.id ?? null,
         });
+        if (cpErr) saveError = { message: "커뮤니티 동기화에 실패했습니다." };
       }
     }
 

@@ -139,11 +139,13 @@ export default function MyPage() {
     });
 
     if (!updateError) {
-      await supabase
+      const { error: profileErr } = await supabase
         .from("profiles")
         .update({ avatar_url: urlData.publicUrl })
         .eq("id", user.id);
-      setUser({ ...user, image: urlData.publicUrl });
+      if (!profileErr) {
+        setUser({ ...user, image: urlData.publicUrl });
+      }
     }
 
     setImageLoading(false);
@@ -180,10 +182,16 @@ export default function MyPage() {
       return;
     }
 
-    await supabase
+    const { error: profileErr } = await supabase
       .from("profiles")
       .update({ nickname: nickname.trim(), phone })
       .eq("id", user.id);
+
+    if (profileErr) {
+      setInfoMessage({ type: "error", text: "프로필 저장에 실패했습니다." });
+      setInfoLoading(false);
+      return;
+    }
 
     setUser({ ...user, nickname: nickname.trim(), phone });
     setInfoMessage({ type: "success", text: "정보가 저장되었습니다." });
@@ -240,10 +248,14 @@ export default function MyPage() {
     setNoteLoading(false);
   };
 
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);
+    setDeleteError(null);
     const { error } = await supabase.rpc("delete_user");
     if (error) {
+      setDeleteError("계정 삭제에 실패했습니다. 다시 시도해주세요.");
       setDeleteLoading(false);
       return;
     }
@@ -502,7 +514,7 @@ export default function MyPage() {
               <button
                 type="button"
                 className="mypage__btn-danger"
-                onClick={() => setShowDeleteConfirm(true)}
+                onClick={() => { setDeleteError(null); setShowDeleteConfirm(true); }}
               >
                 회원 탈퇴
               </button>
@@ -512,6 +524,7 @@ export default function MyPage() {
               <p className="mypage__danger-desc">
                 정말로 탈퇴하시겠습니까? <strong>이 작업은 되돌릴 수 없습니다.</strong>
               </p>
+              {deleteError && <p style={{ color: "#e53935", fontSize: 13, margin: "8px 0 0" }}>{deleteError}</p>}
               <div className="mypage__danger-actions">
                 <button
                   type="button"

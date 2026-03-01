@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Helmet } from "react-helmet-async";
+import DOMPurify from "dompurify";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import CommentList from "./CommentList";
@@ -182,14 +183,33 @@ export default function CommunityDetail() {
     setLikeLoading(false);
   };
 
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const handleDelete = async () => {
     if (!id || !post) return;
     setDeleteLoading(true);
+    setDeleteError(null);
 
     if (isAdmin && post.author_id !== user?.id) {
-      await supabase.rpc("admin_delete_community_post", { p_post_id: post.id });
+      const { error } = await supabase.rpc("admin_delete_community_post", { p_post_id: post.id });
+      if (error) {
+        setDeleteError("삭제에 실패했습니다.");
+        setDeleteLoading(false);
+        return;
+      }
     } else {
-      await supabase.from("community_posts").delete().eq("id", Number(id));
+      const { error: commentErr } = await supabase.from("community_comments").delete().eq("post_id", Number(id));
+      if (commentErr) {
+        setDeleteError("댓글 삭제에 실패했습니다.");
+        setDeleteLoading(false);
+        return;
+      }
+      const { error: postErr } = await supabase.from("community_posts").delete().eq("id", Number(id));
+      if (postErr) {
+        setDeleteError("글 삭제에 실패했습니다.");
+        setDeleteLoading(false);
+        return;
+      }
       if (post.source_note_id) {
         await supabase.from("notes").delete().eq("id", post.source_note_id);
       }
@@ -322,7 +342,7 @@ export default function CommunityDetail() {
             {canDelete && (
               <button
                 className="community-detail-page__action-btn community-detail-page__action-btn--delete"
-                onClick={() => setShowDeleteConfirm(true)}
+                onClick={() => { setDeleteError(null); setShowDeleteConfirm(true); }}
               >
                 삭제
               </button>
@@ -350,7 +370,7 @@ export default function CommunityDetail() {
         <div
           ref={contentRef}
           className="community-detail-page__content tiptap-content"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
         />
 
         {showComments && (
@@ -409,6 +429,7 @@ export default function CommunityDetail() {
             <p className="community-detail-page__delete-confirm-desc">
               삭제 후 복구할 수 없습니다.
             </p>
+            {deleteError && <p className="community-detail-page__delete-confirm-desc" style={{ color: "#e53935" }}>{deleteError}</p>}
             <div className="community-detail-page__delete-actions">
               <button
                 onClick={() => setShowDeleteConfirm(false)}

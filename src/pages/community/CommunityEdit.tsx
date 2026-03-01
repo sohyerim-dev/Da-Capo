@@ -153,10 +153,15 @@ export default function CommunityEdit() {
 
     // 후기인 경우 연동된 노트도 함께 업데이트
     if (sourceNoteId) {
-      await supabase
+      const { error: noteErr } = await supabase
         .from("notes")
         .update({ title: title.trim(), content, updated_at: new Date().toISOString() })
         .eq("id", sourceNoteId);
+      if (noteErr) {
+        setError("연동된 노트 업데이트에 실패했습니다.");
+        setSubmitLoading(false);
+        return;
+      }
     }
 
     navigate(`/community/${id}`);

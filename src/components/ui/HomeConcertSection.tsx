@@ -41,7 +41,7 @@ export default function HomeConcertSection() {
           .filter(
             (item): item is NonNullable<typeof item> => item !== undefined
           )
-      : currentTab.items.filter((item) => !item.showOthers);
+      : currentTab.items.filter((item) => !item.isSeparator);
 
   // 탭 변경 시 소제목 초기화
   useEffect(() => {

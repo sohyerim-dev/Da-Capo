@@ -182,13 +182,18 @@ export default function MagazineNew() {
     // 간단히 현재 URL에 postId 적용은 생략, URL 그대로 사용
 
     if (attachedConcerts.length > 0) {
-      await supabase.from("magazine_concerts").insert(
+      const { error: concertErr } = await supabase.from("magazine_concerts").insert(
         attachedConcerts.map((c, i) => ({
           post_id: postId,
           concert_id: c.id,
           display_order: i,
         }))
       );
+      if (concertErr) {
+        setError("공연 연결 저장에 실패했습니다.");
+        setSubmitLoading(false);
+        return;
+      }
     }
 
     navigate(`/magazine/${postId}`);

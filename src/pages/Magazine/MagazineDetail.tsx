@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Helmet } from "react-helmet-async";
+import DOMPurify from "dompurify";
 import { supabase } from "@/lib/supabase";
 import useUserStore from "@/zustand/userStore";
 import ShareButton from "@/components/ui/ShareButton";
@@ -176,15 +177,20 @@ export default function MagazineDetail() {
     setLikeLoading(false);
   };
 
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const handleDelete = async () => {
     if (!id) return;
     setDeleteLoading(true);
+    setDeleteError(null);
     const { error } = await supabase
       .from("magazine_posts")
       .delete()
       .eq("id", Number(id));
     setDeleteLoading(false);
-    if (!error) {
+    if (error) {
+      setDeleteError("삭제에 실패했습니다.");
+    } else {
       navigate("/magazine");
     }
   };
@@ -294,7 +300,7 @@ export default function MagazineDetail() {
                 </button>
                 <button
                   className="magazine-detail-page__action-btn magazine-detail-page__action-btn--delete"
-                  onClick={() => setShowDeleteConfirm(true)}
+                  onClick={() => { setDeleteError(null); setShowDeleteConfirm(true); }}
                 >
                   삭제
                 </button>
@@ -306,7 +312,7 @@ export default function MagazineDetail() {
         <div
           ref={contentRef}
           className="magazine-detail-page__content tiptap-content"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
         />
 
         {concerts.length > 0 && (
@@ -408,6 +414,7 @@ export default function MagazineDetail() {
           >
             <p id="mag-delete-modal-title" className="magazine-detail-page__delete-confirm-title">글을 삭제하시겠습니까?</p>
             <p className="magazine-detail-page__delete-confirm-desc">삭제 후 복구할 수 없습니다.</p>
+            {deleteError && <p className="magazine-detail-page__delete-confirm-desc" style={{ color: "#e53935" }}>{deleteError}</p>}
             <div className="magazine-detail-page__delete-actions">
               <button
                 onClick={() => setShowDeleteConfirm(false)}

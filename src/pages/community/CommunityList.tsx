@@ -13,7 +13,7 @@ interface CommunityPost {
   author_id: string;
   author_nickname: string;
   author_username: string | null;
-  author_role: string;
+  author_role: string | null;
   view_count: number;
   comment_count: number;
   created_at: string;

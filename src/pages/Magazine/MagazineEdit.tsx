@@ -239,16 +239,26 @@ export default function MagazineEdit() {
     }
 
     // 기존 공연 연결 삭제 후 재삽입
-    await supabase.from("magazine_concerts").delete().eq("post_id", Number(id));
+    const { error: delErr } = await supabase.from("magazine_concerts").delete().eq("post_id", Number(id));
+    if (delErr) {
+      setError("공연 연결 업데이트에 실패했습니다.");
+      setSubmitLoading(false);
+      return;
+    }
 
     if (attachedConcerts.length > 0) {
-      await supabase.from("magazine_concerts").insert(
+      const { error: insErr } = await supabase.from("magazine_concerts").insert(
         attachedConcerts.map((c, i) => ({
           post_id: Number(id),
           concert_id: c.id,
           display_order: i,
         }))
       );
+      if (insErr) {
+        setError("공연 연결 저장에 실패했습니다.");
+        setSubmitLoading(false);
+        return;
+      }
     }
 
     navigate(`/magazine/${id}`);

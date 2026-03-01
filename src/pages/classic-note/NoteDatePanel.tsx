@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import DOMPurify from "dompurify";
 import { supabase } from "@/lib/supabase";
 import type { Note, BookmarkItem } from "./ClassicNote";
 import ImageLightbox from "@/components/ui/ImageLightbox";
@@ -100,11 +101,18 @@ export default function NoteDatePanel({
       });
   }, [notes]);
 
-  const handleDelete = async (id: number) => {
-    setDeletingId(id);
-    // 연동된 커뮤니티 후기 먼저 삭제 (FK 제약 고려)
-    await supabase.from("community_posts").delete().eq("source_note_id", id);
-    await supabase.from("notes").delete().eq("id", id);
+  const handleDelete = async (noteId: number) => {
+    setDeletingId(noteId);
+    const { error: cpErr } = await supabase.from("community_posts").delete().eq("source_note_id", noteId);
+    if (cpErr) {
+      setDeletingId(null);
+      return;
+    }
+    const { error: noteErr } = await supabase.from("notes").delete().eq("id", noteId);
+    if (noteErr) {
+      setDeletingId(null);
+      return;
+    }
     setDeletingId(null);
     setConfirmDeleteId(null);
     onNoteDeleted();
@@ -270,7 +278,7 @@ export default function NoteDatePanel({
                   <>
                     <div
                       className={`note-panel__note-content tiptap-content${expandedNotes.has(note.id) ? " note-panel__note-content--expanded" : ""}`}
-                      dangerouslySetInnerHTML={{ __html: note.content }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(note.content) }}
                     />
                     <button
                       className="note-panel__expand-btn"
