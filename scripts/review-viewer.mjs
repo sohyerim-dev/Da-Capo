@@ -88,10 +88,29 @@ function showToast(msg) {
 function markDone(card, type) {
   const labels = { approved: "승인됨", edited: "수정됨", skipped: "건너뜀" };
   const classes = { approved: "badge-approved", edited: "badge-edited", skipped: "badge-skipped" };
+  // 기존 배지/되돌리기 버튼 제거
+  var oldBadge = card.querySelector(".status-badge");
+  if (oldBadge) oldBadge.remove();
+  var oldUndo = card.querySelector(".btn-undo");
+  if (oldUndo) oldUndo.remove();
+
   const badge = document.createElement("span");
   badge.className = "status-badge " + classes[type];
   badge.textContent = labels[type];
   card.querySelector(".card-title").appendChild(badge);
+
+  const undo = document.createElement("button");
+  undo.className = "btn-undo";
+  undo.textContent = "다시 수정";
+  undo.addEventListener("click", function() {
+    card.classList.remove("done");
+    card.querySelector(".edit-area").classList.add("open");
+    counts[type]--;
+    updateStats();
+  });
+  card.querySelector(".card-actions").appendChild(undo);
+
+  card.querySelector(".edit-area").classList.remove("open");
   card.classList.add("done");
   counts[type]++;
   updateStats();
@@ -163,6 +182,18 @@ function renderCard(c) {
     const newTags = card.querySelector(".input-tags").value.split(",").map(function(t) { return t.trim(); }).filter(Boolean);
     const newKws = card.querySelector(".input-kws").value.split(",").map(function(k) { return k.trim(); }).filter(Boolean);
     await sbUpdate(c.id, { tags: newTags, ai_keywords: newKws, need_review: false });
+
+    // 카드에 표시되는 태그/키워드 업데이트
+    var tagSections = card.querySelectorAll(".card-section");
+    var tagContainer = tagSections[0].querySelector(".tags");
+    var kwContainer = tagSections[1].querySelector(".tags");
+    tagContainer.innerHTML = newTags.length > 0
+      ? newTags.map(function(t) { return '<span class="tag tag-taxonomy">' + t + '</span>'; }).join("")
+      : "<span class='empty-label'>없음</span>";
+    kwContainer.innerHTML = newKws.length > 0
+      ? newKws.map(function(k) { return '<span class="tag tag-keyword">' + k + '</span>'; }).join("")
+      : "<span class='empty-label'>없음</span>";
+
     showToast("수정 저장됨");
     markDone(card, "edited");
   });
@@ -196,7 +227,9 @@ function generateHtml(concerts) {
     .dot-skipped { background: #a1a1aa; }
     main { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; display: flex; flex-direction: column; gap: 20px; }
     .card { background: #fff; border-radius: 12px; border: 1px solid #e4e4e7; overflow: hidden; transition: opacity 0.3s; }
-    .card.done { opacity: 0.35; pointer-events: none; }
+    .card.done { opacity: 0.35; }
+    .card.done .card-images, .card.done .card-body, .card.done .btn-approve, .card.done .btn-edit, .card.done .btn-skip, .card.done .btn-save, .card.done .edit-area { pointer-events: none; }
+    .card.done .btn-undo { pointer-events: auto; }
     .card-images { display: flex; gap: 6px; overflow-x: auto; padding: 12px; background: #f9f9f9; border-bottom: 1px solid #f0f0f0; }
     .card-images img { height: 140px; width: auto; border-radius: 6px; flex-shrink: 0; object-fit: cover; cursor: pointer; }
     .card-body { padding: 16px; }
@@ -219,6 +252,8 @@ function generateHtml(concerts) {
     .btn-edit:hover { background: #2563eb; }
     .btn-skip { background: #f4f4f5; color: #71717a; }
     .btn-skip:hover { background: #e4e4e7; }
+    .btn-undo { background: #f59e0b; color: #fff; margin-left: auto; }
+    .btn-undo:hover { background: #d97706; }
     .status-badge { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
     .badge-approved { background: #dcfce7; color: #16a34a; }
     .badge-edited { background: #dbeafe; color: #2563eb; }
