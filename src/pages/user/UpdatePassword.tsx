@@ -34,7 +34,13 @@ export default function UpdatePassword() {
     setLoading(false);
 
     if (error) {
-      setError("비밀번호 변경에 실패했습니다. 링크가 만료되었을 수 있습니다.");
+      if (error.message?.includes("different from the old password")) {
+        setError("이전과 같은 비밀번호는 사용할 수 없습니다.");
+      } else if (error.message?.includes("should be at least")) {
+        setError("비밀번호가 너무 짧습니다.");
+      } else {
+        setError("비밀번호 변경에 실패했습니다. 링크가 만료되었을 수 있습니다.");
+      }
       return;
     }
 
