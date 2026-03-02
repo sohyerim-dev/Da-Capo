@@ -147,7 +147,7 @@ export const concertTabData: TabData[] = [
       { label: "비올라", tag: "비올라" },
       { label: "첼로", tag: "첼로" },
       { label: "더블베이스", tag: "더블베이스" },
-      { label: "클래식 기타", tag: "클래식 기타" },
+      { label: "클래식 기타", tags: ["클래식 기타", "기타"] },
       { label: "하프", tag: "하프" },
       { label: "목관악기", isSeparator: true },
       { label: "플루트", tag: "플루트" },
