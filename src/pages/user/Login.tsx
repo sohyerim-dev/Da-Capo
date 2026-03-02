@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router";
+import { useNavigate, useLocation, Link } from "react-router";
 import { supabase } from "@/lib/supabase";
 import type { LoginForm } from "@/types/user";
 import Button from "@/components/common/Button";
@@ -70,14 +70,19 @@ export default function Login() {
             autoComplete="new-password"
             required
           />
-          <label className="auth-autologin auth-autologin--right">
-            <input
-              type="checkbox"
-              checked={autoLogin}
-              onChange={(e) => setAutoLogin(e.target.checked)}
-            />
-            자동 로그인
-          </label>
+          <div className="auth-login-options">
+            <Link to="/reset-password" className="auth-login-options__reset">
+              비밀번호 찾기
+            </Link>
+            <label className="auth-autologin auth-autologin--right">
+              <input
+                type="checkbox"
+                checked={autoLogin}
+                onChange={(e) => setAutoLogin(e.target.checked)}
+              />
+              자동 로그인
+            </label>
+          </div>
           {error && <p className="auth-error">{error}</p>}
           <Button type="submit" fullWidth loading={loading}>
             로그인

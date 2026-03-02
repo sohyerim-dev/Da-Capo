@@ -3,6 +3,8 @@ import Layout from "@/components/layout";
 import Home from "@/pages/Home";
 import Login from "@/pages/user/Login";
 import Signup from "@/pages/user/Signup";
+import ResetPassword from "@/pages/user/ResetPassword";
+import UpdatePassword from "@/pages/user/UpdatePassword";
 import ConcertInfoList from "@/pages/concerts-info/ConcertInfoList";
 import ConcertInfoDetail from "@/pages/concerts-info/ConcertInfoDetail";
 import MagazineList from "@/pages/Magazine/MagazineList";
@@ -31,6 +33,8 @@ const router = createBrowserRouter([
       { path: "/", element: <Home /> },
       { path: "/login", element: <Login /> },
       { path: "/signup", element: <Signup /> },
+      { path: "/reset-password", element: <ResetPassword /> },
+      { path: "/update-password", element: <UpdatePassword /> },
       { path: "/about", element: <About /> },
       { path: "/concert-info", element: <ConcertInfoList /> },
       { path: "/concert-info/:id", element: <ConcertInfoDetail /> },

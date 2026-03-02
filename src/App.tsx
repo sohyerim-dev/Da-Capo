@@ -14,12 +14,20 @@ function App() {
       (event, session) => {
         // 자동로그인 미설정 + 새 브라우저 세션 → 로그아웃 처리
         if (event === "INITIAL_SESSION") {
+          // 비밀번호 재설정 링크로 진입 시 로그아웃 방지
+          const isRecovery = window.location.hash.includes("type=recovery");
+          if (isRecovery) return;
+
           const autoLogin = localStorage.getItem("autoLogin");
           const sessionActive = sessionStorage.getItem("sessionActive");
           if (session && autoLogin === "false" && !sessionActive) {
             supabase.auth.signOut();
             return;
           }
+        }
+
+        if (event === "PASSWORD_RECOVERY") {
+          router.navigate("/update-password");
         }
 
         if (session?.user) {

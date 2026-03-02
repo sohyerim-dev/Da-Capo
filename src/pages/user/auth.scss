@@ -173,6 +173,23 @@
   }
 }
 
+.auth-login-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+
+  &__reset {
+    font-size: 13px;
+    color: #888;
+    text-decoration: none;
+
+    &:hover {
+      color: #111;
+    }
+  }
+}
+
 .auth-autologin {
   display: flex;
   align-items: center;
@@ -180,7 +197,6 @@
   font-size: 15px;
   color: #888;
   cursor: pointer;
-  margin-bottom: 16px;
 
   input[type="checkbox"] {
     width: 15px;
