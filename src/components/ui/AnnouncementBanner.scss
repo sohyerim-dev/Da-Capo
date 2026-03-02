@@ -55,5 +55,10 @@
     &:hover {
       opacity: 1;
     }
+
+    @media (max-width: 1200px) {
+      right: auto;
+      left: 16px;
+    }
   }
 }

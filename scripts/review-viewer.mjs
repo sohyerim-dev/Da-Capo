@@ -141,8 +141,8 @@ function renderCard(c) {
       '<div class="card-title">' + (c.title || "") + '</div>' +
       (c.performers ? '<div class="card-performers">' + c.performers + '</div>' : "") +
       (c.synopsis ? '<div class="card-section"><div class="card-label">시놉시스</div><div class="card-synopsis">' + c.synopsis + '</div></div>' : "") +
-      '<div class="card-section"><div class="card-label">태그</div><div class="tags">' + tagsHtml + '</div></div>' +
-      '<div class="card-section"><div class="card-label">키워드</div><div class="tags">' + kwHtml + '</div></div>' +
+      '<div class="card-section"><div class="card-label">태그</div><div class="tags tags-display">' + tagsHtml + '</div></div>' +
+      '<div class="card-section"><div class="card-label">키워드</div><div class="tags kws-display">' + kwHtml + '</div></div>' +
     '</div>' +
     '<div class="card-actions">' +
       '<button class="btn-approve">✓ 승인</button>' +
@@ -164,9 +164,13 @@ function renderCard(c) {
   });
 
   card.querySelector(".btn-approve").addEventListener("click", async function() {
-    await sbUpdate(c.id, { need_review: false });
-    showToast("승인됨");
-    markDone(card, "approved");
+    try {
+      await sbUpdate(c.id, { need_review: false });
+      showToast("승인됨");
+      markDone(card, "approved");
+    } catch (e) {
+      showToast("오류: " + e.message);
+    }
   });
 
   card.querySelector(".btn-skip").addEventListener("click", function() {
@@ -181,21 +185,24 @@ function renderCard(c) {
   card.querySelector(".btn-save").addEventListener("click", async function() {
     const newTags = card.querySelector(".input-tags").value.split(",").map(function(t) { return t.trim(); }).filter(Boolean);
     const newKws = card.querySelector(".input-kws").value.split(",").map(function(k) { return k.trim(); }).filter(Boolean);
-    await sbUpdate(c.id, { tags: newTags, ai_keywords: newKws, need_review: false });
+    try {
+      await sbUpdate(c.id, { tags: newTags, ai_keywords: newKws, need_review: false });
 
-    // 카드에 표시되는 태그/키워드 업데이트
-    var tagSections = card.querySelectorAll(".card-section");
-    var tagContainer = tagSections[0].querySelector(".tags");
-    var kwContainer = tagSections[1].querySelector(".tags");
-    tagContainer.innerHTML = newTags.length > 0
-      ? newTags.map(function(t) { return '<span class="tag tag-taxonomy">' + t + '</span>'; }).join("")
-      : "<span class='empty-label'>없음</span>";
-    kwContainer.innerHTML = newKws.length > 0
-      ? newKws.map(function(k) { return '<span class="tag tag-keyword">' + k + '</span>'; }).join("")
-      : "<span class='empty-label'>없음</span>";
+      // 카드에 표시되는 태그/키워드 업데이트
+      var tagContainer = card.querySelector(".tags-display");
+      var kwContainer = card.querySelector(".kws-display");
+      tagContainer.innerHTML = newTags.length > 0
+        ? newTags.map(function(t) { return '<span class="tag tag-taxonomy">' + t + '</span>'; }).join("")
+        : "<span class='empty-label'>없음</span>";
+      kwContainer.innerHTML = newKws.length > 0
+        ? newKws.map(function(k) { return '<span class="tag tag-keyword">' + k + '</span>'; }).join("")
+        : "<span class='empty-label'>없음</span>";
 
-    showToast("수정 저장됨");
-    markDone(card, "edited");
+      showToast("수정 저장됨");
+      markDone(card, "edited");
+    } catch (e) {
+      showToast("오류: " + e.message);
+    }
   });
 
   return card;
