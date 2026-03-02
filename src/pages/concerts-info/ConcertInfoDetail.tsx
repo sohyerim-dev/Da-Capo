@@ -159,8 +159,10 @@ export default function ConcertInfoDetail() {
   const [concert, setConcert] = useState<Concert | null>(null);
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsWatchlisted] = useState(false);
+  const [bookmarkedDates, setBookmarkedDates] = useState<string[] | null>(null);
   const [bookmarkLoading, setWatchlistLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isRemoveMode, setIsRemoveMode] = useState(false);
   const [pickerDates, setPickerDates] = useState<string[]>([]);
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -202,11 +204,14 @@ export default function ConcertInfoDetail() {
     if (!user || !id) return;
     supabase
       .from("bookmarks")
-      .select("id")
+      .select("id, scheduled_dates")
       .eq("user_id", user.id)
       .eq("concert_id", id)
       .maybeSingle()
-      .then(({ data }) => setIsWatchlisted(!!data));
+      .then(({ data }) => {
+        setIsWatchlisted(!!data);
+        setBookmarkedDates(data?.scheduled_dates ?? null);
+      });
   }, [user, id]);
 
   const handleToggleBookmark = async () => {
@@ -217,12 +222,21 @@ export default function ConcertInfoDetail() {
     if (!id || !concert) return;
     setWatchlistLoading(true);
     if (isBookmarked) {
+      if (bookmarkedDates && bookmarkedDates.length > 0) {
+        setPickerDates(bookmarkedDates);
+        setSelectedDates(new Set(bookmarkedDates));
+        setIsRemoveMode(true);
+        setShowDatePicker(true);
+        setWatchlistLoading(false);
+        return;
+      }
       await supabase
         .from("bookmarks")
         .delete()
         .eq("user_id", user.id)
         .eq("concert_id", id);
       setIsWatchlisted(false);
+      setBookmarkedDates(null);
       setWatchlistLoading(false);
     } else {
       const isMultiDay =
@@ -248,13 +262,36 @@ export default function ConcertInfoDetail() {
   const handleBookmarkWithDates = async (dates: string[]) => {
     if (!user || !id) return;
     setWatchlistLoading(true);
-    await supabase.from("bookmarks").insert({
-      user_id: user.id,
-      concert_id: id,
-      scheduled_dates: dates.length > 0 ? dates : null,
-    });
-    setIsWatchlisted(true);
+
+    if (isRemoveMode) {
+      if (dates.length === 0) {
+        await supabase
+          .from("bookmarks")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("concert_id", id);
+        setIsWatchlisted(false);
+        setBookmarkedDates(null);
+      } else {
+        await supabase
+          .from("bookmarks")
+          .update({ scheduled_dates: dates })
+          .eq("user_id", user.id)
+          .eq("concert_id", id);
+        setBookmarkedDates(dates);
+      }
+    } else {
+      await supabase.from("bookmarks").insert({
+        user_id: user.id,
+        concert_id: id,
+        scheduled_dates: dates.length > 0 ? dates : null,
+      });
+      setIsWatchlisted(true);
+      setBookmarkedDates(dates.length > 0 ? dates : null);
+    }
+
     setShowDatePicker(false);
+    setIsRemoveMode(false);
     setWatchlistLoading(false);
   };
 
@@ -571,17 +608,19 @@ export default function ConcertInfoDetail() {
       {showDatePicker && (
         <div
           className="concert-detail__date-picker-overlay"
-          onClick={() => setShowDatePicker(false)}
+          onClick={() => { setShowDatePicker(false); setIsRemoveMode(false); }}
         >
           <div
             className="concert-detail__date-picker"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="concert-detail__date-picker-title">
-              관람 예정일 선택
+              {isRemoveMode ? "관심 날짜 관리" : "관람 예정일 선택"}
             </h3>
             <p className="concert-detail__date-picker-desc">
-              관람 예정인 날짜를 선택해주세요. 여러 날 선택 가능합니다.
+              {isRemoveMode
+                ? "취소할 날짜의 체크를 해제해주세요."
+                : "관람 예정인 날짜를 선택해주세요. 여러 날 선택 가능합니다."}
             </p>
 
             <div className="concert-detail__date-picker-actions-top">
@@ -620,7 +659,7 @@ export default function ConcertInfoDetail() {
               <button
                 type="button"
                 className="concert-detail__date-picker-cancel"
-                onClick={() => setShowDatePicker(false)}
+                onClick={() => { setShowDatePicker(false); setIsRemoveMode(false); }}
               >
                 취소
               </button>
@@ -630,11 +669,15 @@ export default function ConcertInfoDetail() {
                 onClick={() =>
                   handleBookmarkWithDates(Array.from(selectedDates).sort())
                 }
-                disabled={bookmarkLoading || selectedDates.size === 0}
+                disabled={bookmarkLoading || (!isRemoveMode && selectedDates.size === 0)}
               >
-                {selectedDates.size > 0
-                  ? `${selectedDates.size}일 등록`
-                  : "날짜를 선택해주세요"}
+                {isRemoveMode
+                  ? selectedDates.size === 0
+                    ? "전체 취소"
+                    : `${selectedDates.size}일 유지`
+                  : selectedDates.size > 0
+                    ? `${selectedDates.size}일 등록`
+                    : "날짜를 선택해주세요"}
               </button>
             </div>
           </div>
