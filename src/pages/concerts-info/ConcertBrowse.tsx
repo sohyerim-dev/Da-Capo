@@ -288,12 +288,9 @@ export default function ConcertBrowse() {
     setCustomFrom("");
     setCustomTo("");
 
-    // 출연진 탭: 선택한 항목의 초성 그룹 자동 열기
-    if (index !== null && currentTab.usePerformers) {
+    if (index !== null) {
       const item = currentItems[index];
       if (item && !item.isSeparator) {
-        const cho = getChosungGroup(item.label);
-        // 해당 항목이 속한 separator 그룹 찾기
         let separator = "";
         for (let j = index - 1; j >= 0; j--) {
           if (currentItems[j].isSeparator) {
@@ -301,8 +298,15 @@ export default function ConcertBrowse() {
             break;
           }
         }
-        if (separator && separator !== "해외") {
-          const key = `${separator}-${cho}`;
+
+        if (currentTab.usePerformers) {
+          if (separator && separator !== "해외") {
+            const cho = getChosungGroup(item.label);
+            const key = `${separator}-${cho}`;
+            setOpenChosung((prev) => new Set(prev).add(key));
+          }
+        } else if (separator) {
+          const key = `${currentTab.label}-${separator}`;
           setOpenChosung((prev) => new Set(prev).add(key));
         }
       }
@@ -344,12 +348,10 @@ export default function ConcertBrowse() {
           </button>
           {(() => {
             if (!currentTab.usePerformers) {
-              return currentItems.map((item, i) =>
-                item.isSeparator ? (
-                  <span key={item.label} className="concert-info__panel-separator">
-                    {item.label}
-                  </span>
-                ) : (
+              // separator가 없는 탭: 기존 flat 렌더링
+              const hasSeparator = currentItems.some((item) => item.isSeparator);
+              if (!hasSeparator) {
+                return currentItems.map((item, i) => (
                   <button
                     key={item.label}
                     className={`concert-info__panel-item${activeSubIndex === i ? " concert-info__panel-item--active" : ""}`}
@@ -362,8 +364,65 @@ export default function ConcertBrowse() {
                     )}
                     {item.label}
                   </button>
-                )
-              );
+                ));
+              }
+
+              // separator가 있는 탭: 아코디언
+              const groups: { separator: string; items: { item: typeof currentItems[number]; idx: number }[] }[] = [];
+              for (let i = 0; i < currentItems.length; i++) {
+                const item = currentItems[i];
+                if (item.isSeparator) {
+                  groups.push({ separator: item.label, items: [] });
+                } else if (groups.length > 0) {
+                  groups[groups.length - 1].items.push({ item, idx: i });
+                }
+              }
+
+              return groups.map((group) => {
+                const key = `${currentTab.label}-${group.separator}`;
+                const isOpen = openChosung.has(key);
+                const hasActive = group.items.some(({ idx }) => activeSubIndex === idx);
+
+                return (
+                  <Fragment key={key}>
+                    <button
+                      className={`concert-info__panel-chosung${isOpen || hasActive ? " concert-info__panel-chosung--open" : ""}`}
+                      onClick={() => {
+                        const willClose = openChosung.has(key) || hasActive;
+                        setOpenChosung((prev) => {
+                          const next = new Set(prev);
+                          if (willClose) next.delete(key);
+                          else next.add(key);
+                          return next;
+                        });
+                        if (willClose && hasActive) {
+                          handleSubItemClick(null);
+                        }
+                      }}
+                    >
+                      {group.separator}
+                      <svg viewBox="0 0 10 6" className="concert-info__panel-chosung-arrow">
+                        <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                      </svg>
+                    </button>
+                    {(isOpen || hasActive) &&
+                      group.items.map(({ item, idx }) => (
+                        <button
+                          key={item.label}
+                          className={`concert-info__panel-item${activeSubIndex === idx ? " concert-info__panel-item--active" : ""}`}
+                          onClick={() => handleSubItemClick(idx)}
+                        >
+                          {activeSubIndex === idx && (
+                            <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                          {item.label}
+                        </button>
+                      ))}
+                  </Fragment>
+                );
+              });
             }
 
             // 출연진 탭: separator 기준으로 그룹 분리 → 초성 아코디언
