@@ -184,10 +184,14 @@ export default function ConcertBrowse() {
     const fetchConcerts = async () => {
       setLoading(true);
 
+      const now = new Date();
+      const todayDot = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")}`;
+
       let query = supabase
         .from("concerts")
         .select("id, title, poster, synopsis, bookmark_count, rank, tags, performers")
-        .in("status", ["공연예정", "공연중"]);
+        .in("status", ["공연예정", "공연중"])
+        .gte("end_date", todayDot);
 
       if (currentTab.rankOnly) {
         query = query.not("rank", "is", null).order("rank", { ascending: true });

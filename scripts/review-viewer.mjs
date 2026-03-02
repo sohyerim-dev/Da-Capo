@@ -11,13 +11,14 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 const PORT = 3456;
+const PAGE_SIZE = 50;
 
 async function fetchConcerts() {
   const { data, error } = await supabase
     .from("concerts")
     .select("id, title, poster, intro_images, tags, ai_keywords, performers, synopsis, status")
-    .eq("need_review", true)
     .in("status", ["공연예정", "공연중"])
+    .or("need_review.eq.true,tags.is.null,tags.eq.{}")
     .order("title");
 
   if (error) throw error;
@@ -263,16 +264,16 @@ function generateHtml(concerts) {
 }
 
 async function main() {
-  console.log("공연 데이터 로딩 중...");
-  const concerts = await fetchConcerts();
-  const html = generateHtml(concerts);
-
   const server = createServer(async function (req, res) {
     try {
       const handled = await handleApi(req, res);
       if (handled) return;
 
-      if (req.method === "GET" && (req.url === "/" || req.url === "/index.html")) {
+      const url = new URL(req.url, "http://localhost");
+      if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
+        const concerts = await fetchConcerts();
+        console.log("요청: 총 " + concerts.length + "건");
+        const html = generateHtml(concerts);
         res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
         res.end(html);
         return;
@@ -288,8 +289,9 @@ async function main() {
   });
 
   server.listen(PORT, function () {
-    console.log("✓ 검수 서버 시작 (" + concerts.length + "건)");
+    console.log("✓ 검수 서버 시작 (페이지당 " + PAGE_SIZE + "건, 새로고침 시 DB에서 최신 데이터 로드)");
     console.log("  http://localhost:" + PORT);
+    console.log("  http://localhost:" + PORT + "?page=2  (병렬 검수)");
   });
 }
 

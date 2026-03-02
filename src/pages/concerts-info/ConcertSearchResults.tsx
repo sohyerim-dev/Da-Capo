@@ -27,10 +27,14 @@ export default function ConcertSearchResults({ query }: Props) {
       setLoading(true);
       const words = query.trim().split(/\s+/).filter(Boolean);
 
+      const today = new Date();
+      const todayDot = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")}`;
+
       let q = supabase
         .from("concerts")
         .select("id, title, poster, venue, start_date, end_date, status")
-        .in("status", ["공연예정", "공연중"]);
+        .in("status", ["공연예정", "공연중"])
+        .gte("end_date", todayDot);
 
       for (const w of words) {
         q = q.or(

@@ -213,13 +213,15 @@ async function main() {
     const batch = allRows.slice(i, i + BATCH);
     const batchIds = batch.map((r) => r.id);
 
-    // 이미 태그가 있는 기존 공연 ID 조회 (upsert 후 need_review 표시용)
+    // 태그가 있는 기존 공연의 태깅 관련 필드 조회 (변경 비교용)
     const { data: existingTagged } = await supabase
       .from("concerts")
-      .select("id")
+      .select("id, title, synopsis, performers, intro_images")
       .in("id", batchIds)
       .not("tags", "is", null);
-    const taggedIds = (existingTagged ?? []).map((r) => r.id);
+    const existingMap = new Map(
+      (existingTagged ?? []).map((r) => [r.id, r])
+    );
 
     const { error } = await supabase
       .from("concerts")
@@ -229,13 +231,26 @@ async function main() {
       continue;
     }
 
-    // 태그가 있던 공연이 업데이트됐으면 need_review = true
-    if (taggedIds.length > 0) {
+    // 태깅 관련 필드가 실제로 변경된 공연만 need_review = true
+    const changedIds = batch
+      .filter((row) => {
+        const old = existingMap.get(row.id);
+        if (!old) return false;
+        return (
+          (old.title ?? null) !== (row.title ?? null) ||
+          (old.synopsis ?? null) !== (row.synopsis ?? null) ||
+          (old.performers ?? null) !== (row.performers ?? null) ||
+          JSON.stringify(old.intro_images ?? null) !== JSON.stringify(row.intro_images ?? null)
+        );
+      })
+      .map((row) => row.id);
+
+    if (changedIds.length > 0) {
       await supabase
         .from("concerts")
         .update({ need_review: true })
-        .in("id", taggedIds);
-      console.log(`  태그 재검수 표시: ${taggedIds.length}건`);
+        .in("id", changedIds);
+      console.log(`  태그 재검수 표시: ${changedIds.length}건 (데이터 변경됨)`);
     }
   }
 

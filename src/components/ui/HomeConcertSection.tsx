@@ -72,11 +72,15 @@ export default function HomeConcertSection() {
     }
 
     const fetchConcerts = async () => {
+      const now = new Date();
+      const todayDot = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")}`;
+
       if (isRankOnly) {
         const { data, error } = await supabase
           .from("concerts")
           .select("id, title, poster, synopsis, rank")
           .in("status", ["공연예정", "공연중"])
+          .gte("end_date", todayDot)
           .not("rank", "is", null)
           .order("rank", { ascending: true })
           .limit(4);
@@ -93,7 +97,8 @@ export default function HomeConcertSection() {
       let query = supabase
         .from("concerts")
         .select("id, title, poster, synopsis, rank")
-        .in("status", ["공연예정", "공연중"]);
+        .in("status", ["공연예정", "공연중"])
+        .gte("end_date", todayDot);
 
       if (activeItem) {
         if (currentTab.usePerformers && activeItem.tag) {
