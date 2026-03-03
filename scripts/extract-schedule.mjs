@@ -1,20 +1,19 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
-import sharp from "sharp";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !ANTHROPIC_API_KEY) {
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !OPENAI_API_KEY) {
   console.error(
-    "환경변수 SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY 가 필요합니다."
+    "환경변수 SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OPENAI_API_KEY 가 필요합니다."
   );
   process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 const SYSTEM_PROMPT = `공연 정보에서 구체적인 공연 날짜 목록을 추출해주세요.
 
@@ -29,99 +28,66 @@ const SYSTEM_PROMPT = `공연 정보에서 구체적인 공연 날짜 목록을 
    형식: {"dates": ["2026년 1월 5일 19:30", "2026년 1월 10일 15:00"]}
    또는: {"dates": null}`;
 
-async function fetchImageAsBase64(url) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const buffer = await res.arrayBuffer();
-    const resized = await sharp(Buffer.from(buffer))
-      .resize(1024, 1024, { fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 80 })
-      .toBuffer();
-    return { base64: resized.toString("base64"), mediaType: "image/jpeg" };
-  } catch {
-    return null;
-  }
-}
+// 이미지 + 텍스트 동시 전달 (가장 정확)
+async function extractFromImagesAndText(concert) {
+  const imageUrls = (concert.intro_images ?? []).slice(0, 3);
+  const imageBlocks = imageUrls.map((url) => ({
+    type: "image_url",
+    image_url: { url, detail: "high" },
+  }));
 
-function buildTextContent(concert) {
-  return `공연 ID: ${concert.id}
+  const textBlock = {
+    type: "text",
+    text: `공연 ID: ${concert.id}
 제목: ${concert.title}
 공연 기간: ${concert.start_date} ~ ${concert.end_date}
+${concert.synopsis?.trim() ? `\n공연 설명:\n${concert.synopsis.slice(0, 1500)}` : ""}
 
-공연 설명:
-${(concert.synopsis || "").slice(0, 1500)}`;
-}
+위 이미지(${imageUrls.length}장)와 텍스트 정보를 모두 참고해서 구체적인 공연 날짜를 찾아주세요.`,
+  };
 
-async function extractFromText(concert) {
-  const response = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
     max_tokens: 512,
     temperature: 0,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildTextContent(concert) }],
+    messages: [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: [...imageBlocks, textBlock] },
+    ],
+    response_format: { type: "json_object" },
   });
 
-  const text = response.content[0].text.trim();
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-
   try {
-    const parsed = JSON.parse(match[0]);
+    const parsed = JSON.parse(response.choices[0].message.content);
     return parsed.dates ?? null;
   } catch {
     return null;
   }
 }
 
-async function extractFromImages(concert) {
-  const imageUrls = (concert.intro_images ?? []).slice(0, 3);
-  if (imageUrls.length === 0) return null;
-
-  const imgDataList = (
-    await Promise.all(imageUrls.map(fetchImageAsBase64))
-  ).filter(Boolean);
-
-  if (imgDataList.length === 0) return null;
-
-  const imageBlocks = imgDataList.map((img) => ({
-    type: "image",
-    source: {
-      type: "base64",
-      media_type: img.mediaType,
-      data: img.base64,
-    },
-  }));
-
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
+// 텍스트만 (이미지 없을 때)
+async function extractFromTextOnly(concert) {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
     max_tokens: 512,
     temperature: 0,
-    system: SYSTEM_PROMPT,
     messages: [
+      { role: "system", content: SYSTEM_PROMPT },
       {
         role: "user",
-        content: [
-          ...imageBlocks,
-          {
-            type: "text",
-            text: `공연 ID: ${concert.id}
+        content: `공연 ID: ${concert.id}
 제목: ${concert.title}
 공연 기간: ${concert.start_date} ~ ${concert.end_date}
 
-위 이미지(${imgDataList.length}장)는 이 공연의 소개 이미지입니다. 이미지에서 구체적인 공연 날짜를 찾아주세요.`,
-          },
-        ],
+공연 설명:
+${(concert.synopsis || "").slice(0, 1500)}`,
       },
     ],
+    response_format: { type: "json_object" },
   });
 
-  const text = response.content[0].text.trim();
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-
   try {
-    const parsed = JSON.parse(match[0]);
+    const parsed = JSON.parse(response.choices[0].message.content);
     return parsed.dates ?? null;
   } catch {
     return null;
@@ -138,19 +104,22 @@ async function main() {
   const { data: allConcerts, error } = await supabase
     .from("concerts")
     .select("id, title, start_date, end_date, synopsis, intro_images")
-    .eq("schedule_extracted", false);
+    .eq("schedule_extracted", false)
+    .in("status", ["공연예정", "공연중"]);
 
   if (error) throw error;
 
   const concerts = allConcerts.filter((c) => c.start_date !== c.end_date);
   console.log(
-    `전체 schedule=null: ${allConcerts.length}건 → 여러날 공연: ${concerts.length}건`
+    `전체 미처리: ${allConcerts.length}건 → 여러날 공연: ${concerts.length}건`
   );
 
-  const hasSynopsis = concerts.filter((c) => c.synopsis?.trim());
-  const noSynopsis = concerts.filter((c) => !c.synopsis?.trim());
+  const withImages = concerts.filter((c) => c.intro_images?.length > 0);
+  const textOnly = concerts.filter(
+    (c) => !c.intro_images?.length && c.synopsis?.trim()
+  );
   console.log(
-    `시놉시스 있음: ${hasSynopsis.length}건 | 없음: ${noSynopsis.length}건`
+    `이미지+텍스트: ${withImages.length}건 | 텍스트만: ${textOnly.length}건`
   );
 
   let extracted = 0;
@@ -159,21 +128,19 @@ async function main() {
 
   for (let i = 0; i < concerts.length; i++) {
     const concert = concerts[i];
-    if (i === 0 || (i + 1) % 20 === 0) {
+    if (i === 0 || (i + 1) % 10 === 0) {
       console.log(`처리 중: ${i + 1} / ${concerts.length}`);
     }
 
     try {
       let dates = null;
 
-      // 1. 시놉시스에서 먼저 시도
-      if (concert.synopsis?.trim()) {
-        dates = await extractFromText(concert);
-      }
-
-      // 2. 시놉시스에서 못 찾았으면 이미지에서 시도
-      if (!dates && concert.intro_images?.length > 0) {
-        dates = await extractFromImages(concert);
+      if (concert.intro_images?.length > 0) {
+        // 이미지 + 텍스트 동시 전달
+        dates = await extractFromImagesAndText(concert);
+      } else if (concert.synopsis?.trim()) {
+        // 이미지 없으면 텍스트만
+        dates = await extractFromTextOnly(concert);
       }
 
       if (dates && dates.length > 0) {
@@ -187,10 +154,10 @@ async function main() {
         console.log(`  ✓ ${concert.title}: ${dates.length}개 날짜`);
         extracted++;
       } else {
-        // 날짜 없어도 추출 시도 완료 표시
+        // 날짜 찾지 못한 경우 — 검수 없이 바로 완료 처리
         await supabase
           .from("concerts")
-          .update({ schedule_extracted: true })
+          .update({ schedule_extracted: true, schedule_reviewed: true })
           .eq("id", concert.id);
         notFound++;
       }
@@ -199,12 +166,15 @@ async function main() {
       failed++;
     }
 
-    await sleep(200);
+    await sleep(300);
   }
 
   console.log(
-    `\n완료: 추출 성공 ${extracted}건, 날짜 없음 ${notFound}건, 실패 ${failed}건`
+    `\n완료: 추출 성공 ${extracted}건 (검수 필요), 날짜 없음 ${notFound}건, 실패 ${failed}건`
   );
+  if (extracted > 0) {
+    console.log(`\n검수 시작: node --env-file=.env scripts/schedule-viewer.mjs`);
+  }
 }
 
 main().catch((err) => {
