@@ -425,6 +425,23 @@
     }
   }
 
+  &__panel-reset {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    background: transparent;
+    color: #aaa;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #999;
+      color: #555;
+    }
+  }
+
   &__panel-separator {
     width: 100%;
     font-size: 12px;

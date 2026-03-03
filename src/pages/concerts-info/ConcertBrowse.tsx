@@ -280,7 +280,8 @@ export default function ConcertBrowse() {
   };
 
   const handleSubItemClick = (index: number | null) => {
-    setActiveSubIndex(index);
+    const newIndex = index !== null && activeSubIndex === index ? null : index;
+    setActiveSubIndex(newIndex);
     setVisibleCount(PAGE_SIZE);
     setFilterSort("start_date");
     setFilterArea("");
@@ -288,11 +289,11 @@ export default function ConcertBrowse() {
     setCustomFrom("");
     setCustomTo("");
 
-    if (index !== null) {
-      const item = currentItems[index];
+    if (newIndex !== null) {
+      const item = currentItems[newIndex];
       if (item && !item.isSeparator) {
         let separator = "";
-        for (let j = index - 1; j >= 0; j--) {
+        for (let j = newIndex - 1; j >= 0; j--) {
           if (currentItems[j].isSeparator) {
             separator = currentItems[j].label;
             break;
@@ -346,6 +347,14 @@ export default function ConcertBrowse() {
             )}
             전체
           </button>
+          {activeSubIndex !== null && (
+            <button
+              className="concert-info__panel-reset"
+              onClick={() => handleSubItemClick(null)}
+            >
+              초기화
+            </button>
+          )}
           {(() => {
             if (!currentTab.usePerformers) {
               // separator가 없는 탭: 기존 flat 렌더링

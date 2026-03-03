@@ -18,7 +18,7 @@ async function fetchConcerts() {
     .from("concerts")
     .select("id, title, poster, intro_images, tags, ai_keywords, performers, synopsis, status")
     .in("status", ["공연예정", "공연중"])
-    .or("need_review.eq.true,tags.is.null,tags.eq.{}")
+    .eq("need_review", true)
     .order("title");
 
   if (error) throw error;
