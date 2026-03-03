@@ -29,6 +29,9 @@ interface Concert {
   rank: number | null;
   tags: string[] | null;
   performers: string | null;
+  area: string | null;
+  start_date: string | null;
+  end_date: string | null;
 }
 
 type SortOption = "start_date" | "bookmark_count";
@@ -189,7 +192,7 @@ export default function ConcertBrowse() {
 
       let query = supabase
         .from("concerts")
-        .select("id, title, poster, synopsis, bookmark_count, rank, tags, performers")
+        .select("id, title, poster, synopsis, bookmark_count, rank, tags, performers, area, start_date, end_date")
         .in("status", ["공연예정", "공연중"])
         .gte("end_date", todayDot);
 
@@ -693,6 +696,14 @@ export default function ConcertBrowse() {
                   )}
                 </div>
                 <p className="concert-info__card-title">{concert.title}</p>
+                {(concert.area || concert.start_date) && (
+                  <p className="concert-info__card-meta">
+                    {concert.area && concert.area.replace(/(특별시|광역시|특별자치시|특별자치도|도)$/, "")}
+                    {concert.area && concert.start_date && " · "}
+                    {concert.start_date && concert.start_date.slice(2)}
+                    {concert.end_date && concert.end_date !== concert.start_date && `~${concert.end_date.slice(5)}`}
+                  </p>
+                )}
               </Link>
             ))}
           </div>

@@ -371,6 +371,14 @@ export default function ConcertSearchResults({ query }: Props) {
                 <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
               </div>
               <p className="concert-info__card-title">{concert.title}</p>
+              {(concert.area || concert.start_date) && (
+                <p className="concert-info__card-meta">
+                  {concert.area && concert.area.replace(/(특별시|광역시|특별자치시|특별자치도|도)$/, "")}
+                  {concert.area && concert.start_date && " · "}
+                  {concert.start_date && concert.start_date.slice(2)}
+                  {concert.end_date && concert.end_date !== concert.start_date && `~${concert.end_date.slice(5)}`}
+                </p>
+              )}
             </Link>
           ))}
         </div>
