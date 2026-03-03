@@ -159,7 +159,7 @@ function renderCard(c) {
   card.querySelectorAll(".card-images img").forEach(function(img) {
     img.addEventListener("click", function() {
       const win = window.open("", "_blank");
-      win.document.write('<!DOCTYPE html><html><head><style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;}img{max-width:100vw;max-height:100vh;object-fit:contain;}</style></head><body><img src="' + img.src + '"></body></html>');
+      win.document.write('<!DOCTYPE html><html><head><style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;}img{max-width:100vw;max-height:100vh;object-fit:contain;cursor:zoom-in;}img.zoomed{max-width:none;max-height:none;cursor:zoom-out;}</style></head><body><img src="' + img.src + '"><script>document.querySelector("img").addEventListener("click",function(){this.classList.toggle("zoomed");});<\\/script></body></html>');
       win.document.close();
     });
   });
@@ -237,8 +237,8 @@ function generateHtml(concerts) {
     .card.done { opacity: 0.35; }
     .card.done .card-images, .card.done .card-body, .card.done .btn-approve, .card.done .btn-edit, .card.done .btn-skip, .card.done .btn-save, .card.done .edit-area { pointer-events: none; }
     .card.done .btn-undo { pointer-events: auto; }
-    .card-images { display: flex; gap: 6px; overflow-x: auto; padding: 12px; background: #f9f9f9; border-bottom: 1px solid #f0f0f0; }
-    .card-images img { height: 140px; width: auto; border-radius: 6px; flex-shrink: 0; object-fit: cover; cursor: pointer; }
+    .card-images { display: flex; gap: 6px; padding: 12px; background: #f9f9f9; border-bottom: 1px solid #f0f0f0; }
+    .card-images img { flex: 1; min-width: 0; height: 140px; border-radius: 6px; object-fit: cover; cursor: pointer; }
     .card-body { padding: 16px; }
     .card-id { font-size: 10px; color: #a1a1aa; font-family: monospace; margin-bottom: 4px; }
     .card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }

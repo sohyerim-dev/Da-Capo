@@ -296,7 +296,7 @@ export default function ClassicNote() {
                           return s >= monthStart && s <= monthEnd ? [s] : [];
                         })();
                   return datesInMonth.map((date) => ({ w, date }));
-                });
+                }).sort((a, b) => a.date.localeCompare(b.date));
                 if (allBookmarkRows.length === 0) return null;
                 return (
                   <div className="classic-note__group">
