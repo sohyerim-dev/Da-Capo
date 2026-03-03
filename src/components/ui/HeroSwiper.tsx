@@ -33,7 +33,7 @@ export default function HeroSwiper() {
         modules={[Autoplay, EffectFade, Pagination]}
         effect="fade"
         autoplay={{
-          delay: 3000,
+          delay: 6000,
           disableOnInteraction: false,
           pauseOnMouseEnter: false,
         }}

@@ -53,7 +53,7 @@ export default function HomeConcertSection() {
     if (isRankOnly || currentItems.length === 0) return;
     const timer = setInterval(() => {
       setActiveSubIndex((prev) => (prev + 1) % currentItems.length);
-    }, 2500);
+    }, 5000);
     return () => clearInterval(timer);
   }, [activeTab, currentItems.length, cycleKey, isRankOnly]);
 
