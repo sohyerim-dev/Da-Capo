@@ -155,6 +155,44 @@ function buildOrCondition(words: string[]): string {
   ).join(",");
 }
 
+type SortOption = "start_date" | "bookmark_count";
+
+const SORT_OPTIONS: { label: string; value: SortOption }[] = [
+  { label: "공연 임박순", value: "start_date" },
+  { label: "찜 많은 순", value: "bookmark_count" },
+];
+
+const AREAS = [
+  "서울특별시", "인천광역시", "경기도", "부산광역시", "대구광역시",
+  "광주광역시", "대전광역시", "울산광역시", "세종특별자치시", "강원특별자치도",
+  "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도",
+  "경상남도", "제주특별자치도",
+];
+
+const DATE_OPTIONS = [
+  { label: "전체", value: "" },
+  { label: "이번 달", value: "thisMonth" },
+  { label: "다음 달", value: "nextMonth" },
+  { label: "3개월 이내", value: "3months" },
+  { label: "6개월 이내", value: "6months" },
+  { label: "직접 선택", value: "custom" },
+];
+
+function getDateRange(filter: string): { from: string; to: string } | null {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const fmt = (d: Date) => `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
+  if (filter === "thisMonth") return { from: fmt(new Date(now.getFullYear(), now.getMonth(), 1)), to: fmt(new Date(now.getFullYear(), now.getMonth() + 1, 0)) };
+  if (filter === "nextMonth") return { from: fmt(new Date(now.getFullYear(), now.getMonth() + 1, 1)), to: fmt(new Date(now.getFullYear(), now.getMonth() + 2, 0)) };
+  if (filter === "3months") { const to = new Date(now); to.setMonth(to.getMonth() + 3); return { from: fmt(now), to: fmt(to) }; }
+  if (filter === "6months") { const to = new Date(now); to.setMonth(to.getMonth() + 6); return { from: fmt(now), to: fmt(to) }; }
+  return null;
+}
+
+function isoToDot(iso: string): string {
+  return iso.replace(/-/g, ".");
+}
+
 interface Concert {
   id: string;
   title: string | null;
@@ -163,6 +201,8 @@ interface Concert {
   start_date: string | null;
   end_date: string | null;
   status: string | null;
+  area: string | null;
+  bookmark_count: number | null;
 }
 
 interface Props {
@@ -172,6 +212,14 @@ interface Props {
 export default function ConcertSearchResults({ query }: Props) {
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterArea, setFilterArea] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [filterSort, setFilterSort] = useState<SortOption>("start_date");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+
+  const hasFilter = filterArea !== "" || (filterDate !== "" && (filterDate !== "custom" || customFrom !== ""));
 
   useEffect(() => {
     if (!query.trim()) return;
@@ -185,7 +233,7 @@ export default function ConcertSearchResults({ query }: Props) {
 
       let q = supabase
         .from("concerts")
-        .select("id, title, poster, venue, start_date, end_date, status")
+        .select("id, title, poster, venue, start_date, end_date, status, area, bookmark_count")
         .in("status", ["공연예정", "공연중"])
         .gte("end_date", todayDot);
 
@@ -195,16 +243,33 @@ export default function ConcertSearchResults({ query }: Props) {
         q = q.or(buildOrCondition(variants));
       }
 
-      const { data, error } = await q
-        .order("start_date", { ascending: true })
-        .limit(40);
+      if (filterArea) q = q.eq("area", filterArea);
+
+      if (filterDate === "custom") {
+        if (customFrom) {
+          const from = isoToDot(customFrom);
+          const to = customTo ? isoToDot(customTo) : from;
+          q = q.lte("start_date", to).gte("end_date", from);
+        }
+      } else if (filterDate) {
+        const range = getDateRange(filterDate);
+        if (range) q = q.lte("start_date", range.to).gte("end_date", range.from);
+      }
+
+      if (filterSort === "bookmark_count") {
+        q = q.order("bookmark_count", { ascending: false, nullsFirst: false });
+      } else {
+        q = q.order("start_date", { ascending: true });
+      }
+
+      const { data, error } = await q.limit(40);
 
       if (!error && data) setConcerts(data);
       setLoading(false);
     };
 
     fetchResults();
-  }, [query]);
+  }, [query, filterArea, filterDate, filterSort, customFrom, customTo]);
 
   if (loading) {
     return (
@@ -221,31 +286,95 @@ export default function ConcertSearchResults({ query }: Props) {
     );
   }
 
-  if (concerts.length === 0) {
-    return (
-      <div className="concert-info__search-results">
-        <p className="concert-info__search-empty">
-          &ldquo;{query}&rdquo; 검색 결과가 없습니다.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="concert-info__search-results">
       <p className="concert-info__search-count">
         &ldquo;{query}&rdquo; 검색 결과 {concerts.length}건
       </p>
-      <div className="concert-info__cards">
-        {concerts.map((concert) => (
-          <Link key={concert.id} to={`/concert-info/${concert.id}`} state={{ q: query }} className="concert-info__card">
-            <div className="concert-info__card-img">
-              <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
-            </div>
-            <p className="concert-info__card-title">{concert.title}</p>
-          </Link>
-        ))}
+
+      {/* 필터 버튼 + 정렬 */}
+      <div className="concert-info__filter-row">
+        <button
+          className={`concert-info__filter-btn${hasFilter ? " concert-info__filter-btn--active" : ""}`}
+          onClick={() => setIsFilterOpen((v) => !v)}
+        >
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18M7 12h10M11 18h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          필터{hasFilter ? " ●" : ""}
+        </button>
+        <select
+          className="concert-info__sort-select"
+          value={filterSort}
+          onChange={(e) => setFilterSort(e.target.value as SortOption)}
+        >
+          {SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
       </div>
+
+      {/* 필터 패널 */}
+      {isFilterOpen && (
+        <div className="concert-info__filter-panel">
+          <div className="concert-info__filter-section">
+            <p className="concert-info__filter-label">지역</p>
+            <div className="concert-info__filter-options">
+              <button
+                className={`concert-info__filter-option${filterArea === "" ? " concert-info__filter-option--active" : ""}`}
+                onClick={() => setFilterArea("")}
+              >전체</button>
+              {AREAS.map((area) => (
+                <button
+                  key={area}
+                  className={`concert-info__filter-option${filterArea === area ? " concert-info__filter-option--active" : ""}`}
+                  onClick={() => setFilterArea(filterArea === area ? "" : area)}
+                >{area}</button>
+              ))}
+            </div>
+          </div>
+          <div className="concert-info__filter-section">
+            <p className="concert-info__filter-label">날짜</p>
+            <div className="concert-info__filter-options">
+              {DATE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  className={`concert-info__filter-option${filterDate === opt.value ? " concert-info__filter-option--active" : ""}`}
+                  onClick={() => { setFilterDate(opt.value); if (opt.value !== "custom") { setCustomFrom(""); setCustomTo(""); } }}
+                >{opt.label}</button>
+              ))}
+            </div>
+            {filterDate === "custom" && (
+              <div className="concert-info__filter-date-inputs">
+                <input type="date" className="concert-info__filter-date-input" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} />
+                <span className="concert-info__filter-date-sep">~</span>
+                <input type="date" className="concert-info__filter-date-input" value={customTo} min={customFrom} onChange={(e) => setCustomTo(e.target.value)} />
+              </div>
+            )}
+          </div>
+          {hasFilter && (
+            <button
+              className="concert-info__filter-reset"
+              onClick={() => { setFilterArea(""); setFilterDate(""); setCustomFrom(""); setCustomTo(""); }}
+            >초기화</button>
+          )}
+        </div>
+      )}
+
+      {concerts.length === 0 ? (
+        <p className="concert-info__search-empty">조건에 맞는 공연이 없습니다.</p>
+      ) : (
+        <div className="concert-info__cards">
+          {concerts.map((concert) => (
+            <Link key={concert.id} to={`/concert-info/${concert.id}`} state={{ q: query }} className="concert-info__card">
+              <div className="concert-info__card-img">
+                <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
+              </div>
+              <p className="concert-info__card-title">{concert.title}</p>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
