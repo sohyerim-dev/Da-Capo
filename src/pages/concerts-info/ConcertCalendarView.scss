@@ -308,20 +308,24 @@
   }
 
   &__filter-reset {
-    display: block;
-    margin: 0 auto;
-    padding: 6px 20px;
-    font-size: 13px;
-    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
     background: transparent;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    color: #aaa;
+    font-size: 12px;
+    font-family: inherit;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: all 0.2s;
+    margin-left: auto;
+    flex-shrink: 0;
 
     &:hover {
-      background: #f0f0f0;
-      color: #161616;
+      border-color: #999;
+      color: #555;
     }
   }
 

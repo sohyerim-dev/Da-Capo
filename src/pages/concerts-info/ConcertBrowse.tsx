@@ -350,14 +350,6 @@ export default function ConcertBrowse() {
             )}
             전체
           </button>
-          {activeSubIndex !== null && (
-            <button
-              className="concert-info__panel-reset"
-              onClick={() => handleSubItemClick(null)}
-            >
-              초기화
-            </button>
-          )}
           {(() => {
             if (!currentTab.usePerformers) {
               // separator가 없는 탭: 기존 flat 렌더링
@@ -537,6 +529,17 @@ export default function ConcertBrowse() {
               );
             });
           })()}
+          {activeSubIndex !== null && (
+            <button
+              className="concert-info__panel-reset"
+              onClick={() => handleSubItemClick(null)}
+            >
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" width="13" height="13">
+                <path d="M13.5 8A5.5 5.5 0 1 1 8 2.5c1.8 0 3.4.87 4.4 2.2L10.5 6h3.5V2.5l-1.38 1.38A6.5 6.5 0 1 0 14.5 8h-1z" fill="currentColor" />
+              </svg>
+              초기화
+            </button>
+          )}
         </div>
       )}
 
@@ -653,6 +656,10 @@ export default function ConcertBrowse() {
                 setCustomTo("");
               }}
             >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
               초기화
             </button>
           )}

@@ -243,15 +243,18 @@ export default function ConcertCalendarView() {
                 {area}
               </button>
             ))}
+            {filterArea && (
+              <button
+                className="concert-cal__filter-reset"
+                onClick={() => { setFilterArea(""); setVisibleCount(8); }}
+              >
+                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" width="13" height="13">
+                  <path d="M13.5 8A5.5 5.5 0 1 1 8 2.5c1.8 0 3.4.87 4.4 2.2L10.5 6h3.5V2.5l-1.38 1.38A6.5 6.5 0 1 0 14.5 8h-1z" fill="currentColor" />
+                </svg>
+                초기화
+              </button>
+            )}
           </div>
-          {filterArea && (
-            <button
-              className="concert-cal__filter-reset"
-              onClick={() => { setFilterArea(""); setVisibleCount(8); }}
-            >
-              초기화
-            </button>
-          )}
         </div>
       )}
 

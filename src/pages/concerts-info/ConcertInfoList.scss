@@ -314,9 +314,11 @@
   }
 
   &__filter-reset {
-    display: block;
-    margin: 12px auto 0;
-    padding: 6px 20px;
+    align-self: flex-end;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
     font-size: 13px;
     color: #888;
     background: transparent;
@@ -324,6 +326,8 @@
     border-radius: 6px;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
+
+    svg { flex-shrink: 0; }
 
     &:hover {
       background: #f0f0f0;
@@ -426,6 +430,9 @@
   }
 
   &__panel-reset {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     padding: 6px 12px;
     border-radius: 8px;
     border: 1px solid #e5e5e5;
@@ -435,6 +442,8 @@
     font-family: inherit;
     cursor: pointer;
     transition: all 0.2s;
+    margin-left: auto;
+    flex-shrink: 0;
 
     &:hover {
       border-color: #999;
