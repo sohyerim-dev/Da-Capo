@@ -225,7 +225,7 @@ export default function SupportDetail() {
       <div className="support-detail-page">
         <div className="wrap support-detail-page__inner">
           <div className="support-detail-page__heading">
-            <h1>고객지원</h1>
+            <h1>고객센터</h1>
           </div>
           <div className="support-detail-page__post-row">
             <div className="support-detail-page__post-row-left">
@@ -290,7 +290,7 @@ export default function SupportDetail() {
       <div className="wrap support-detail-page__inner">
 
         <div className="support-detail-page__heading">
-          <h1>고객지원</h1>
+          <h1>고객센터</h1>
         </div>
 
         <div className="support-detail-page__post-row">
