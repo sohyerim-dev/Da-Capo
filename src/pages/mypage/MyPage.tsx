@@ -134,17 +134,18 @@ export default function MyPage() {
     }
 
     const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(data.path);
+    const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
     const { error: updateError } = await supabase.auth.updateUser({
-      data: { avatar_url: urlData.publicUrl },
+      data: { avatar_url: avatarUrl },
     });
 
     if (!updateError) {
       const { error: profileErr } = await supabase
         .from("profiles")
-        .update({ avatar_url: urlData.publicUrl })
+        .update({ avatar_url: avatarUrl })
         .eq("id", user.id);
       if (!profileErr) {
-        setUser({ ...user, image: urlData.publicUrl });
+        setUser({ ...user, image: avatarUrl });
       }
     }
 
