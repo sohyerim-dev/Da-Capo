@@ -10,7 +10,7 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-const PORT = 3456;
+const PORT = 3457;
 const PAGE_SIZE = 50;
 
 async function fetchConcerts() {
@@ -18,6 +18,7 @@ async function fetchConcerts() {
     .from("concerts")
     .select("id, title, poster, intro_images, tags, ai_keywords, performers, synopsis, status")
     .in("status", ["공연예정", "공연중"])
+    .eq("need_review", true)
     .order("title");
 
   if (error) throw error;
@@ -54,19 +55,7 @@ async function handleApi(req, res) {
 
 function clientScript(data) {
   return `
-const STORAGE_KEY = "review_done_ids";
-function getDoneIds() {
-  try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]")); } catch { return new Set(); }
-}
-function saveDoneId(id) {
-  const ids = getDoneIds();
-  ids.add(id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
-}
-
-const allConcerts = ${data};
-const doneIds = getDoneIds();
-const concerts = allConcerts.filter(function(c) { return !doneIds.has(c.id); });
+const concerts = ${data};
 let counts = { approved: 0, edited: 0, skipped: 0 };
 
 async function sbUpdate(id, body) {
@@ -99,7 +88,6 @@ function showToast(msg) {
 function markDone(card, type) {
   const labels = { approved: "승인됨", edited: "수정됨", skipped: "건너뜀" };
   const classes = { approved: "badge-approved", edited: "badge-edited", skipped: "badge-skipped" };
-  // 기존 배지/되돌리기 버튼 제거
   var oldBadge = card.querySelector(".status-badge");
   if (oldBadge) oldBadge.remove();
   var oldUndo = card.querySelector(".btn-undo");
@@ -110,19 +98,16 @@ function markDone(card, type) {
   badge.textContent = labels[type];
   card.querySelector(".card-title").appendChild(badge);
 
-  if (type !== "skipped") {
-    saveDoneId(card.dataset.id);
-    const undo = document.createElement("button");
-    undo.className = "btn-undo";
-    undo.textContent = "다시 수정";
-    undo.addEventListener("click", function() {
-      card.classList.remove("done");
-      card.querySelector(".edit-area").classList.add("open");
-      counts[type]--;
-      updateStats();
-    });
-    card.querySelector(".card-actions").appendChild(undo);
-  }
+  const undo = document.createElement("button");
+  undo.className = "btn-undo";
+  undo.textContent = "다시 수정";
+  undo.addEventListener("click", function() {
+    card.classList.remove("done");
+    card.querySelector(".edit-area").classList.add("open");
+    counts[type]--;
+    updateStats();
+  });
+  card.querySelector(".card-actions").appendChild(undo);
 
   card.querySelector(".edit-area").classList.remove("open");
   card.classList.add("done");
@@ -204,7 +189,6 @@ function renderCard(c) {
     try {
       await sbUpdate(c.id, { tags: newTags, ai_keywords: newKws, need_review: false });
 
-      // 카드에 표시되는 태그/키워드 업데이트
       var tagContainer = card.querySelector(".tags-display");
       var kwContainer = card.querySelector(".kws-display");
       tagContainer.innerHTML = newTags.length > 0
@@ -226,7 +210,7 @@ function renderCard(c) {
 
 const list = document.getElementById("list");
 if (concerts.length === 0) {
-  list.innerHTML = '<div class="empty">검수할 공연이 없습니다.</div>';
+  list.innerHTML = '<div class="empty">신규 검수할 공연이 없습니다.</div>';
 } else {
   concerts.forEach(function(c) { list.appendChild(renderCard(c)); });
 }
@@ -288,8 +272,6 @@ function generateHtml(concerts) {
     .edit-area input:focus { outline: none; border-color: #3b82f6; }
     .btn-save { background: #111; color: #fff; align-self: flex-start; }
     .btn-save:hover { background: #333; }
-    .btn-reset { background: #f4f4f5; color: #71717a; font-size: 12px; padding: 4px 10px; }
-    .btn-reset:hover { background: #e4e4e7; }
     .empty { text-align: center; padding: 80px 0; color: #a1a1aa; font-size: 15px; }
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
     .toast.show { opacity: 1; }
@@ -300,19 +282,18 @@ function generateHtml(concerts) {
     '<html lang="ko">\n' +
     "<head>\n" +
     '  <meta charset="UTF-8" />\n' +
-    "  <title>태깅 검수</title>\n" +
+    "  <title>신규 태깅 검수</title>\n" +
     "  <style>" + css + "</style>\n" +
     "</head>\n" +
     "<body>\n" +
     "<header>\n" +
-    "  <h1>태깅 검수</h1>\n" +
+    "  <h1>신규 태깅 검수</h1>\n" +
     '  <div id="stats">' +
     '    <span class="stat"><span class="stat-dot dot-approved"></span><span id="cnt-approved">0</span> 승인</span>' +
     '    <span class="stat"><span class="stat-dot dot-edited"></span><span id="cnt-edited">0</span> 수정</span>' +
     '    <span class="stat"><span class="stat-dot dot-skipped"></span><span id="cnt-skipped">0</span> 건너뜀</span>' +
     "  </div>\n" +
     '  <div id="progress"></div>\n' +
-    '  <button class="btn-reset" onclick="if(confirm(\'처리 기록을 초기화하고 새로고침할까요?\')) { localStorage.removeItem(\'review_done_ids\'); location.reload(); }">기록 초기화</button>\n' +
     "</header>\n" +
     '<main id="list"></main>\n' +
     '<div class="toast" id="toast"></div>\n' +
@@ -333,7 +314,7 @@ async function main() {
       const url = new URL(req.url, "http://localhost");
       if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
         const concerts = await fetchConcerts();
-        console.log("요청: 총 " + concerts.length + "건");
+        console.log("요청: 신규 검수 대기 " + concerts.length + "건");
         const html = generateHtml(concerts);
         res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
         res.end(html);
@@ -350,9 +331,8 @@ async function main() {
   });
 
   server.listen(PORT, function () {
-    console.log("✓ 검수 서버 시작 (페이지당 " + PAGE_SIZE + "건, 새로고침 시 DB에서 최신 데이터 로드)");
+    console.log("✓ 신규 태깅 검수 서버 시작");
     console.log("  http://localhost:" + PORT);
-    console.log("  http://localhost:" + PORT + "?page=2  (병렬 검수)");
   });
 }
 
