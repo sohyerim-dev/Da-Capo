@@ -295,8 +295,8 @@
           overflow-y: hidden;
           overflow-x: scroll;
           max-height: none;
-          flex: 1 1 0;
-          min-width: 0;
+          flex: 0 0 calc(5 * 60px + 4 * 16px);
+          max-width: 100%;
           gap: 16px;
         }
 
