@@ -259,17 +259,21 @@ export default function ConcertSearchResults({ query }: Props) {
         if (range) q = q.lte("start_date", range.to).gte("end_date", range.from);
       }
 
-      if (filterSort === "bookmark_count") {
-        q = q
-          .order("bookmark_count", { ascending: false, nullsFirst: false })
-          .order("start_date", { ascending: true });
-      } else {
-        q = q.order("start_date", { ascending: true });
-      }
+      q = q.order("start_date", { ascending: true });
 
       const { data, error } = await q;
 
-      if (!error && data) setConcerts(data);
+      if (!error && data) {
+        if (filterSort === "bookmark_count") {
+          setConcerts(
+            [...data].sort(
+              (a, b) => (b.bookmark_count ?? 0) - (a.bookmark_count ?? 0)
+            )
+          );
+        } else {
+          setConcerts(data);
+        }
+      }
       setVisibleCount(PAGE_SIZE);
       setLoading(false);
     };
