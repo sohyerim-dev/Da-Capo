@@ -119,7 +119,7 @@ export default function CommunityList() {
   const scrollNoteStrip = (dir: 1 | -1) => {
     const isSidebar = window.innerWidth > 1200;
     if (isSidebar) {
-      noteTrackRef.current?.scrollBy({ top: dir * 76, behavior: "smooth" });
+      noteTrackRef.current?.scrollBy({ top: dir * 44, behavior: "smooth" });
     } else {
       noteTrackRef.current?.scrollBy({ left: dir * 76, behavior: "smooth" });
     }
