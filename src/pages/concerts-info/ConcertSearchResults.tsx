@@ -273,6 +273,7 @@ export default function ConcertSearchResults({ query }: Props) {
 
   const sortedConcerts = useMemo(() => {
     if (filterSort !== "bookmark_count") return concerts;
+    if (!concerts.some((c) => (c.bookmark_count ?? 0) > 0)) return concerts;
     return [...concerts]
       .map((c, i) => ({ ...c, _idx: i }))
       .sort((a, b) => {
