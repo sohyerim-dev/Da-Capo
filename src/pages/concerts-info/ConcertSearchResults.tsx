@@ -260,7 +260,9 @@ export default function ConcertSearchResults({ query }: Props) {
       }
 
       if (filterSort === "bookmark_count") {
-        q = q.order("bookmark_count", { ascending: false, nullsFirst: false });
+        q = q
+          .order("bookmark_count", { ascending: false, nullsFirst: false })
+          .order("start_date", { ascending: true });
       } else {
         q = q.order("start_date", { ascending: true });
       }
