@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigationType } from "react-router";
 import { supabase } from "../../lib/supabase";
 import { toHttps } from "../../lib/toHttps";
+import { getCutoffDot } from "../../lib/getCutoffDot";
 import { concertTabData } from "../../data/concertTabData";
 
 const CHOSUNG_GROUPS: [string, number, number][] = [
@@ -188,8 +189,7 @@ export default function ConcertBrowse() {
     const fetchConcerts = async () => {
       setLoading(true);
 
-      const now = new Date();
-      const todayDot = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")}`;
+      const todayDot = getCutoffDot();
 
       let query = supabase
         .from("concerts")

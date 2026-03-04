@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
 import { supabase } from "../../lib/supabase";
 import { toHttps } from "../../lib/toHttps";
+import { getCutoffDot } from "../../lib/getCutoffDot";
 import { concertTabData } from "../../data/concertTabData";
 import "./HomeConcertSection.scss";
 
@@ -73,8 +74,7 @@ export default function HomeConcertSection() {
     }
 
     const fetchConcerts = async () => {
-      const now = new Date();
-      const todayDot = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")}`;
+      const todayDot = getCutoffDot();
 
       if (isRankOnly) {
         const { data, error } = await supabase

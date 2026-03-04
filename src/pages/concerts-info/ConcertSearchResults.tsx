@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { supabase } from "../../lib/supabase";
 import { toHttps } from "../../lib/toHttps";
+import { getCutoffDot } from "../../lib/getCutoffDot";
 
 // 표기 변형 맵: 검색어 → 함께 검색할 변형 목록
 const SPELLING_VARIANTS: Record<string, string[]> = {
@@ -232,8 +233,7 @@ export default function ConcertSearchResults({ query }: Props) {
       setLoading(true);
       const words = query.trim().split(/\s+/).filter(Boolean);
 
-      const today = new Date();
-      const todayDot = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")}`;
+      const todayDot = getCutoffDot();
 
       let q = supabase
         .from("concerts")
