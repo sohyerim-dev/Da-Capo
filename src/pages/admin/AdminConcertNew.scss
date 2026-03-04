@@ -85,6 +85,35 @@
     }
   }
 
+  // 첨부 이미지
+  &__intro-images {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__intro-image-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1px solid #d0d0d0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fafafa;
+      transition: border-color 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: #161616;
+      }
+    }
+  }
+
   // 예매처
   &__ticket-sites {
     display: flex;

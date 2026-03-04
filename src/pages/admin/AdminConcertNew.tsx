@@ -41,6 +41,7 @@ export default function AdminConcertNew() {
   const [ticketPrice, setTicketPrice] = useState("");
   const [poster, setPoster] = useState("");
   const [synopsis, setSynopsis] = useState("");
+  const [introImages, setIntroImages] = useState<string[]>([]);
   const [ticketSites, setTicketSites] = useState<{ name: string; url: string }[]>([]);
 
   // 태그
@@ -122,6 +123,9 @@ export default function AdminConcertNew() {
       ticket_price: ticketPrice.trim() || null,
       poster: poster.trim() || null,
       synopsis: synopsis.trim() || null,
+      intro_images: introImages.filter((u) => u.trim()).length > 0
+        ? introImages.filter((u) => u.trim())
+        : null,
       ticket_sites: ticketSites.filter((s) => s.name.trim() && s.url.trim()).length > 0
         ? ticketSites.filter((s) => s.name.trim() && s.url.trim())
         : null,
@@ -256,6 +260,44 @@ export default function AdminConcertNew() {
             onChange={(e) => setPoster(e.target.value)}
             placeholder="이미지 URL을 입력하세요"
           />
+
+          {/* 첨부 이미지 */}
+          <div className="input-field">
+            <label className="input-field__label">첨부 이미지</label>
+            <div className="admin-concert-new__intro-images">
+              {introImages.map((url, i) => (
+                <div key={i} className="admin-concert-new__intro-image-row">
+                  <input
+                    placeholder="이미지 URL"
+                    value={url}
+                    onChange={(e) =>
+                      setIntroImages((prev) =>
+                        prev.map((u, j) => (j === i ? e.target.value : u))
+                      )
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="admin-concert-new__ticket-site-remove"
+                    onClick={() =>
+                      setIntroImages((prev) => prev.filter((_, j) => j !== i))
+                    }
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="admin-concert-new__ticket-site-add"
+                onClick={() => setIntroImages((prev) => [...prev, ""])}
+              >
+                + 이미지 추가
+              </Button>
+            </div>
+          </div>
 
           {/* 예매처 */}
           <div className="input-field">
