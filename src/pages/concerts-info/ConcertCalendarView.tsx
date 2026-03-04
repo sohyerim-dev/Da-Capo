@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useNavigationType } from "react-router";
 import Calendar from "react-calendar";
 import { supabase } from "@/lib/supabase";
+import { toHttps } from "@/lib/toHttps";
 import {
   toDateStr,
   concertDateToISO,
@@ -280,7 +281,7 @@ export default function ConcertCalendarView() {
                   >
                     <div className="concert-cal__card-img">
                       {concert.poster && (
-                        <img src={concert.poster} alt={concert.title ?? ""} />
+                        <img src={toHttps(concert.poster)} alt={concert.title ?? ""} />
                       )}
                     </div>
                     <p className="concert-cal__card-title">{concert.title}</p>

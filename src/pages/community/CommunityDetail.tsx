@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { Helmet } from "react-helmet-async";
 import DOMPurify from "dompurify";
 import { supabase } from "@/lib/supabase";
+import { toHttps } from "@/lib/toHttps";
 import useUserStore from "@/zustand/userStore";
 import CommentList from "./CommentList";
 import ShareButton from "@/components/ui/ShareButton";
@@ -353,7 +354,7 @@ export default function CommunityDetail() {
         {concert && (
           <Link to={`/concert-info/${concert.id}`} className="community-concert-card">
             {concert.poster && (
-              <img src={concert.poster} alt={concert.title ?? ""} className="community-concert-card__poster" />
+              <img src={toHttps(concert.poster)} alt={concert.title ?? ""} className="community-concert-card__poster" />
             )}
             <div className="community-concert-card__info">
               <p className="community-concert-card__title">{concert.title}</p>

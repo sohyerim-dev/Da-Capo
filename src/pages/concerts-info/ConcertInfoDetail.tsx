@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useLocation } from "react-router";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "../../lib/supabase";
+import { toHttps } from "../../lib/toHttps";
 import useUserStore from "@/zustand/userStore";
 import "./ConcertInfoDetail.scss";
 
@@ -356,7 +357,7 @@ export default function ConcertInfoDetail() {
         <meta name="description" content={seoDescription} />
         <meta property="og:title" content={`${concert.title ?? "공연 정보"} | Da Capo`} />
         <meta property="og:description" content={seoDescription} />
-        {concert.poster && <meta property="og:image" content={concert.poster} />}
+        {concert.poster && <meta property="og:image" content={toHttps(concert.poster)} />}
         <link rel="canonical" href={`https://da-capo.co.kr/concert-info/${concert.id}`} />
       </Helmet>
     <div className="concert-detail">
@@ -384,7 +385,7 @@ export default function ConcertInfoDetail() {
         <div className="concert-detail__top">
           {/* 포스터 */}
           <div className="concert-detail__poster">
-            <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
+            <img src={toHttps(concert.poster)} alt={concert.title ?? ""} />
           </div>
 
           {/* 기본 정보 */}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
 import { supabase } from "../../lib/supabase";
+import { toHttps } from "../../lib/toHttps";
 import { concertTabData } from "../../data/concertTabData";
 import "./HomeConcertSection.scss";
 
@@ -160,7 +161,7 @@ export default function HomeConcertSection() {
                   <div className="home-concert__card-img-wrap">
                     <img
                       className="home-concert__card-img"
-                      src={concert.poster ?? ""}
+                      src={toHttps(concert.poster)}
                       alt={concert.title ?? ""}
                     />
                     {concert.rank && (

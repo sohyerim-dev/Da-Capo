@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { Helmet } from "react-helmet-async";
 import DOMPurify from "dompurify";
 import { supabase } from "@/lib/supabase";
+import { toHttps } from "@/lib/toHttps";
 import useUserStore from "@/zustand/userStore";
 import ShareButton from "@/components/ui/ShareButton";
 import ImageLightbox from "@/components/ui/ImageLightbox";
@@ -329,7 +330,7 @@ export default function MagazineDetail() {
                 >
                   {concert.poster && (
                     <img
-                      src={concert.poster}
+                      src={toHttps(concert.poster)}
                       alt={concert.title ?? ""}
                       className="magazine-concert-card__poster"
                     />

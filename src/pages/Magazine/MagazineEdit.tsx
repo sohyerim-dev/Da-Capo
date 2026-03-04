@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { toHttps } from "@/lib/toHttps";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
@@ -437,7 +438,7 @@ export default function MagazineEdit() {
                 >
                   {concert.poster && (
                     <img
-                      src={concert.poster}
+                      src={toHttps(concert.poster)}
                       alt={concert.title ?? ""}
                       className="magazine-editor-page__concert-poster"
                     />
@@ -474,7 +475,7 @@ export default function MagazineEdit() {
                   >
                     {concert.poster && (
                       <img
-                        src={concert.poster}
+                        src={toHttps(concert.poster)}
                         alt={concert.title ?? ""}
                         className="magazine-editor-page__concert-poster"
                       />

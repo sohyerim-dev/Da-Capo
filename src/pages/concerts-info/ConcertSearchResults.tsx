@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { supabase } from "../../lib/supabase";
+import { toHttps } from "../../lib/toHttps";
 
 // 표기 변형 맵: 검색어 → 함께 검색할 변형 목록
 const SPELLING_VARIANTS: Record<string, string[]> = {
@@ -228,6 +229,7 @@ export default function ConcertSearchResults({ query }: Props) {
     if (!query.trim()) return;
 
     const fetchResults = async () => {
+      console.log("[DEBUG fetch] useEffect 실행됨! deps:", { query, filterArea, filterDate, customFrom, customTo });
       setLoading(true);
       const words = query.trim().split(/\s+/).filter(Boolean);
 
@@ -272,14 +274,23 @@ export default function ConcertSearchResults({ query }: Props) {
   }, [query, filterArea, filterDate, customFrom, customTo]);
 
   const sortedConcerts = useMemo(() => {
+    console.log("[DEBUG sortedConcerts] filterSort:", filterSort, "concerts count:", concerts.length);
+    console.log("[DEBUG sortedConcerts] first 5 titles:", concerts.slice(0, 5).map((c) => c.title));
     if (filterSort !== "bookmark_count") return concerts;
-    if (!concerts.some((c) => (c.bookmark_count ?? 0) > 0)) return concerts;
-    return [...concerts]
+    const hasBookmarks = concerts.some((c) => (c.bookmark_count ?? 0) > 0);
+    console.log("[DEBUG sortedConcerts] hasBookmarks:", hasBookmarks, "bookmark_counts:", concerts.map((c) => c.bookmark_count));
+    if (!hasBookmarks) {
+      console.log("[DEBUG sortedConcerts] no bookmarks → returning concerts as-is (same ref)");
+      return concerts;
+    }
+    const sorted = [...concerts]
       .map((c, i) => ({ ...c, _idx: i }))
       .sort((a, b) => {
         const diff = (b.bookmark_count ?? 0) - (a.bookmark_count ?? 0);
         return diff !== 0 ? diff : a._idx - b._idx;
       });
+    console.log("[DEBUG sortedConcerts] sorted first 5:", sorted.slice(0, 5).map((c) => c.title));
+    return sorted;
   }, [concerts, filterSort]);
 
   if (loading) {
@@ -386,7 +397,7 @@ export default function ConcertSearchResults({ query }: Props) {
             {sortedConcerts.slice(0, visibleCount).map((concert) => (
               <Link key={concert.id} to={`/concert-info/${concert.id}`} state={{ q: query }} className="concert-info__card">
                 <div className="concert-info__card-img">
-                  <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
+                  <img src={toHttps(concert.poster)} alt={concert.title ?? ""} />
                 </div>
                 <p className="concert-info__card-title">{concert.title}</p>
                 {(concert.area || concert.start_date) && (
@@ -396,6 +407,9 @@ export default function ConcertSearchResults({ query }: Props) {
                     {concert.start_date && (() => { const d = concert.start_date!.replace(/[.\-]/g, ""); return `${d.slice(2, 4)}.${d.slice(4, 6)}.${d.slice(6, 8)}`; })()}
                     {concert.end_date && concert.end_date !== concert.start_date && (() => { const d = concert.end_date!.replace(/[.\-]/g, ""); return `~${d.slice(4, 6)}.${d.slice(6, 8)}`; })()}
                   </p>
+                )}
+                {filterSort === "bookmark_count" && (
+                  <p className="concert-info__card-bookmark">♥ {concert.bookmark_count ?? 0}</p>
                 )}
               </Link>
             ))}

@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigationType } from "react-router";
 import { supabase } from "../../lib/supabase";
+import { toHttps } from "../../lib/toHttps";
 import { concertTabData } from "../../data/concertTabData";
 
 const CHOSUNG_GROUPS: [string, number, number][] = [
@@ -695,7 +696,7 @@ export default function ConcertBrowse() {
                 onClick={() => sessionStorage.setItem(SESSION_KEY + "_lastId", concert.id)}
               >
                 <div className="concert-info__card-img">
-                  <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
+                  <img src={toHttps(concert.poster)} alt={concert.title ?? ""} />
                   {concert.rank && (
                     <span className="concert-info__card-rank">
                       박스오피스 {concert.rank}위
