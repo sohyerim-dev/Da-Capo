@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation, useNavigationType } from "react-router";
 import Calendar from "react-calendar";
 import { supabase } from "@/lib/supabase";
@@ -18,7 +18,15 @@ interface CalendarConcert {
   end_date: string | null;
   area: string | null;
   schedule: string | null;
+  bookmark_count: number;
 }
+
+type SortOption = "start_date" | "bookmark_count";
+
+const SORT_OPTIONS: { label: string; value: SortOption }[] = [
+  { label: "공연 임박순", value: "start_date" },
+  { label: "찜 많은 순", value: "bookmark_count" },
+];
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"] as const;
 
@@ -119,6 +127,9 @@ export default function ConcertCalendarView() {
   const [visibleCount, setVisibleCount] = useState(8);
   const [isFilterOpen, setIsFilterOpen] = useState(saved?.isFilterOpen ?? false);
   const [filterArea, setFilterArea] = useState<string>(saved?.filterArea ?? "");
+  const [filterSort, setFilterSort] = useState<SortOption>(
+    saved?.filterSort ?? "start_date"
+  );
 
   useEffect(() => {
     sessionStorage.setItem(
@@ -127,10 +138,11 @@ export default function ConcertCalendarView() {
         activeMonth: activeMonth.toISOString(),
         selectedDate: selectedDate ? selectedDate.toISOString() : null,
         filterArea,
+        filterSort,
         isFilterOpen,
       })
     );
-  }, [activeMonth, selectedDate, filterArea, isFilterOpen]);
+  }, [activeMonth, selectedDate, filterArea, filterSort, isFilterOpen]);
 
   useEffect(() => {
     const fetchConcerts = async () => {
@@ -146,7 +158,7 @@ export default function ConcertCalendarView() {
       const dotOneYearAgo = toDateStr(oneYearAgo).replace(/-/g, ".");
       const { data } = await supabase
         .from("concerts")
-        .select("id, title, poster, start_date, end_date, area, schedule")
+        .select("id, title, poster, start_date, end_date, area, schedule, bookmark_count")
         .gte("start_date", dotOneYearAgo)
         .lte("start_date", dotEnd)
         .gte("end_date", dotStart)
@@ -171,7 +183,20 @@ export default function ConcertCalendarView() {
     return filteredConcerts.filter((c) => isPerformingOnDate(c, dateStr, date));
   };
 
-  const selectedConcerts = selectedDate ? concertsOnDate(selectedDate) : [];
+  const selectedConcertsRaw = selectedDate ? concertsOnDate(selectedDate) : [];
+
+  const selectedConcerts = useMemo(() => {
+    if (filterSort !== "bookmark_count") return selectedConcertsRaw;
+    const hasBookmarks = selectedConcertsRaw.some((c) => (c.bookmark_count ?? 0) > 0);
+    if (!hasBookmarks) return selectedConcertsRaw;
+    return [...selectedConcertsRaw]
+      .map((c, i) => ({ ...c, _idx: i }))
+      .sort((a, b) => {
+        const diff = (b.bookmark_count ?? 0) - (a.bookmark_count ?? 0);
+        return diff !== 0 ? diff : a._idx - b._idx;
+      });
+  }, [selectedConcertsRaw, filterSort]);
+
   const visibleConcerts = selectedConcerts.slice(0, visibleCount);
 
   return (
@@ -223,6 +248,20 @@ export default function ConcertCalendarView() {
           </svg>
           지역{filterArea ? " ●" : ""}
         </button>
+        <select
+          className="concert-cal__sort-select"
+          value={filterSort}
+          onChange={(e) => {
+            setFilterSort(e.target.value as SortOption);
+            setVisibleCount(8);
+          }}
+        >
+          {SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {isFilterOpen && (
@@ -282,6 +321,12 @@ export default function ConcertCalendarView() {
                     <div className="concert-cal__card-img">
                       {concert.poster && (
                         <img src={toHttps(concert.poster)} alt={concert.title ?? ""} />
+                      )}
+                      {filterSort === "bookmark_count" && (
+                        <span className="concert-cal__card-bookmark">
+                          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+                          {concert.bookmark_count ?? 0}
+                        </span>
                       )}
                     </div>
                     <p className="concert-cal__card-title">{concert.title}</p>

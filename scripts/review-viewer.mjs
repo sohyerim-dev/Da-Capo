@@ -18,6 +18,7 @@ async function fetchConcerts() {
     .from("concerts")
     .select("id, title, poster, intro_images, tags, ai_keywords, performers, synopsis, status")
     .in("status", ["공연예정", "공연중"])
+    .eq("re_review", true)
     .order("title");
 
   if (error) throw error;
@@ -181,7 +182,7 @@ function renderCard(c) {
 
   card.querySelector(".btn-approve").addEventListener("click", async function() {
     try {
-      await sbUpdate(c.id, { need_review: false });
+      await sbUpdate(c.id, { re_review: false });
       showToast("승인됨");
       markDone(card, "approved");
     } catch (e) {
@@ -202,7 +203,7 @@ function renderCard(c) {
     const newTags = card.querySelector(".input-tags").value.split(",").map(function(t) { return t.trim(); }).filter(Boolean);
     const newKws = card.querySelector(".input-kws").value.split(",").map(function(k) { return k.trim(); }).filter(Boolean);
     try {
-      await sbUpdate(c.id, { tags: newTags, ai_keywords: newKws, need_review: false });
+      await sbUpdate(c.id, { tags: newTags, ai_keywords: newKws, re_review: false });
 
       // 카드에 표시되는 태그/키워드 업데이트
       var tagContainer = card.querySelector(".tags-display");
