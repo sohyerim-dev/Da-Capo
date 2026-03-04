@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { supabase } from "../../lib/supabase";
 
@@ -263,23 +263,20 @@ export default function ConcertSearchResults({ query }: Props) {
 
       const { data, error } = await q;
 
-      if (!error && data) {
-        if (filterSort === "bookmark_count") {
-          setConcerts(
-            [...data].sort(
-              (a, b) => (b.bookmark_count ?? 0) - (a.bookmark_count ?? 0)
-            )
-          );
-        } else {
-          setConcerts(data);
-        }
-      }
+      if (!error && data) setConcerts(data);
       setVisibleCount(PAGE_SIZE);
       setLoading(false);
     };
 
     fetchResults();
-  }, [query, filterArea, filterDate, filterSort, customFrom, customTo]);
+  }, [query, filterArea, filterDate, customFrom, customTo]);
+
+  const sortedConcerts = useMemo(() => {
+    if (filterSort !== "bookmark_count") return concerts;
+    return [...concerts].sort(
+      (a, b) => (b.bookmark_count ?? 0) - (a.bookmark_count ?? 0)
+    );
+  }, [concerts, filterSort]);
 
   if (loading) {
     return (
@@ -299,7 +296,7 @@ export default function ConcertSearchResults({ query }: Props) {
   return (
     <div className="concert-info__search-results">
       <p className="concert-info__search-count">
-        &ldquo;{query}&rdquo; 검색 결과 {concerts.length}건
+        &ldquo;{query}&rdquo; 검색 결과 {sortedConcerts.length}건
       </p>
 
       {/* 필터 버튼 + 정렬 */}
@@ -377,12 +374,12 @@ export default function ConcertSearchResults({ query }: Props) {
         </div>
       )}
 
-      {concerts.length === 0 ? (
+      {sortedConcerts.length === 0 ? (
         <p className="concert-info__search-empty">조건에 맞는 공연이 없습니다.</p>
       ) : (
         <>
           <div className="concert-info__cards">
-            {concerts.slice(0, visibleCount).map((concert) => (
+            {sortedConcerts.slice(0, visibleCount).map((concert) => (
               <Link key={concert.id} to={`/concert-info/${concert.id}`} state={{ q: query }} className="concert-info__card">
                 <div className="concert-info__card-img">
                   <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
@@ -399,7 +396,7 @@ export default function ConcertSearchResults({ query }: Props) {
               </Link>
             ))}
           </div>
-          {visibleCount < concerts.length && (
+          {visibleCount < sortedConcerts.length && (
             <button
               className="concert-info__more-btn"
               onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
