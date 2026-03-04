@@ -209,9 +209,12 @@ interface Props {
   query: string;
 }
 
+const PAGE_SIZE = 20;
+
 export default function ConcertSearchResults({ query }: Props) {
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [loading, setLoading] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterArea, setFilterArea] = useState("");
   const [filterDate, setFilterDate] = useState("");
@@ -262,9 +265,10 @@ export default function ConcertSearchResults({ query }: Props) {
         q = q.order("start_date", { ascending: true });
       }
 
-      const { data, error } = await q.limit(40);
+      const { data, error } = await q;
 
       if (!error && data) setConcerts(data);
+      setVisibleCount(PAGE_SIZE);
       setLoading(false);
     };
 
@@ -371,7 +375,7 @@ export default function ConcertSearchResults({ query }: Props) {
         <p className="concert-info__search-empty">조건에 맞는 공연이 없습니다.</p>
       ) : (
         <div className="concert-info__cards">
-          {concerts.map((concert) => (
+          {concerts.slice(0, visibleCount).map((concert) => (
             <Link key={concert.id} to={`/concert-info/${concert.id}`} state={{ q: query }} className="concert-info__card">
               <div className="concert-info__card-img">
                 <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
@@ -388,6 +392,14 @@ export default function ConcertSearchResults({ query }: Props) {
             </Link>
           ))}
         </div>
+        {visibleCount < concerts.length && (
+          <button
+            className="concert-info__more-btn"
+            onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
+          >
+            더보기
+          </button>
+        )}
       )}
     </div>
   );

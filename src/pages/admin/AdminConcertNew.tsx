@@ -172,15 +172,15 @@ export default function AdminConcertNew() {
     setLoading(true);
     setError("");
 
-    const toCompact = (iso: string) => iso.replace(/-/g, "");
+    const toDot = (iso: string) => iso.replace(/-/g, ".");
 
     const { error: dbError } = await supabase.from("concerts").insert({
       id: concertId,
       title: title.trim(),
       venue: venue.trim(),
       area,
-      start_date: toCompact(startDate),
-      end_date: toCompact(endDate),
+      start_date: toDot(startDate),
+      end_date: toDot(endDate),
       status,
       genre: "서양음악(클래식)",
       performers: performers.trim() || null,

@@ -149,8 +149,7 @@ export default function ConcertCalendarView() {
         .gte("start_date", dotOneYearAgo)
         .lte("start_date", dotEnd)
         .gte("end_date", dotStart)
-        .order("start_date", { ascending: true })
-        .limit(500);
+        .order("start_date", { ascending: true });
       setConcerts(data ?? []);
       setLoading(false);
     };

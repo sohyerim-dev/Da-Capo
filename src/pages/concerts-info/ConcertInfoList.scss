@@ -706,4 +706,23 @@
       color: #fafafa;
     }
   }
+
+  &__more-btn {
+    display: block;
+    margin: 32px auto 0;
+    padding: 10px 36px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #161616;
+    background: transparent;
+    border: 1.5px solid #161616;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+
+    &:hover {
+      background: #161616;
+      color: #fafafa;
+    }
+  }
 }
