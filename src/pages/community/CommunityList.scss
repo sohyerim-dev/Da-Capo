@@ -233,7 +233,7 @@
         flex-direction: column;
         overflow-y: auto;
         overflow-x: hidden;
-        max-height: calc(5 * 36px + 4 * 8px);
+        max-height: calc(5 * 36px + 4 * 8px + 8px);
         flex: none;
         width: 100%;
         gap: 8px;
@@ -282,7 +282,8 @@
 
     @media (max-width: 1200px) {
       .community-list-page__note-strip {
-        width: 100%;
+        width: fit-content;
+        max-width: 100%;
         margin-bottom: 16px;
 
         &-slider {
