@@ -345,6 +345,12 @@
     }
   }
 
+  &__upload-status {
+    font-size: 12px;
+    font-weight: 500;
+    color: #2e7d32;
+  }
+
   &__error {
     font-size: 13px;
     color: #e53935;

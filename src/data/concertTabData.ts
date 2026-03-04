@@ -106,6 +106,7 @@ export const concertTabData: TabData[] = [
       { label: "KBS교향악단", tag: "KBS교향악단" },
       { label: "경기필하모닉", tag: "경기필하모닉" },
       { label: "고잉홈프로젝트", tag: "고잉홈프로젝트" },
+      { label: "노부스 콰르텟", tag: "노부스 콰르텟" },
       { label: "국립오페라단", tag: "국립오페라단" },
       { label: "국립심포니오케스트라", tag: "국립심포니오케스트라" },
       { label: "국립합창단", tag: "국립합창단" },

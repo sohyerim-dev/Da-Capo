@@ -103,12 +103,15 @@ export default function AdminConcertNew() {
     const file = e.target.files?.[0];
     if (!file) return;
     setPosterUploading(true);
+    setError("");
     const ext = file.name.split(".").pop();
     const path = `${concertId}/poster.${ext}`;
     const { error: uploadError } = await supabase.storage
       .from("concerts")
       .upload(path, file, { upsert: true });
-    if (!uploadError) {
+    if (uploadError) {
+      setError(`포스터 업로드 실패: ${uploadError.message}`);
+    } else {
       const { data } = supabase.storage.from("concerts").getPublicUrl(path);
       setPoster(data.publicUrl);
       setPosterPreview(URL.createObjectURL(file));
@@ -126,7 +129,9 @@ export default function AdminConcertNew() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     setIntroUploading(true);
+    setError("");
     const newUrls: string[] = [];
+    let failCount = 0;
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const ext = file.name.split(".").pop();
@@ -134,10 +139,15 @@ export default function AdminConcertNew() {
       const { error: uploadError } = await supabase.storage
         .from("concerts")
         .upload(path, file);
-      if (!uploadError) {
+      if (uploadError) {
+        failCount++;
+      } else {
         const { data } = supabase.storage.from("concerts").getPublicUrl(path);
         newUrls.push(data.publicUrl);
       }
+    }
+    if (failCount > 0) {
+      setError(`${failCount}개 이미지 업로드에 실패했습니다.`);
     }
     setIntroImages((prev) => [...prev, ...newUrls]);
     setIntroUploading(false);
@@ -310,7 +320,9 @@ export default function AdminConcertNew() {
           </div>
 
           <div className="input-field">
-            <label className="input-field__label">포스터</label>
+            <label className="input-field__label">
+              포스터{poster && <span className="admin-concert-new__upload-status"> (업로드 완료)</span>}
+            </label>
             <div className="admin-concert-new__poster-upload">
               {posterPreview && (
                 <div className="admin-concert-new__poster-preview-wrap">
@@ -349,7 +361,9 @@ export default function AdminConcertNew() {
 
           {/* 첨부 이미지 */}
           <div className="input-field">
-            <label className="input-field__label">첨부 이미지</label>
+            <label className="input-field__label">
+              첨부 이미지{introImages.length > 0 && <span className="admin-concert-new__upload-status"> ({introImages.length}개 업로드됨)</span>}
+            </label>
             <div className="admin-concert-new__intro-images">
               {introImages.length > 0 && (
                 <div className="admin-concert-new__intro-previews">
