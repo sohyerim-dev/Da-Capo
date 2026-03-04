@@ -370,7 +370,10 @@ export default function CommunityDetail() {
         <div
           ref={contentRef}
           className="community-detail-page__content tiptap-content"
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content, {
+            ADD_TAGS: ['iframe'],
+            ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'src'],
+          }) }}
         />
 
         {showComments && (

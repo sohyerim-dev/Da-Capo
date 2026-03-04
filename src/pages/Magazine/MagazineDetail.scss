@@ -517,4 +517,13 @@
     padding-left: 16px;
     color: #888;
   }
+
+  iframe {
+    max-width: 100%;
+    border: none;
+    border-radius: 8px;
+    margin: 16px 0;
+    display: block;
+    aspect-ratio: 16 / 9;
+  }
 }
