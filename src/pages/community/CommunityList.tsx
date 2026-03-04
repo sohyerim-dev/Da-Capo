@@ -73,6 +73,8 @@ export default function CommunityList() {
   const [noteProfiles, setNoteProfiles] = useState<NoteProfile[]>([]);
   const NOTE_VISIBLE = 5;
   const noteTrackRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
   const noteIsDragging = useRef(false);
   const noteStartX = useRef(0);
   const noteScrollLeft = useRef(0);
@@ -91,6 +93,28 @@ export default function CommunityList() {
         }
       });
   }, []);
+
+  const updateScrollButtons = () => {
+    const el = noteTrackRef.current;
+    if (!el) return;
+    const isSidebar = window.innerWidth > 1200;
+    if (isSidebar) {
+      setCanScrollLeft(el.scrollTop > 1);
+      setCanScrollRight(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
+    } else {
+      setCanScrollLeft(el.scrollLeft > 1);
+      setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    }
+  };
+
+  useEffect(() => {
+    const el = noteTrackRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateScrollButtons);
+    updateScrollButtons();
+    return () => el.removeEventListener("scroll", updateScrollButtons);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noteProfiles]);
 
   const scrollNoteStrip = (dir: 1 | -1) => {
     const isSidebar = window.innerWidth > 1200;
@@ -325,6 +349,7 @@ export default function CommunityList() {
                 <button
                   className="community-list-page__note-strip-arrow community-list-page__note-strip-arrow--left"
                   onClick={() => scrollNoteStrip(-1)}
+                  disabled={!canScrollLeft}
                   aria-label="이전"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
@@ -369,6 +394,7 @@ export default function CommunityList() {
                 <button
                   className="community-list-page__note-strip-arrow community-list-page__note-strip-arrow--right"
                   onClick={() => scrollNoteStrip(1)}
+                  disabled={!canScrollRight}
                   aria-label="다음"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">

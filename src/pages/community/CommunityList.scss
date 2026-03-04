@@ -143,10 +143,15 @@
       color: #888;
       transition: all 0.15s;
 
-      &:hover {
+      &:hover:not(:disabled) {
         border-color: #161616;
         background: rgba(255, 255, 255, 0.8);
         color: #161616;
+      }
+
+      &:disabled {
+        opacity: 0.3;
+        cursor: default;
       }
     }
 
