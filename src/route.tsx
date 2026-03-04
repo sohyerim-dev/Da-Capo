@@ -23,6 +23,7 @@ import SupportList from "@/pages/support/SupportList";
 import SupportDetail from "@/pages/support/SupportDetail";
 import SupportNew from "@/pages/support/SupportNew";
 import SupportEdit from "@/pages/support/SupportEdit";
+import AdminConcertNew from "@/pages/admin/AdminConcertNew";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 
@@ -40,6 +41,14 @@ const router = createBrowserRouter([
       { path: "/concert-info/:id", element: <ConcertInfoDetail /> },
       { path: "/magazine", element: <MagazineList /> },
       { path: "/magazine/:id", element: <MagazineDetail /> },
+      {
+        path: "/admin/concert/new",
+        element: (
+          <AdminRoute>
+            <AdminConcertNew />
+          </AdminRoute>
+        ),
+      },
       {
         path: "/magazine/new",
         element: (
