@@ -328,6 +328,8 @@ export default function CommunityList() {
   return (
     <div className="community-list-page">
       <div className="wrap">
+        <h1 className="community-list-page__title">커뮤니티</h1>
+        <div className="community-list-page__main">
         <div className="community-list-page__content">
         <aside className="community-list-page__note-sidebar">
         <div className="community-list-page__note-strip">
@@ -408,8 +410,6 @@ export default function CommunityList() {
         </aside>
 
         <div className="community-list-page__main-col">
-        <h1 className="community-list-page__title">커뮤니티</h1>
-        <div className="community-list-page__main">
         <div className="community-list-page__toolbar">
           <div className="community-list-page__tabs" role="tablist" aria-label="카테고리">
             {CATEGORIES.map((cat) => (
@@ -584,9 +584,9 @@ export default function CommunityList() {
             </div>
           </form>
         </div>
-        </div>{/* __main */}
         </div>{/* __main-col */}
         </div>{/* __content */}
+        </div>{/* __main */}
       </div>
     </div>
   );

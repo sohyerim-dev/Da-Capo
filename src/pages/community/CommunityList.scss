@@ -212,13 +212,13 @@
   &__main {
     background: #fafafa;
     border-top: 2px solid #161616;
-    overflow: hidden;
   }
 
   &__note-sidebar {
     flex: 0 0 200px;
     width: 200px;
     order: 1;
+    padding-top: 20px;
 
     @media (max-width: 1200px) {
       order: 1;
