@@ -67,6 +67,24 @@
     padding-bottom: 12px;
   }
 
+  &__textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fafafa;
+    color: #161616;
+    resize: vertical;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #161616;
+    }
+  }
+
   // 예매처
   &__ticket-sites {
     display: flex;

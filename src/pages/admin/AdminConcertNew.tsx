@@ -40,6 +40,7 @@ export default function AdminConcertNew() {
   const [producer, setProducer] = useState("");
   const [ticketPrice, setTicketPrice] = useState("");
   const [poster, setPoster] = useState("");
+  const [synopsis, setSynopsis] = useState("");
   const [ticketSites, setTicketSites] = useState<{ name: string; url: string }[]>([]);
 
   // 태그
@@ -120,6 +121,7 @@ export default function AdminConcertNew() {
       producer: producer.trim() || null,
       ticket_price: ticketPrice.trim() || null,
       poster: poster.trim() || null,
+      synopsis: synopsis.trim() || null,
       ticket_sites: ticketSites.filter((s) => s.name.trim() && s.url.trim()).length > 0
         ? ticketSites.filter((s) => s.name.trim() && s.url.trim())
         : null,
@@ -236,6 +238,17 @@ export default function AdminConcertNew() {
             onChange={(e) => setTicketPrice(e.target.value)}
             placeholder="예: R석 100,000원, S석 70,000원"
           />
+
+          <div className="input-field">
+            <label className="input-field__label">시놉시스</label>
+            <textarea
+              className="admin-concert-new__textarea"
+              value={synopsis}
+              onChange={(e) => setSynopsis(e.target.value)}
+              placeholder="공연 소개 및 설명"
+              rows={5}
+            />
+          </div>
 
           <Input
             label="포스터 URL"
