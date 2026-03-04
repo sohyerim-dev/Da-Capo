@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import { supabase } from "@/lib/supabase";
 import { concertTabData } from "@/data/concertTabData";
@@ -28,6 +28,7 @@ const AREAS = [
 
 export default function AdminConcertNew() {
   const navigate = useNavigate();
+  const [concertId] = useState(() => `custom-${Date.now()}`);
 
   // 폼 필드
   const [title, setTitle] = useState("");
@@ -40,9 +41,15 @@ export default function AdminConcertNew() {
   const [producer, setProducer] = useState("");
   const [ticketPrice, setTicketPrice] = useState("");
   const [poster, setPoster] = useState("");
+  const [posterPreview, setPosterPreview] = useState("");
+  const [posterUploading, setPosterUploading] = useState(false);
   const [synopsis, setSynopsis] = useState("");
   const [introImages, setIntroImages] = useState<string[]>([]);
+  const [introUploading, setIntroUploading] = useState(false);
   const [ticketSites, setTicketSites] = useState<{ name: string; url: string }[]>([]);
+
+  const posterInputRef = useRef<HTMLInputElement>(null);
+  const introInputRef = useRef<HTMLInputElement>(null);
 
   // 태그
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -92,6 +99,55 @@ export default function AdminConcertNew() {
     setTicketSites((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handlePosterUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPosterUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${concertId}/poster.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("concerts")
+      .upload(path, file, { upsert: true });
+    if (!uploadError) {
+      const { data } = supabase.storage.from("concerts").getPublicUrl(path);
+      setPoster(data.publicUrl);
+      setPosterPreview(URL.createObjectURL(file));
+    }
+    setPosterUploading(false);
+    if (posterInputRef.current) posterInputRef.current.value = "";
+  };
+
+  const removePoster = () => {
+    setPoster("");
+    setPosterPreview("");
+  };
+
+  const handleIntroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIntroUploading(true);
+    const newUrls: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const ext = file.name.split(".").pop();
+      const path = `${concertId}/intro-${Date.now()}-${i}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("concerts")
+        .upload(path, file);
+      if (!uploadError) {
+        const { data } = supabase.storage.from("concerts").getPublicUrl(path);
+        newUrls.push(data.publicUrl);
+      }
+    }
+    setIntroImages((prev) => [...prev, ...newUrls]);
+    setIntroUploading(false);
+    if (introInputRef.current) introInputRef.current.value = "";
+  };
+
+  const removeIntroImage = (index: number) => {
+    setIntroImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const toggleSection = (label: string) => {
     setOpenSections((prev) => {
       const next = new Set(prev);
@@ -106,11 +162,10 @@ export default function AdminConcertNew() {
     setLoading(true);
     setError("");
 
-    const id = `custom-${Date.now()}`;
     const toCompact = (iso: string) => iso.replace(/-/g, "");
 
     const { error: dbError } = await supabase.from("concerts").insert({
-      id,
+      id: concertId,
       title: title.trim(),
       venue: venue.trim(),
       area,
@@ -139,7 +194,7 @@ export default function AdminConcertNew() {
       return;
     }
 
-    navigate(`/concert-info/${id}`);
+    navigate(`/concert-info/${concertId}`);
   };
 
   return (
@@ -254,45 +309,82 @@ export default function AdminConcertNew() {
             />
           </div>
 
-          <Input
-            label="포스터 URL"
-            value={poster}
-            onChange={(e) => setPoster(e.target.value)}
-            placeholder="이미지 URL을 입력하세요"
-          />
+          <div className="input-field">
+            <label className="input-field__label">포스터</label>
+            <div className="admin-concert-new__poster-upload">
+              {posterPreview && (
+                <div className="admin-concert-new__poster-preview-wrap">
+                  <img
+                    src={posterPreview}
+                    alt="포스터 미리보기"
+                    className="admin-concert-new__poster-preview"
+                  />
+                  <button
+                    type="button"
+                    className="admin-concert-new__ticket-site-remove"
+                    onClick={removePoster}
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              <input
+                ref={posterInputRef}
+                type="file"
+                accept="image/*"
+                className="admin-concert-new__file-input"
+                onChange={handlePosterUpload}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                loading={posterUploading}
+                onClick={() => posterInputRef.current?.click()}
+              >
+                {poster ? "포스터 변경" : "포스터 업로드"}
+              </Button>
+            </div>
+          </div>
 
           {/* 첨부 이미지 */}
           <div className="input-field">
             <label className="input-field__label">첨부 이미지</label>
             <div className="admin-concert-new__intro-images">
-              {introImages.map((url, i) => (
-                <div key={i} className="admin-concert-new__intro-image-row">
-                  <input
-                    placeholder="이미지 URL"
-                    value={url}
-                    onChange={(e) =>
-                      setIntroImages((prev) =>
-                        prev.map((u, j) => (j === i ? e.target.value : u))
-                      )
-                    }
-                  />
-                  <button
-                    type="button"
-                    className="admin-concert-new__ticket-site-remove"
-                    onClick={() =>
-                      setIntroImages((prev) => prev.filter((_, j) => j !== i))
-                    }
-                  >
-                    ×
-                  </button>
+              {introImages.length > 0 && (
+                <div className="admin-concert-new__intro-previews">
+                  {introImages.map((url, i) => (
+                    <div key={i} className="admin-concert-new__intro-preview-wrap">
+                      <img
+                        src={url}
+                        alt={`첨부 ${i + 1}`}
+                        className="admin-concert-new__intro-preview"
+                      />
+                      <button
+                        type="button"
+                        className="admin-concert-new__intro-preview-remove"
+                        onClick={() => removeIntroImage(i)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+              <input
+                ref={introInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="admin-concert-new__file-input"
+                onChange={handleIntroUpload}
+              />
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="admin-concert-new__ticket-site-add"
-                onClick={() => setIntroImages((prev) => [...prev, ""])}
+                loading={introUploading}
+                onClick={() => introInputRef.current?.click()}
               >
                 + 이미지 추가
               </Button>

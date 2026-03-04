@@ -85,6 +85,34 @@
     }
   }
 
+  // 파일 업로드 (숨김)
+  &__file-input {
+    display: none;
+  }
+
+  // 포스터 업로드
+  &__poster-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__poster-preview-wrap {
+    position: relative;
+    width: fit-content;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  &__poster-preview {
+    width: 160px;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+  }
+
   // 첨부 이미지
   &__intro-images {
     display: flex;
@@ -92,25 +120,43 @@
     gap: 8px;
   }
 
-  &__intro-image-row {
+  &__intro-previews {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
+  }
+
+  &__intro-preview-wrap {
+    position: relative;
+  }
+
+  &__intro-preview {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+  }
+
+  &__intro-preview-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
     align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
 
-    input {
-      flex: 1;
-      padding: 9px 12px;
-      border: 1px solid #d0d0d0;
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: inherit;
-      background: #fafafa;
-      transition: border-color 0.2s;
-
-      &:focus {
-        outline: none;
-        border-color: #161616;
-      }
+    &:hover {
+      background: rgba(229, 57, 53, 0.9);
     }
   }
 
