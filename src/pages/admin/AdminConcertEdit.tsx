@@ -56,9 +56,11 @@ export default function AdminConcertEdit() {
   const posterInputRef = useRef<HTMLInputElement>(null);
   const introInputRef = useRef<HTMLInputElement>(null);
 
-  // 태그
+  // 태그 & 키워드
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [customTag, setCustomTag] = useState("");
+  const [aiKeywords, setAiKeywords] = useState<string[]>([]);
+  const [keywordInput, setKeywordInput] = useState("");
   const [openSections, setOpenSections] = useState<Set<string>>(new Set());
 
   // 상태
@@ -110,6 +112,9 @@ export default function AdminConcertEdit() {
       if (Array.isArray(data.tags)) {
         setSelectedTags(data.tags as string[]);
       }
+      if (Array.isArray(data.ai_keywords)) {
+        setAiKeywords(data.ai_keywords as string[]);
+      }
       setInitialLoading(false);
     };
     fetchConcert();
@@ -117,6 +122,18 @@ export default function AdminConcertEdit() {
 
   const canSubmit =
     title.trim() && venue.trim() && area && startDate && endDate;
+
+  const addKeyword = () => {
+    const trimmed = keywordInput.trim();
+    if (trimmed && !aiKeywords.includes(trimmed)) {
+      setAiKeywords((prev) => [...prev, trimmed]);
+    }
+    setKeywordInput("");
+  };
+
+  const removeKeyword = (kw: string) => {
+    setAiKeywords((prev) => prev.filter((k) => k !== kw));
+  };
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -252,6 +269,7 @@ export default function AdminConcertEdit() {
             ? ticketSites.filter((s) => s.name.trim() && s.url.trim())
             : null,
         tags: selectedTags.length > 0 ? selectedTags : null,
+        ai_keywords: aiKeywords.length > 0 ? aiKeywords : null,
         need_review: false,
       })
       .eq("id", id);
@@ -608,6 +626,52 @@ export default function AdminConcertEdit() {
                   </div>
                 );
               })}
+          </div>
+
+          {/* 키워드 */}
+          <div className="admin-concert-new__tags-section">
+            <label className="input-field__label">키워드</label>
+
+            {aiKeywords.length > 0 && (
+              <div className="admin-concert-new__tags-selected">
+                {aiKeywords.map((kw) => (
+                  <span key={kw} className="admin-concert-new__tag-chip">
+                    {kw}
+                    <button
+                      type="button"
+                      onClick={() => removeKeyword(kw)}
+                      className="admin-concert-new__tag-chip-remove"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="admin-concert-new__tags-custom">
+              <input
+                className="admin-concert-new__tags-custom-input"
+                value={keywordInput}
+                onChange={(e) => setKeywordInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addKeyword();
+                  }
+                }}
+                placeholder="키워드 입력 후 Enter 또는 추가 버튼"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addKeyword}
+                disabled={!keywordInput.trim()}
+              >
+                추가
+              </Button>
+            </div>
           </div>
 
           {error && <p className="admin-concert-new__error">{error}</p>}
