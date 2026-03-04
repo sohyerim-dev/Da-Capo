@@ -13,6 +13,13 @@
     margin: 0 auto;
   }
 
+  &__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
+
   &__back {
     display: inline-flex;
     align-items: center;
@@ -20,11 +27,24 @@
     font-size: 14px;
     color: #888;
     text-decoration: none;
-    margin-bottom: 36px;
     transition: color 0.2s;
 
     &:hover {
       color: #161616;
+    }
+  }
+
+  &__admin-edit {
+    font-size: 13px;
+    color: #fff;
+    background: #161616;
+    padding: 6px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 0.8;
     }
   }
 

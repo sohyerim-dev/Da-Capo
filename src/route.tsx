@@ -24,6 +24,7 @@ import SupportDetail from "@/pages/support/SupportDetail";
 import SupportNew from "@/pages/support/SupportNew";
 import SupportEdit from "@/pages/support/SupportEdit";
 import AdminConcertNew from "@/pages/admin/AdminConcertNew";
+import AdminConcertEdit from "@/pages/admin/AdminConcertEdit";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 
@@ -46,6 +47,14 @@ const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <AdminConcertNew />
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "/admin/concert/:id/edit",
+        element: (
+          <AdminRoute>
+            <AdminConcertEdit />
           </AdminRoute>
         ),
       },

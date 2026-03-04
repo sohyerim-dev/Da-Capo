@@ -362,25 +362,32 @@ export default function ConcertInfoDetail() {
       </Helmet>
     <div className="concert-detail">
       <div className="wrap">
-        <Link
-          to={backQuery ? `/concert-info?q=${encodeURIComponent(backQuery)}` : "/concert-info"}
-          state={{ fromDetail: true }}
-          className="concert-detail__back"
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div className="concert-detail__nav">
+          <Link
+            to={backQuery ? `/concert-info?q=${encodeURIComponent(backQuery)}` : "/concert-info"}
+            state={{ fromDetail: true }}
+            className="concert-detail__back"
           >
-            <path d="M19 12H5M12 5l-7 7 7 7" />
-          </svg>
-          공연 목록
-        </Link>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 12H5M12 5l-7 7 7 7" />
+            </svg>
+            공연 목록
+          </Link>
+          {user?.role === "admin" && (
+            <Link to={`/admin/concert/${id}/edit`} className="concert-detail__admin-edit">
+              정보 수정하기
+            </Link>
+          )}
+        </div>
 
         <div className="concert-detail__top">
           {/* 포스터 */}
