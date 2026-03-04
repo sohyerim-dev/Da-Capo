@@ -273,9 +273,12 @@ export default function ConcertSearchResults({ query }: Props) {
 
   const sortedConcerts = useMemo(() => {
     if (filterSort !== "bookmark_count") return concerts;
-    return [...concerts].sort(
-      (a, b) => (b.bookmark_count ?? 0) - (a.bookmark_count ?? 0)
-    );
+    return [...concerts]
+      .map((c, i) => ({ ...c, _idx: i }))
+      .sort((a, b) => {
+        const diff = (b.bookmark_count ?? 0) - (a.bookmark_count ?? 0);
+        return diff !== 0 ? diff : a._idx - b._idx;
+      });
   }, [concerts, filterSort]);
 
   if (loading) {
