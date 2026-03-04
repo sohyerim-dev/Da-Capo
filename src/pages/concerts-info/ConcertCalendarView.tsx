@@ -18,7 +18,7 @@ interface CalendarConcert {
   end_date: string | null;
   area: string | null;
   schedule: string | null;
-  bookmark_count: number;
+  bookmark_count: number | null;
 }
 
 type SortOption = "start_date" | "bookmark_count";
