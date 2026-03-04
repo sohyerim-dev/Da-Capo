@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigationType } from "react-router";
 import { supabase } from "../../lib/supabase";
 import { toHttps } from "../../lib/toHttps";
@@ -210,14 +210,7 @@ export default function ConcertBrowse() {
           }
         }
 
-        if (filterSort === "bookmark_count") {
-          query = query.order("bookmark_count", {
-            ascending: false,
-            nullsFirst: false,
-          });
-        } else {
-          query = query.order("start_date", { ascending: true });
-        }
+        query = query.order("start_date", { ascending: true });
       }
 
       if (filterArea) {
@@ -250,7 +243,19 @@ export default function ConcertBrowse() {
     };
 
     fetchConcerts();
-  }, [activeTab, activeSubIndex, filterArea, filterDate, filterSort, customFrom, customTo]);
+  }, [activeTab, activeSubIndex, filterArea, filterDate, customFrom, customTo]);
+
+  const sortedConcerts = useMemo(() => {
+    if (filterSort !== "bookmark_count") return concerts;
+    const hasBookmarks = concerts.some((c) => (c.bookmark_count ?? 0) > 0);
+    if (!hasBookmarks) return concerts;
+    return [...concerts]
+      .map((c, i) => ({ ...c, _idx: i }))
+      .sort((a, b) => {
+        const diff = (b.bookmark_count ?? 0) - (a.bookmark_count ?? 0);
+        return diff !== 0 ? diff : a._idx - b._idx;
+      });
+  }, [concerts, filterSort]);
 
   const handleTabChange = (i: number) => {
     const tab = concertTabData[i];
@@ -687,7 +692,7 @@ export default function ConcertBrowse() {
       ) : (
         <>
           <div className="concert-info__cards">
-            {concerts.slice(0, visibleCount).map((concert) => (
+            {sortedConcerts.slice(0, visibleCount).map((concert) => (
               <Link
                 key={concert.id}
                 to={`/concert-info/${concert.id}`}
@@ -700,6 +705,12 @@ export default function ConcertBrowse() {
                   {concert.rank && (
                     <span className="concert-info__card-rank">
                       박스오피스 {concert.rank}위
+                    </span>
+                  )}
+                  {filterSort === "bookmark_count" && (
+                    <span className="concert-info__card-bookmark">
+                      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+                      {concert.bookmark_count ?? 0}
                     </span>
                   )}
                 </div>
@@ -717,7 +728,7 @@ export default function ConcertBrowse() {
           </div>
 
           {/* 더보기 */}
-          {visibleCount < concerts.length && (
+          {visibleCount < sortedConcerts.length && (
             <div className="concert-info__more-wrap">
               <button
                 className="concert-info__more-btn"
