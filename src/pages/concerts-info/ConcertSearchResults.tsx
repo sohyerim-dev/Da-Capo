@@ -381,8 +381,8 @@ export default function ConcertSearchResults({ query }: Props) {
                 <p className="concert-info__card-meta">
                   {concert.area && concert.area.replace(/(특별시|광역시|특별자치시|특별자치도|도)$/, "")}
                   {concert.area && concert.start_date && " · "}
-                  {concert.start_date && `${concert.start_date.slice(2, 4)}.${concert.start_date.slice(4, 6)}.${concert.start_date.slice(6, 8)}`}
-                  {concert.end_date && concert.end_date !== concert.start_date && `~${concert.end_date.slice(4, 6)}.${concert.end_date.slice(6, 8)}`}
+                  {concert.start_date && (() => { const d = concert.start_date!.replace(/[.\-]/g, ""); return `${d.slice(2, 4)}.${d.slice(4, 6)}.${d.slice(6, 8)}`; })()}
+                  {concert.end_date && concert.end_date !== concert.start_date && (() => { const d = concert.end_date!.replace(/[.\-]/g, ""); return `~${d.slice(4, 6)}.${d.slice(6, 8)}`; })()}
                 </p>
               )}
             </Link>
