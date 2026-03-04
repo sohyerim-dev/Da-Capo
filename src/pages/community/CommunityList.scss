@@ -233,7 +233,7 @@
         flex-direction: column;
         overflow-y: auto;
         overflow-x: hidden;
-        max-height: 480px;
+        max-height: calc(5 * 36px + 4 * 8px);
         flex: none;
         width: 100%;
         gap: 8px;
