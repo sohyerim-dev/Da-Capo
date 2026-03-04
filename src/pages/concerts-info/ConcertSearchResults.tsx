@@ -374,32 +374,34 @@ export default function ConcertSearchResults({ query }: Props) {
       {concerts.length === 0 ? (
         <p className="concert-info__search-empty">조건에 맞는 공연이 없습니다.</p>
       ) : (
-        <div className="concert-info__cards">
-          {concerts.slice(0, visibleCount).map((concert) => (
-            <Link key={concert.id} to={`/concert-info/${concert.id}`} state={{ q: query }} className="concert-info__card">
-              <div className="concert-info__card-img">
-                <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
-              </div>
-              <p className="concert-info__card-title">{concert.title}</p>
-              {(concert.area || concert.start_date) && (
-                <p className="concert-info__card-meta">
-                  {concert.area && concert.area.replace(/(특별시|광역시|특별자치시|특별자치도|도)$/, "")}
-                  {concert.area && concert.start_date && " · "}
-                  {concert.start_date && (() => { const d = concert.start_date!.replace(/[.\-]/g, ""); return `${d.slice(2, 4)}.${d.slice(4, 6)}.${d.slice(6, 8)}`; })()}
-                  {concert.end_date && concert.end_date !== concert.start_date && (() => { const d = concert.end_date!.replace(/[.\-]/g, ""); return `~${d.slice(4, 6)}.${d.slice(6, 8)}`; })()}
-                </p>
-              )}
-            </Link>
-          ))}
-        </div>
-        {visibleCount < concerts.length && (
-          <button
-            className="concert-info__more-btn"
-            onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
-          >
-            더보기
-          </button>
-        )}
+        <>
+          <div className="concert-info__cards">
+            {concerts.slice(0, visibleCount).map((concert) => (
+              <Link key={concert.id} to={`/concert-info/${concert.id}`} state={{ q: query }} className="concert-info__card">
+                <div className="concert-info__card-img">
+                  <img src={concert.poster ?? ""} alt={concert.title ?? ""} />
+                </div>
+                <p className="concert-info__card-title">{concert.title}</p>
+                {(concert.area || concert.start_date) && (
+                  <p className="concert-info__card-meta">
+                    {concert.area && concert.area.replace(/(특별시|광역시|특별자치시|특별자치도|도)$/, "")}
+                    {concert.area && concert.start_date && " · "}
+                    {concert.start_date && (() => { const d = concert.start_date!.replace(/[.\-]/g, ""); return `${d.slice(2, 4)}.${d.slice(4, 6)}.${d.slice(6, 8)}`; })()}
+                    {concert.end_date && concert.end_date !== concert.start_date && (() => { const d = concert.end_date!.replace(/[.\-]/g, ""); return `~${d.slice(4, 6)}.${d.slice(6, 8)}`; })()}
+                  </p>
+                )}
+              </Link>
+            ))}
+          </div>
+          {visibleCount < concerts.length && (
+            <button
+              className="concert-info__more-btn"
+              onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
+            >
+              더보기
+            </button>
+          )}
+        </>
       )}
     </div>
   );
