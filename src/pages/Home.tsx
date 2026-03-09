@@ -8,13 +8,16 @@ export default function Home() {
     <>
       <Helmet>
         <title>Da Capo | 클래식 공연 중심 플랫폼</title>
-        <meta name="description" content="클래식 공연을 탐색하고 관람 기록을 남기며 경험을 공유할 수 있는 클래식 공연 중심 플랫폼입니다." />
+        <meta
+          name="description"
+          content="클래식 공연을 탐색하고 관람 기록을 남기며 경험을 공유할 수 있는 클래식 공연 중심 플랫폼입니다."
+        />
         <link rel="canonical" href="https://da-capo.co.kr" />
       </Helmet>
       <HeroSwiper />
       <HomeFeatureSection />
       <HomeConcertSection />
-      <HomeMagazineSection />
+      {/* <HomeMagazineSection /> */}
     </>
   );
 }
