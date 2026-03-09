@@ -15,13 +15,21 @@ export default function HomeMagazineSection() {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const { data } = await supabase
-        .from("magazine_posts")
-        .select("id, category, title, author_bio_name")
-        .in("category", ["큐레이터 픽", "클래식 읽기"])
-        .order("created_at", { ascending: false })
-        .limit(4);
-      if (data) setItems(data);
+      const [curatorRes, readingRes] = await Promise.all([
+        supabase
+          .from("magazine_posts")
+          .select("id, category, title, author_bio_name")
+          .eq("category", "큐레이터 픽")
+          .order("created_at", { ascending: false })
+          .limit(2),
+        supabase
+          .from("magazine_posts")
+          .select("id, category, title, author_bio_name")
+          .eq("category", "클래식 읽기")
+          .order("created_at", { ascending: false })
+          .limit(2),
+      ]);
+      setItems([...(curatorRes.data ?? []), ...(readingRes.data ?? [])]);
     };
     fetchPosts();
   }, []);
