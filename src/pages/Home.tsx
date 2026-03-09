@@ -17,7 +17,7 @@ export default function Home() {
       <HeroSwiper />
       <HomeFeatureSection />
       <HomeConcertSection />
-      {/* <HomeMagazineSection /> */}
+      <HomeMagazineSection />
     </>
   );
 }

@@ -1,29 +1,31 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { supabase } from "../../lib/supabase";
 import "./HomeMagazineSection.scss";
 
 interface MagazineItem {
   id: number;
-  category: "큐레이터 픽" | "클래식 읽기";
+  category: string;
   title: string;
-  author: string;
+  author_bio_name: string | null;
 }
 
-const MAGAZINE_ITEMS: MagazineItem[] = [
-  {
-    id: 1,
-    category: "큐레이터 픽",
-    title: "3월 추천 공연",
-    author: "줄라이",
-  },
-  {
-    id: 2,
-    category: "클래식 읽기",
-    title: "클래식 왜 안 들어?",
-    author: "어거스트",
-  },
-];
-
 export default function HomeMagazineSection() {
+  const [items, setItems] = useState<MagazineItem[]>([]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const { data } = await supabase
+        .from("magazine_posts")
+        .select("id, category, title, author_bio_name")
+        .in("category", ["큐레이터 픽", "클래식 읽기"])
+        .order("created_at", { ascending: false })
+        .limit(4);
+      if (data) setItems(data);
+    };
+    fetchPosts();
+  }, []);
+
   return (
     <section className="home-magazine">
       <div className="wrap">
@@ -48,32 +50,28 @@ export default function HomeMagazineSection() {
           </div>
         </div>
 
-        <div className="home-magazine__list-wrap">
-          <ul className="home-magazine__list">
-            {MAGAZINE_ITEMS.map((item) => (
-              <li key={item.id} className="home-magazine__item">
-                <div className="home-magazine__link">
-                  <span
-                    className={`home-magazine__tag home-magazine__tag--${item.category === "큐레이터 픽" ? "curator" : "reading"}`}
-                  >
-                    {item.category}
-                  </span>
-                  <span className="home-magazine__item-title">
-                    {item.title}
-                  </span>
-                  <span className="home-magazine__author">
-                    by. {item.author}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="home-magazine__overlay">
-            <p className="home-magazine__overlay-text">
-              3/10 정식 오픈일에 공개 예정
-            </p>
-          </div>
-        </div>
+        <ul className="home-magazine__list">
+          {items.map((item) => (
+            <li key={item.id} className="home-magazine__item">
+              <Link
+                to={`/magazine/${item.id}`}
+                className="home-magazine__link"
+              >
+                <span
+                  className={`home-magazine__tag home-magazine__tag--${item.category === "큐레이터 픽" ? "curator" : "reading"}`}
+                >
+                  {item.category}
+                </span>
+                <span className="home-magazine__item-title">
+                  {item.title}
+                </span>
+                <span className="home-magazine__author">
+                  by. {item.author_bio_name}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
