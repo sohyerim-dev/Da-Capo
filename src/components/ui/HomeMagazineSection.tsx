@@ -41,9 +41,10 @@ export default function HomeMagazineSection() {
           <div className="home-magazine__desc-block">
             <h3 className="home-magazine__desc-heading">클래식 읽기</h3>
             <p className="home-magazine__desc-text">
-              작곡가, 작품, 연주자, 음악사부터 감상과 생각까지 클래식에 관한
-              다양한 이야기를 담는 글 콘텐츠입니다. 정보와 해석, 개인의 시선을
-              통해 클래식을 더 깊이 이해하고 즐길 수 있도록 돕습니다.
+              작곡가와 작품 이야기부터 공연 경험과 감상까지, 클래식에 관한
+              다양한 이야기를 담는 글 콘텐츠입니다. 정보와 해석, 그리고 각자의
+              시선을 통해 클래식을 더 깊이 이해하고 새롭게 즐길 수 있도록
+              돕습니다.
             </p>
           </div>
         </div>
