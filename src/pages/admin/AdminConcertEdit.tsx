@@ -49,12 +49,25 @@ export default function AdminConcertEdit() {
   const [posterPreview, setPosterPreview] = useState("");
   const [posterUploading, setPosterUploading] = useState(false);
   const [synopsis, setSynopsis] = useState("");
+  const [schedule, setSchedule] = useState("");
   const [introImages, setIntroImages] = useState<string[]>([]);
   const [introUploading, setIntroUploading] = useState(false);
   const [ticketSites, setTicketSites] = useState<{ name: string; url: string }[]>([]);
 
   const posterInputRef = useRef<HTMLInputElement>(null);
   const introInputRef = useRef<HTMLInputElement>(null);
+
+  // 프로그램 (pieces)
+  interface PieceRow {
+    id: string | null;
+    composer: string;
+    title: string;
+    era: string;
+    work_type: string;
+    instruments: string;
+  }
+  const [pieces, setPieces] = useState<PieceRow[]>([]);
+  const [removedPieceIds, setRemovedPieceIds] = useState<string[]>([]);
 
   // 태그 & 키워드
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -94,6 +107,7 @@ export default function AdminConcertEdit() {
       setProducer(data.producer ?? "");
       setTicketPrice(data.ticket_price ?? "");
       setSynopsis(data.synopsis ?? "");
+      setSchedule(data.schedule ?? "");
       if (data.poster) {
         setPoster(data.poster);
         setPosterPreview(data.poster);
@@ -117,7 +131,26 @@ export default function AdminConcertEdit() {
       }
       setInitialLoading(false);
     };
+
+    const fetchPieces = async () => {
+      const { data } = await supabase
+        .from("pieces")
+        .select("id, composer, title, era, work_type, instruments")
+        .eq("concert_id", id);
+      if (data) {
+        setPieces(data.map((p) => ({
+          id: p.id,
+          composer: p.composer ?? "",
+          title: p.title ?? "",
+          era: p.era ?? "",
+          work_type: p.work_type ?? "",
+          instruments: (p.instruments ?? []).join(", "),
+        })));
+      }
+    };
+
     fetchConcert();
+    fetchPieces();
   }, [id]);
 
   const canSubmit =
@@ -260,6 +293,7 @@ export default function AdminConcertEdit() {
         ticket_price: ticketPrice.trim() || null,
         poster: poster.trim() || null,
         synopsis: synopsis.trim() || null,
+        schedule: schedule.trim() || null,
         intro_images:
           introImages.filter((u) => u.trim()).length > 0
             ? introImages.filter((u) => u.trim())
@@ -278,6 +312,35 @@ export default function AdminConcertEdit() {
       setError("저장에 실패했습니다. 다시 시도해주세요.");
       setLoading(false);
       return;
+    }
+
+    // pieces 저장
+    if (removedPieceIds.length > 0) {
+      await supabase.from("pieces").delete().in("id", removedPieceIds);
+    }
+
+    for (const piece of pieces) {
+      if (piece.id) {
+        await supabase
+          .from("pieces")
+          .update({
+            composer: piece.composer.trim() || null,
+            title: piece.title.trim() || null,
+            era: piece.era.trim() || null,
+            work_type: piece.work_type.trim() || null,
+            instruments: piece.instruments.trim() ? piece.instruments.split(",").map((s) => s.trim()).filter(Boolean) : null,
+          })
+          .eq("id", piece.id);
+      } else if (piece.composer.trim() || piece.title.trim()) {
+        await supabase.from("pieces").insert({
+          concert_id: id,
+          composer: piece.composer.trim() || null,
+          title: piece.title.trim() || null,
+          era: piece.era.trim() || null,
+          work_type: piece.work_type.trim() || null,
+          instruments: piece.instruments.trim() ? piece.instruments.split(",").map((s) => s.trim()).filter(Boolean) : null,
+        });
+      }
     }
 
     navigate(`/concert-info/${id}`);
@@ -403,6 +466,17 @@ export default function AdminConcertEdit() {
               onChange={(e) => setSynopsis(e.target.value)}
               placeholder="공연 소개 및 설명"
               rows={5}
+            />
+          </div>
+
+          <div className="input-field">
+            <label className="input-field__label">공연 날짜 (스케줄)</label>
+            <textarea
+              className="admin-concert-new__textarea"
+              value={schedule}
+              onChange={(e) => setSchedule(e.target.value)}
+              placeholder={"한 줄에 하나씩 입력\n예: 2026년 3월 5일 19:30"}
+              rows={4}
             />
           </div>
 
@@ -670,6 +744,121 @@ export default function AdminConcertEdit() {
                 disabled={!keywordInput.trim()}
               >
                 추가
+              </Button>
+            </div>
+          </div>
+
+          {/* 프로그램 (곡 목록) */}
+          <div className="admin-concert-new__tags-section">
+            <label className="input-field__label">프로그램</label>
+            <div className="admin-concert-new__ticket-sites">
+              {pieces.map((piece, i) => (
+                <div key={piece.id ?? `new-${i}`} className="admin-concert-new__piece-row">
+                  <div className="admin-concert-new__piece-fields">
+                    <input
+                      placeholder="작곡가"
+                      value={piece.composer}
+                      onChange={(e) =>
+                        setPieces((prev) =>
+                          prev.map((p, idx) => (idx === i ? { ...p, composer: e.target.value } : p))
+                        )
+                      }
+                    />
+                    <input
+                      placeholder="곡 제목"
+                      value={piece.title}
+                      onChange={(e) =>
+                        setPieces((prev) =>
+                          prev.map((p, idx) => (idx === i ? { ...p, title: e.target.value } : p))
+                        )
+                      }
+                    />
+                    <select
+                      value={piece.era}
+                      onChange={(e) =>
+                        setPieces((prev) =>
+                          prev.map((p, idx) => (idx === i ? { ...p, era: e.target.value } : p))
+                        )
+                      }
+                    >
+                      <option value="">시대</option>
+                      {["바로크", "고전", "초기 낭만", "후기 낭만", "근대", "현대"].map((v) => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={piece.work_type}
+                      onChange={(e) =>
+                        setPieces((prev) =>
+                          prev.map((p, idx) => (idx === i ? { ...p, work_type: e.target.value } : p))
+                        )
+                      }
+                    >
+                      <option value="">작품형태</option>
+                      {["관현악", "교향곡", "협주곡", "실내악", "독주곡", "성악곡", "합창곡", "오페라", "발레", "음악극", "가곡", "영화음악"].map((v) => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
+                    </select>
+                    <input
+                      placeholder="악기 (쉼표 구분)"
+                      value={piece.instruments}
+                      onChange={(e) =>
+                        setPieces((prev) =>
+                          prev.map((p, idx) => (idx === i ? { ...p, instruments: e.target.value } : p))
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="admin-concert-new__piece-actions">
+                    <button
+                      type="button"
+                      className="admin-concert-new__piece-move"
+                      disabled={i === 0}
+                      onClick={() =>
+                        setPieces((prev) => {
+                          const next = [...prev];
+                          [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                          return next;
+                        })
+                      }
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-concert-new__piece-move"
+                      disabled={i === pieces.length - 1}
+                      onClick={() =>
+                        setPieces((prev) => {
+                          const next = [...prev];
+                          [next[i], next[i + 1]] = [next[i + 1], next[i]];
+                          return next;
+                        })
+                      }
+                    >
+                      ▼
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-concert-new__ticket-site-remove"
+                      onClick={() => {
+                        if (piece.id) setRemovedPieceIds((prev) => [...prev, piece.id!]);
+                        setPieces((prev) => prev.filter((_, idx) => idx !== i));
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="admin-concert-new__ticket-site-add"
+                onClick={() => setPieces((prev) => [...prev, { id: null, composer: "", title: "", era: "", work_type: "", instruments: "" }])}
+              >
+                + 곡 추가
               </Button>
             </div>
           </div>

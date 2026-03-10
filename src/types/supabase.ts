@@ -201,11 +201,15 @@ export type Database = {
           intro_images: Json | null
           need_review: boolean | null
           open_run: string | null
+          pending_foreign_tags: string[] | null
           performers: string | null
           poster: string | null
           producer: string | null
           rank: number | null
+          re_review: boolean | null
           schedule: string | null
+          schedule_extracted: boolean | null
+          schedule_reviewed: boolean | null
           start_date: string | null
           status: string | null
           synced_at: string | null
@@ -228,11 +232,15 @@ export type Database = {
           intro_images?: Json | null
           need_review?: boolean | null
           open_run?: string | null
+          pending_foreign_tags?: string[] | null
           performers?: string | null
           poster?: string | null
           producer?: string | null
           rank?: number | null
+          re_review?: boolean | null
           schedule?: string | null
+          schedule_extracted?: boolean | null
+          schedule_reviewed?: boolean | null
           start_date?: string | null
           status?: string | null
           synced_at?: string | null
@@ -255,11 +263,15 @@ export type Database = {
           intro_images?: Json | null
           need_review?: boolean | null
           open_run?: string | null
+          pending_foreign_tags?: string[] | null
           performers?: string | null
           poster?: string | null
           producer?: string | null
           rank?: number | null
+          re_review?: boolean | null
           schedule?: string | null
+          schedule_extracted?: boolean | null
+          schedule_reviewed?: boolean | null
           start_date?: string | null
           status?: string | null
           synced_at?: string | null
@@ -425,6 +437,47 @@ export type Database = {
           },
         ]
       }
+      pieces: {
+        Row: {
+          composer: string | null
+          concert_id: string
+          created_at: string | null
+          era: string | null
+          id: string
+          instruments: string[] | null
+          title: string | null
+          work_type: string | null
+        }
+        Insert: {
+          composer?: string | null
+          concert_id: string
+          created_at?: string | null
+          era?: string | null
+          id?: string
+          instruments?: string[] | null
+          title?: string | null
+          work_type?: string | null
+        }
+        Update: {
+          composer?: string | null
+          concert_id?: string
+          created_at?: string | null
+          era?: string | null
+          id?: string
+          instruments?: string[] | null
+          title?: string | null
+          work_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pieces_concert_id_fkey"
+            columns: ["concert_id"]
+            isOneToOne: false
+            referencedRelation: "concerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -573,6 +626,15 @@ export type Database = {
         Returns: undefined
       }
       increment_view_count: { Args: { p_post_id: number }; Returns: undefined }
+      search_concerts_by_pieces: {
+        Args: {
+          p_composers?: string[]
+          p_eras?: string[]
+          p_instruments?: string[]
+          p_work_types?: string[]
+        }
+        Returns: string[]
+      }
     }
     Enums: {
       [_ in never]: never

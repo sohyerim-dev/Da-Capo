@@ -189,6 +189,73 @@
     }
   }
 
+  // 프로그램 곡 행
+  &__piece-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  &__piece-fields {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    input,
+    select {
+      padding: 9px 12px;
+      border: 1px solid #d0d0d0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fafafa;
+      transition: border-color 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: #161616;
+      }
+    }
+
+    input:nth-child(1) { width: 100px; } // 작곡가
+    input:nth-child(2) { flex: 1; min-width: 160px; } // 곡 제목
+    select { width: 110px; }
+    input:nth-child(5) { width: 140px; } // 악기
+  }
+
+  &__piece-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  &__piece-move {
+    width: 24px;
+    height: 18px;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    background: transparent;
+    color: #888;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+
+    &:hover:not(:disabled) {
+      border-color: #161616;
+      color: #161616;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+  }
+
   &__ticket-site-remove {
     width: 28px;
     height: 28px;

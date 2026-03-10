@@ -163,10 +163,14 @@ async function main() {
       }
     } catch (e) {
       console.error(`  ✗ 실패 ${concert.id}:`, e.message);
+      await supabase
+        .from("concerts")
+        .update({ schedule_extracted: true })
+        .eq("id", concert.id);
       failed++;
     }
 
-    await sleep(300);
+    await sleep(2000);
   }
 
   console.log(

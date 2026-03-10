@@ -9,11 +9,20 @@ interface UserStoreState {
   resetUser: () => void;
 }
 
-// 로그인한 사용자 정보를 관리하는 스토어 생성
-// StateCreator: Zustand의 유틸리티 타입으로, set 함수의 타입을 자동으로 추론해줌
-// 복잡한 타입 정의 없이도 set 함수가 올바른 타입으로 인식됨
+// localStorage에서 초기 유저 정보를 동기적으로 읽어오기
+function getInitialUser(): User | null {
+  try {
+    const raw = localStorage.getItem("userStore");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { state?: { user?: User } };
+    return parsed?.state?.user ?? null;
+  } catch {
+    return null;
+  }
+}
+
 const UserStore: StateCreator<UserStoreState> = (set) => ({
-  user: null,
+  user: getInitialUser(),
   setUser: (user: User | null) => set({ user }),
   resetUser: () => set({ user: null }),
 });

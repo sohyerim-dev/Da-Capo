@@ -163,7 +163,8 @@ function toRow(item, detail) {
     row.synopsis = detail.sty ?? null;
     row.performers = detail.prfcast ?? null;
     row.intro_images = parseIntroImages(detail);
-    row.schedule = detail.dtguidance ?? null;
+    // 수기 입력된 구체적 날짜(YYYY년 M월 D일)는 보존
+    row._dtguidance = detail.dtguidance ?? null;
     row.producer = detail.entrpsnmP ?? null;
     row.ticket_price = detail.pcseguidance ?? null;
     row.crew = detail.prfcrew ?? null;
@@ -213,15 +214,29 @@ async function main() {
     const batch = allRows.slice(i, i + BATCH);
     const batchIds = batch.map((r) => r.id);
 
-    // 태그가 있는 기존 공연의 태깅 관련 필드 조회 (변경 비교용)
-    const { data: existingTagged } = await supabase
+    // 기존 공연 조회 (태깅 변경 비교 + 수기 schedule 보존)
+    const { data: existingRows } = await supabase
       .from("concerts")
-      .select("id, title, synopsis, performers, intro_images")
-      .in("id", batchIds)
-      .not("tags", "is", null);
+      .select("id, title, synopsis, performers, intro_images, tags, schedule, schedule_reviewed, need_review")
+      .in("id", batchIds);
     const existingMap = new Map(
-      (existingTagged ?? []).map((r) => [r.id, r])
+      (existingRows ?? []).map((r) => [r.id, r])
     );
+
+    // 검수 완료되었거나 수기 입력된 구체적 날짜(YYYY년 M월 D일)가 있으면 schedule 보존
+    const IS_EXTRACTED = /\d{4}년\s*\d{1,2}월\s*\d{1,2}일/;
+    for (const row of batch) {
+      const existing = existingMap.get(row.id);
+      if (
+        existing?.schedule_reviewed ||
+        (existing?.schedule && IS_EXTRACTED.test(existing.schedule))
+      ) {
+        // 검수 완료 또는 수기 데이터 보존
+      } else {
+        row.schedule = row._dtguidance;
+      }
+      delete row._dtguidance;
+    }
 
     const { error } = await supabase
       .from("concerts")
@@ -232,14 +247,15 @@ async function main() {
     }
 
     // 태깅 관련 필드가 실제로 변경된 공연만 need_review = true
+    const normalize = (s) => (s ?? "").replace(/\s+/g, " ").trim() || null;
     const changedIds = batch
       .filter((row) => {
         const old = existingMap.get(row.id);
-        if (!old) return false;
+        if (!old || !old.tags) return false;
         return (
-          (old.title ?? null) !== (row.title ?? null) ||
-          (old.synopsis ?? null) !== (row.synopsis ?? null) ||
-          (old.performers ?? null) !== (row.performers ?? null) ||
+          normalize(old.title) !== normalize(row.title) ||
+          normalize(old.synopsis) !== normalize(row.synopsis) ||
+          normalize(old.performers) !== normalize(row.performers) ||
           JSON.stringify(old.intro_images ?? null) !== JSON.stringify(row.intro_images ?? null)
         );
       })
