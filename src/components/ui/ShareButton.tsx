@@ -3,9 +3,11 @@ import "./ShareButton.scss";
 
 interface ShareButtonProps {
   title: string;
+  category?: string;
+  author?: string;
 }
 
-export default function ShareButton({ title }: ShareButtonProps) {
+export default function ShareButton({ title, category, author }: ShareButtonProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -23,7 +25,12 @@ export default function ShareButton({ title }: ShareButtonProps) {
 
   const url = window.location.href;
   const encodedUrl = encodeURIComponent(url);
-  const encodedTitle = encodeURIComponent(title);
+  const shareText = [
+    category ? `[${category}]` : "",
+    title,
+    author ? `by. ${author}` : "",
+  ].filter(Boolean).join(" ");
+  const encodedShareText = encodeURIComponent(shareText);
 
   const handleCopy = async () => {
     try {
@@ -40,7 +47,7 @@ export default function ShareButton({ title }: ShareButtonProps) {
 
   const handleTwitter = () => {
     window.open(
-      `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
+      `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedShareText}`,
       "_blank",
       "noopener,noreferrer"
     );
@@ -58,7 +65,7 @@ export default function ShareButton({ title }: ShareButtonProps) {
 
   const handleThread = () => {
     window.open(
-      `https://www.threads.net/intent/post?text=${encodedTitle}%20${encodedUrl}`,
+      `https://www.threads.net/intent/post?text=${encodedShareText}%20${encodedUrl}`,
       "_blank",
       "noopener,noreferrer"
     );
