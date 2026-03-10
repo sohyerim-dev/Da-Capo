@@ -272,7 +272,7 @@ export default function MagazineDetail() {
             </button>
           )}
           {post.category !== "공지" && (
-            <ShareButton title={post.title} />
+            <ShareButton title={post.title} category={post.category} author={post.author_bio_name ?? undefined} />
           )}
           {user?.role === "admin" && (
             <>
