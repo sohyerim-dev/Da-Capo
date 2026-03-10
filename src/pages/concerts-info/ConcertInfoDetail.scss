@@ -340,6 +340,31 @@
     flex-shrink: 0;
   }
 
+  /* 프로그램 */
+  &__program-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__program-item {
+    font-size: 15px;
+    color: #161616;
+    line-height: 1.6;
+  }
+
+  &__program-composer {
+    color: #71717a;
+    margin-right: 8px;
+  }
+
+  &__program-title {
+    color: #161616;
+  }
+
   /* 소개 이미지 */
   &__intro-images {
     padding: 36px 0 48px;

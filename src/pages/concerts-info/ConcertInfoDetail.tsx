@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "../../lib/supabase";
 import { toHttps } from "../../lib/toHttps";
 import useUserStore from "@/zustand/userStore";
+import ImageLightbox from "@/components/ui/ImageLightbox";
 import "./ConcertInfoDetail.scss";
 
 interface TicketSite {
@@ -168,6 +169,7 @@ export default function ConcertInfoDetail() {
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchConcert = async () => {
@@ -181,7 +183,9 @@ export default function ConcertInfoDetail() {
       setLoading(false);
     };
 
-    if (id) fetchConcert();
+    if (id) {
+      fetchConcert();
+    }
   }, [id]);
 
   useEffect(() => {
@@ -383,9 +387,9 @@ export default function ConcertInfoDetail() {
             공연 목록
           </Link>
           {user?.role === "admin" && (
-            <Link to={`/admin/concert/${id}/edit`} className="concert-detail__admin-edit">
+            <a href={`/admin/concert/${id}/edit`} target="_blank" rel="noopener noreferrer" className="concert-detail__admin-edit">
               정보 수정하기
-            </Link>
+            </a>
           )}
         </div>
 
@@ -552,7 +556,13 @@ export default function ConcertInfoDetail() {
         {concert.intro_images && concert.intro_images.length > 0 && (
           <div className="concert-detail__intro-images">
             {concert.intro_images.map((url, i) => (
-              <img key={i} src={url} alt={`소개 이미지 ${i + 1}`} />
+              <img
+                key={i}
+                src={url}
+                alt={`소개 이미지 ${i + 1}`}
+                style={{ cursor: "zoom-in" }}
+                onClick={() => setLightboxSrc(url)}
+              />
             ))}
           </div>
         )}
@@ -692,6 +702,10 @@ export default function ConcertInfoDetail() {
         </div>
       )}
     </div>
+
+    {lightboxSrc && (
+      <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+    )}
     </>
   );
 }
