@@ -20,6 +20,7 @@ async function fetchConcerts() {
     .select("id, title, poster, intro_images, synopsis, tags, ai_keywords, performers, status")
     .in("status", ["공연예정", "공연중"])
     .not("tags", "is", null)
+    .or("english_reviewed.is.null,english_reviewed.eq.false")
     .order("title");
 
   if (error) throw error;
@@ -191,7 +192,8 @@ function renderCard(c) {
     try {
       await sbUpdate(c.id, {
         tags: newTags.length > 0 ? newTags : null,
-        ai_keywords: newKws.length > 0 ? newKws : null
+        ai_keywords: newKws.length > 0 ? newKws : null,
+        english_reviewed: true
       });
       showToast("저장됨");
       markDone(card, "edited");
@@ -200,9 +202,14 @@ function renderCard(c) {
     }
   });
 
-  card.querySelector(".btn-skip").addEventListener("click", function() {
-    showToast("건너뜀");
-    markDone(card, "skipped");
+  card.querySelector(".btn-skip").addEventListener("click", async function() {
+    try {
+      await sbUpdate(c.id, { english_reviewed: true });
+      showToast("건너뜀");
+      markDone(card, "skipped");
+    } catch (e) {
+      showToast("오류: " + e.message);
+    }
   });
 
   return card;
@@ -295,10 +302,7 @@ function generateHtml(concerts) {
 }
 
 async function main() {
-  console.log("영어 태그 검수 공연 로딩 중...");
-  const concerts = await fetchConcerts();
-  console.log(`✓ ${concerts.length}건 로드됨`);
-  const html = generateHtml(concerts);
+  console.log("영어 태그 검수 서버 시작 중...");
 
   const server = createServer(async function (req, res) {
     try {
@@ -306,6 +310,8 @@ async function main() {
       if (handled) return;
 
       if (req.method === "GET" && (req.url === "/" || req.url === "/index.html")) {
+        const concerts = await fetchConcerts();
+        const html = generateHtml(concerts);
         res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
         res.end(html);
         return;
@@ -321,7 +327,7 @@ async function main() {
   });
 
   server.listen(PORT, function () {
-    console.log("✓ 검수 서버 시작 (" + concerts.length + "건)");
+    console.log("✓ 검수 서버 시작");
     console.log("  http://localhost:" + PORT);
   });
 }

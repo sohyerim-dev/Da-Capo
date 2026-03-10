@@ -558,10 +558,10 @@ export default function ConcertInfoDetail() {
             {concert.intro_images.map((url, i) => (
               <img
                 key={i}
-                src={url}
+                src={toHttps(url)}
                 alt={`소개 이미지 ${i + 1}`}
                 style={{ cursor: "zoom-in" }}
-                onClick={() => setLightboxSrc(url)}
+                onClick={() => setLightboxSrc(toHttps(url))}
               />
             ))}
           </div>

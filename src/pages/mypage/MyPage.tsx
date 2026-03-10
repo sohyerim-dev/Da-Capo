@@ -429,53 +429,54 @@ export default function MyPage() {
         <section className="mypage__section">
           <h3 className="mypage__section-title">비밀번호 변경</h3>
 
-          <Input
-            type="password"
-            label="현재 비밀번호"
-            placeholder="현재 비밀번호"
-            value={currentPw}
-            onChange={(e) => {
-              setCurrentPw(e.target.value);
-              setPwError("");
-              setPwSuccess("");
-            }}
-          />
-          <Input
-            type="password"
-            label="새 비밀번호"
-            placeholder="새 비밀번호 (8자 이상)"
-            value={newPw}
-            onChange={(e) => {
-              setNewPw(e.target.value);
-              setPwError("");
-              setPwSuccess("");
-            }}
-          />
-          <Input
-            type="password"
-            label="새 비밀번호 확인"
-            placeholder="새 비밀번호 확인"
-            value={confirmPw}
-            onChange={(e) => {
-              setConfirmPw(e.target.value);
-              setPwError("");
-              setPwSuccess("");
-            }}
-          />
+          <form onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}>
+            <Input
+              type="password"
+              label="현재 비밀번호"
+              placeholder="현재 비밀번호"
+              value={currentPw}
+              onChange={(e) => {
+                setCurrentPw(e.target.value);
+                setPwError("");
+                setPwSuccess("");
+              }}
+            />
+            <Input
+              type="password"
+              label="새 비밀번호"
+              placeholder="새 비밀번호 (8자 이상)"
+              value={newPw}
+              onChange={(e) => {
+                setNewPw(e.target.value);
+                setPwError("");
+                setPwSuccess("");
+              }}
+            />
+            <Input
+              type="password"
+              label="새 비밀번호 확인"
+              placeholder="새 비밀번호 확인"
+              value={confirmPw}
+              onChange={(e) => {
+                setConfirmPw(e.target.value);
+                setPwError("");
+                setPwSuccess("");
+              }}
+            />
 
-          {pwError && <p className="mypage__message mypage__message--error" role="alert" aria-live="assertive">{pwError}</p>}
-          {pwSuccess && <p className="mypage__message mypage__message--success" role="status" aria-live="polite">{pwSuccess}</p>}
+            {pwError && <p className="mypage__message mypage__message--error" role="alert" aria-live="assertive">{pwError}</p>}
+            {pwSuccess && <p className="mypage__message mypage__message--success" role="status" aria-live="polite">{pwSuccess}</p>}
 
-          <div className="mypage__save-row">
-            <Button
-              type="button"
-              disabled={!canChangePassword}
-              loading={pwLoading}
-              onClick={handleChangePassword}
-            >
-              변경하기
-            </Button>
-          </div>
+            <div className="mypage__save-row">
+              <Button
+                type="submit"
+                disabled={!canChangePassword}
+                loading={pwLoading}
+              >
+                변경하기
+              </Button>
+            </div>
+          </form>
         </section>
 
         {/* 클래식 노트 공개 설정 */}
