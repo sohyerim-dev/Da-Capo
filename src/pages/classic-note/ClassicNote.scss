@@ -438,6 +438,12 @@
     cursor: pointer;
     transition: background 0.15s;
 
+    @media (max-width: 640px) {
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      padding: 12px 14px;
+    }
+
     &:last-child {
       border-bottom: none;
     }
@@ -497,6 +503,11 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    @media (max-width: 640px) {
+      flex-basis: 100%;
+      padding-left: 2px;
+    }
   }
 
   &__list-rating {
