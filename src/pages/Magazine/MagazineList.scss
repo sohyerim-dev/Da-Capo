@@ -1,5 +1,5 @@
 .magazine-list-page {
-  padding: 60px 0 80px;
+  padding: 80px 0 100px;
   min-height: calc(100vh - 84px);
   background: #fafafa;
 
@@ -8,85 +8,62 @@
     min-height: 100vh;
   }
 
+  &__inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
   &__title {
     font-size: 28px;
     font-weight: 800;
-    padding-left: 20px;
-    margin-bottom: 32px;
-
-    @media (max-width: 1200px) {
-      padding-left: 0;
-    }
   }
 
   &__write-btn {
-    padding: 10px 20px;
+    padding: 8px 20px;
     background: #161616;
     color: #fff;
-    border: 1.5px solid #161616;
-    border-radius: 8px;
-    font-size: 14px;
+    border: none;
+    border-radius: 999px;
+    font-size: 13px;
     font-family: inherit;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    transition: background 0.2s;
 
     &:hover {
       background: #333;
-      border-color: #161616;
-    }
-
-    @media (max-width: 1200px) {
-      align-self: flex-end;
     }
   }
 
-  &__board {
-    background: #fafafa;
-    border-top: 2px solid #161616;
-    overflow: hidden;
-  }
-
-  &__toolbar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
-    padding: 20px 20px 0;
-
-    @media (max-width: 1200px) {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
-      padding: 16px 0 0;
-    }
-  }
-
+  // ── 탭 ──
   &__tabs {
     display: flex;
     gap: 8px;
+    margin-bottom: 32px;
     flex-wrap: wrap;
-    flex: 1;
 
-    @media (max-width: 1200px) {
+    @media (max-width: 640px) {
       flex-wrap: nowrap;
       overflow-x: auto;
       -ms-overflow-style: none;
       scrollbar-width: none;
-      mask-image: linear-gradient(to right, black 75%, transparent 100%);
-      -webkit-mask-image: linear-gradient(to right, black 75%, transparent 100%);
-
-      &::-webkit-scrollbar {
-        display: none;
-      }
+      &::-webkit-scrollbar { display: none; }
     }
   }
 
   &__tab {
-    padding: 8px 18px;
+    padding: 7px 16px;
     background: none;
-    border: 1.5px solid #a9a9a9;
-    border-radius: 8px;
-    font-size: 14px;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 999px;
+    font-size: 13px;
     font-family: inherit;
     color: #888;
     cursor: pointer;
@@ -97,7 +74,6 @@
     &:hover {
       border-color: #161616;
       color: #161616;
-      background: rgba(0, 0, 0, 0.04);
     }
 
     &--active {
@@ -108,14 +84,13 @@
     }
   }
 
+  // ── 하단 ──
   &__bottom-bar {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 0;
-    padding: 24px 20px 20px;
-    gap: 16px;
-    width: 100%;
+    margin-top: 40px;
+    gap: 20px;
   }
 
   &__search {
@@ -150,9 +125,7 @@
     background-position: right 10px center;
     transition: border-color 0.2s;
 
-    &:focus {
-      border-color: #161616;
-    }
+    &:focus { border-color: #161616; }
   }
 
   &__search-input-wrap {
@@ -173,9 +146,7 @@
     transition: border-color 0.2s;
     box-sizing: border-box;
 
-    &:focus {
-      border-color: #161616;
-    }
+    &:focus { border-color: #161616; }
   }
 
   &__search-clear {
@@ -191,9 +162,7 @@
     padding: 4px;
     line-height: 1;
 
-    &:hover {
-      color: #161616;
-    }
+    &:hover { color: #161616; }
   }
 
   &__search-btn {
@@ -209,14 +178,8 @@
     align-items: center;
     padding: 4px;
 
-    svg {
-      width: 18px;
-      height: 18px;
-    }
-
-    &:hover {
-      color: #161616;
-    }
+    svg { width: 18px; height: 18px; }
+    &:hover { color: #161616; }
   }
 
   &__empty {
@@ -226,85 +189,7 @@
     font-size: 15px;
   }
 
-  @keyframes skeleton-shimmer {
-    0% {
-      background-color: #e8e8e8;
-    }
-    50% {
-      background-color: #f4f4f4;
-    }
-    100% {
-      background-color: #e8e8e8;
-    }
-  }
-
-  &__skeleton-row {
-    td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #e5e5e5;
-    }
-  }
-
-  &__skeleton-cell {
-    height: 14px;
-    border-radius: 4px;
-    animation: skeleton-shimmer 1.5s ease-in-out infinite;
-
-    &--num {
-      width: 32px;
-      margin: 0 auto;
-    }
-    &--badge {
-      width: 60px;
-      height: 22px;
-      border-radius: 4px;
-    }
-    &--title {
-      width: 70%;
-    }
-    &--author {
-      width: 48px;
-    }
-    &--date {
-      width: 72px;
-    }
-    &--views {
-      width: 32px;
-      margin-left: auto;
-    }
-  }
-
-  @media (max-width: 640px) {
-    &__skeleton-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-start;
-      padding: 14px 0;
-      border-bottom: 1px solid #e5e5e5;
-
-      &:last-child { border-bottom: none; }
-
-      &::after {
-        content: '';
-        flex-basis: 100%;
-        order: 25;
-      }
-
-      td { padding: 0; }
-      td:nth-child(1), td:nth-child(4) { display: none; }
-      td:nth-child(2) { order: 10; flex-shrink: 0; margin-right: 8px; }
-      td:nth-child(3) { order: 20; flex: 1; min-width: 0; }
-      td:nth-child(5) { order: 30; margin-top: 6px; }
-      td:nth-child(6) { order: 40; margin-top: 6px; margin-left: auto; margin-right: 8px; }
-    }
-
-    &__skeleton-cell {
-      &--title { width: 75%; }
-      &--date { width: 64px; }
-      &--views { width: 24px; }
-    }
-  }
-
+  // ── 페이지네이션 ──
   &__pagination {
     display: flex;
     justify-content: center;
@@ -357,192 +242,115 @@
   }
 }
 
-.magazine-table {
-  width: calc(100% - 40px);
-  margin: 0 20px;
-  border-collapse: collapse;
-  font-size: 14px;
-  background: transparent;
+// ── 카드 리스트 ──
+.mag-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 
-  th {
-    background: transparent;
-    padding: 14px 16px;
-    text-align: left;
-    font-weight: 600;
-    color: #888;
-    border-bottom: 1px solid #e5e5e5;
-    white-space: nowrap;
+.mag-card {
+  display: block;
+  padding: 24px 16px;
+  border-bottom: 1px solid #e5e5e5;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s;
+
+  &:first-child {
+    border-top: 1px solid #e5e5e5;
   }
 
-  &__row {
-    border-bottom: 1px solid #e5e5e5;
-    transition: background 0.15s;
+  &:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
 
-    &:last-child {
-      border-bottom: none;
-    }
+  &--notice {
+    background: #f5f5f5;
+    border-left: 3px solid #161616;
+    padding-left: 20px;
+    margin-left: -1px;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.03);
+      background: #efefef;
     }
-
-    td {
-      padding: 14px 16px;
-      vertical-align: middle;
-    }
-
-    &--notice {
-      background: rgba(0, 0, 0, 0.04);
-
-      &:hover {
-        background: rgba(0, 0, 0, 0.07);
-      }
-    }
-  }
-
-  &__notice-mark {
-    display: inline-block;
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    background: #161616;
-    color: #fff;
-  }
-
-  &__num {
-    width: 64px;
-    color: #888;
-    text-align: center;
-  }
-
-  &__category {
-    width: 120px;
-    text-align: center;
   }
 
   &__badge {
-    font-size: 12px;
-    font-weight: 500;
-    color: #888;
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #f0f0f0;
+    color: #444;
+    margin-bottom: 10px;
 
-    &--notice {
-      display: inline-block;
-      padding: 2px 7px;
-      border-radius: 4px;
-      background: #161616;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-    }
+    &--curator { background: #161616; color: #fff; }
+    &--reading { background: transparent; color: #161616; border: 1.5px solid #161616; }
+    &--notice { background: #161616; color: #fff; }
   }
 
   &__title {
-    a {
-      color: #161616;
-      text-decoration: none;
-      font-weight: 500;
+    font-size: 17px;
+    font-weight: 600;
+    color: #161616;
+    line-height: 1.5;
+    margin: 0 0 10px;
+    word-break: keep-all;
+  }
 
-      &:hover {
-        text-decoration: underline;
-      }
-    }
+  &__bottom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #888;
   }
 
   &__author {
-    width: 100px;
-    color: #888;
-    white-space: nowrap;
+    &::after {
+      content: "·";
+      margin-left: 8px;
+    }
   }
 
   &__date {
-    width: 100px;
-    color: #888;
-    white-space: nowrap;
+    font-size: 12px;
+    color: #aaa;
   }
 
-  &__views {
-    width: 72px;
-    color: #888;
-    text-align: right;
+  // ── 스켈레톤 ──
+  @keyframes mag-skeleton-shimmer {
+    0% { background-color: #e8e8e8; }
+    50% { background-color: #f4f4f4; }
+    100% { background-color: #e8e8e8; }
   }
 
-  @media (max-width: 1200px) {
-    &__num {
-      display: none;
-    }
-
-    &__author {
-      display: none;
-    }
-
-    th,
-    td {
-      padding: 12px 16px;
-    }
+  &--skeleton {
+    pointer-events: none;
   }
 
-  @media (max-width: 640px) {
-    width: 100%;
-    margin: 0;
-    display: block;
-
-    thead { display: none; }
-    tbody { display: block; }
-
-    &__row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-start;
-      padding: 14px 0;
-      border-bottom: 1px solid #e5e5e5;
-
-      &:last-child { border-bottom: none; }
-
-      &::after {
-        content: '';
-        flex-basis: 100%;
-        order: 25;
-      }
-
-      td { padding: 0; }
-    }
-
-    &__category {
-      order: 10;
-      width: auto;
-      text-align: left;
-      margin-right: 8px;
-    }
-
-    &__title {
-      order: 20;
-      flex: 1;
-      min-width: 0;
-    }
-
-    &__date {
-      order: 30;
-      width: auto;
-      font-size: 12px;
-      color: #aaa;
-      margin-top: 6px;
-    }
-
-    &__views {
-      order: 40;
-      width: auto;
-      text-align: left;
-      font-size: 12px;
-      color: #aaa;
-      margin-top: 6px;
-      margin-left: auto;
-      margin-right: 8px;
-
-      &::before {
-        content: '조회 ';
-      }
-    }
+  &__skeleton-badge {
+    width: 60px;
+    height: 20px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    animation: mag-skeleton-shimmer 1.5s ease-in-out infinite;
   }
 
+  &__skeleton-title {
+    width: 70%;
+    height: 20px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    animation: mag-skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  &__skeleton-author {
+    width: 80px;
+    height: 14px;
+    border-radius: 4px;
+    animation: mag-skeleton-shimmer 1.5s ease-in-out infinite;
+  }
 }

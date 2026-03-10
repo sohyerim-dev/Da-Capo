@@ -1,10 +1,12 @@
 .magazine-detail-page {
-  padding: 60px 0 80px;
+  padding: 80px 0 100px;
   min-height: calc(100vh - 84px);
   background: #fafafa;
 
   &__inner {
-    max-width: 1200px;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
   }
 
   @keyframes skeleton-shimmer {
@@ -58,115 +60,87 @@
     }
   }
 
-  &__heading {
-    h1 {
-      font-size: 28px;
-      font-weight: 800;
-      color: #161616;
-      padding-bottom: 20px;
-      border-bottom: 2px solid #161616;
-      margin: 0;
-    }
-  }
-
-  &__post-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 0;
+  // ── 칼럼 헤더 ──
+  &__header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding-bottom: 40px;
     border-bottom: 1px solid #e5e5e5;
-    gap: 12px;
-  }
-
-  &__post-row-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-    min-width: 0;
-  }
-
-  &__post-num {
-    color: #888;
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-
-  &__post-title {
-    font-weight: 600;
-    color: #161616;
-    font-size: 15px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  &__post-date {
-    color: #888;
-    font-size: 13px;
-    white-space: nowrap;
-    flex-shrink: 0;
-
-    @media (max-width: 640px) { display: none; }
   }
 
   &__badge {
     display: inline-block;
-    padding: 3px 8px;
+    padding: 4px 12px;
     border-radius: 4px;
     font-size: 12px;
     font-weight: 600;
-    flex-shrink: 0;
+    letter-spacing: 0.02em;
+    margin-bottom: 20px;
     background: #f0f0f0;
     color: #444;
 
+    &--curator { background: #161616; color: #fff; }
+    &--reading { background: transparent; color: #161616; border: 1.5px solid #161616; }
     &--notice { background: #161616; color: #fff; }
   }
 
-  &__divider {
-    border: none;
-    border-top: 1px solid #e5e5e5;
+  &__title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #161616;
+    line-height: 1.45;
     margin: 0 0 20px;
+    word-break: keep-all;
   }
 
-  &__sub-meta {
+  &__meta {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 12px;
     font-size: 14px;
     color: #888;
-    margin-bottom: 36px;
-    flex-wrap: wrap;
-    gap: 8px;
   }
 
-  &__sub-meta-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+  &__meta-author {
+    font-weight: 600;
+    color: #555;
   }
 
-  &__sub-meta-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  &__meta-date {
+    &::before {
+      content: "·";
+      margin-right: 12px;
+    }
   }
 
+  // ── 본문 ──
   &__content {
     font-size: 16px;
-    line-height: 1.9;
+    line-height: 2;
     color: #161616;
-    padding-bottom: 60px;
+    padding-bottom: 48px;
+  }
+
+  // ── 좋아요/공유/관리 ──
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px 0;
+    border-top: 1px solid #e5e5e5;
+    border-bottom: 1px solid #e5e5e5;
+    margin-bottom: 48px;
   }
 
   &__like-btn {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 6px 14px;
+    padding: 8px 18px;
     border: 1.5px solid #e5e5e5;
-    border-radius: 8px;
+    border-radius: 999px;
     background: none;
     font-size: 13px;
     font-family: inherit;
@@ -192,9 +166,9 @@
   }
 
   &__action-btn {
-    padding: 6px 16px;
+    padding: 8px 18px;
     border: 1.5px solid #161616;
-    border-radius: 8px;
+    border-radius: 999px;
     background: #161616;
     font-size: 13px;
     font-family: inherit;
@@ -220,24 +194,43 @@
     }
   }
 
-  &__author-bio-heading {
-    font-size: 18px;
-    font-weight: 700;
-    border-top: 1px solid #e5e5e5;
-    padding-top: 40px;
-    margin-top: 40px;
-    margin-bottom: 16px;
+  // ── 추천 공연 ──
+  &__concerts {
+    margin-bottom: 48px;
   }
 
+  &__concerts-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  &__concerts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  // ── 필진 소개 ──
   &__author-bio {
     background: #f5f5f5;
-    border-radius: 10px;
-    padding: 24px 28px;
-    margin-bottom: 40px;
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+  }
+
+  &__author-bio-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
   }
 
   &__author-bio-name {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     color: #161616;
     margin-bottom: 8px;
@@ -253,7 +246,7 @@
   &__author-bio-link {
     display: inline-block;
     margin-top: 12px;
-    font-size: 11px;
+    font-size: 12px;
     color: #161616;
     text-decoration: underline;
     text-underline-offset: 3px;
@@ -263,61 +256,57 @@
     }
   }
 
-  &__concerts {
-    padding-top: 0;
+  // ── 이전/다음 글 카드 ──
+  &__bottom-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 40px;
   }
 
-  &__concerts-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 20px;
-  }
-
-  &__concerts-list {
+  &__nav-card {
     display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-direction: column;
+    gap: 6px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:hover {
+      border-color: #bbb;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    &:last-child {
+      text-align: right;
+    }
   }
 
-  &__nav {
-    margin-top: 48px;
-    border-top: 2px solid #161616;
+  &__nav-dir {
+    font-size: 11px;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
-  &__nav-row {
-    display: flex;
-    align-items: center;
-    padding: 14px 0;
-    border-bottom: 1px solid #e5e5e5;
-    gap: 16px;
-  }
-
-  &__nav-label {
+  &__nav-title {
     font-size: 14px;
     font-weight: 600;
-    color: #888;
-    flex-shrink: 0;
-    min-width: 48px;
-  }
-
-  &__nav-link {
     color: #161616;
-    text-decoration: none;
-    font-size: 14px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    &:hover { text-decoration: underline; }
   }
 
-  &__nav-empty {
-    color: #aaa;
-    font-size: 14px;
-  }
-
+  // ── 하단 ──
   &__footer {
     text-align: center;
-    padding: 36px 0 0;
+    padding: 0;
   }
 
   &__list-btn {
@@ -338,6 +327,7 @@
     }
   }
 
+  // ── 삭제 모달 ──
   &__modal-overlay {
     position: fixed;
     inset: 0;
@@ -402,14 +392,39 @@
     &:hover:not(:disabled) { background: #e53935 !important; }
     &:disabled { opacity: 0.5; cursor: not-allowed !important; }
   }
+
+  // ── 반응형 ──
+  @media (max-width: 640px) {
+    padding: 48px 0 60px;
+
+    &__inner {
+      padding: 0 16px;
+    }
+
+    &__header {
+      margin-bottom: 32px;
+      padding-bottom: 28px;
+    }
+
+    &__title {
+      font-size: 22px;
+    }
+
+    &__bottom-nav {
+      grid-template-columns: 1fr;
+    }
+
+    &__nav-card:last-child {
+      text-align: left;
+    }
+  }
 }
 
 .magazine-concert-card {
   display: flex;
   gap: 12px;
-  width: calc(50% - 8px);
   padding: 14px;
-  background: #fafafa;
+  background: #fff;
   border: 1px solid #e5e5e5;
   border-radius: 8px;
   text-decoration: none;
@@ -451,10 +466,6 @@
   &__date {
     font-size: 12px;
     color: #888;
-  }
-
-  @media (max-width: 1200px) {
-    width: 100%;
   }
 }
 

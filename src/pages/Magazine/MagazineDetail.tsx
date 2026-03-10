@@ -54,11 +54,6 @@ function formatDate(str: string): string {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function formatDateTime(str: string): string {
-  const d = new Date(str.replace(" ", "T"));
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 export default function MagazineDetail() {
   const { id } = useParams<{ id: string }>();
@@ -199,18 +194,10 @@ export default function MagazineDetail() {
   if (loading) {
     return (
       <div className="magazine-detail-page">
-        <div className="wrap magazine-detail-page__inner">
-          <div className="magazine-detail-page__heading">
-            <h1>매거진</h1>
-          </div>
-          <div className="magazine-detail-page__post-row">
-            <div className="magazine-detail-page__post-row-left">
-              <div className="magazine-detail-page__skeleton-badge" />
-              <div className="magazine-detail-page__skeleton-title" />
-            </div>
-            <div className="magazine-detail-page__skeleton-meta" />
-          </div>
-          <hr className="magazine-detail-page__divider" />
+        <div className="magazine-detail-page__inner">
+          <div className="magazine-detail-page__skeleton-badge" style={{ margin: "0 auto" }} />
+          <div className="magazine-detail-page__skeleton-title" style={{ margin: "0 auto 16px" }} />
+          <div className="magazine-detail-page__skeleton-meta" style={{ margin: "0 auto 48px" }} />
           {Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className="magazine-detail-page__skeleton-line" />
           ))}
@@ -246,75 +233,64 @@ export default function MagazineDetail() {
         <link rel="canonical" href={`https://da-capo.co.kr/magazine/${post.id}`} />
       </Helmet>
     <div className="magazine-detail-page">
-      <div className="wrap magazine-detail-page__inner">
+      <div className="magazine-detail-page__inner">
 
-        <div className="magazine-detail-page__heading">
-          <h1>매거진</h1>
-        </div>
-
-        <div className="magazine-detail-page__post-row">
-          <div className="magazine-detail-page__post-row-left">
-            <span className="magazine-detail-page__post-num">{post.id}</span>
-            <span className={`magazine-detail-page__badge magazine-detail-page__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
-              {post.category}
-            </span>
-            <span className="magazine-detail-page__post-title">{post.title}</span>
-          </div>
-          <span className="magazine-detail-page__post-date">
-            {post.created_at ? formatDateTime(post.created_at) : ""}
+        <header className="magazine-detail-page__header">
+          <span className={`magazine-detail-page__badge magazine-detail-page__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
+            {post.category}
           </span>
-        </div>
-
-        <hr className="magazine-detail-page__divider" />
-
-        <div className="magazine-detail-page__sub-meta">
-          <div className="magazine-detail-page__sub-meta-left">
-            <span>{post.author_nickname}</span>
-            <span>·</span>
-            <span>조회 {(post.view_count ?? 0).toLocaleString()}</span>
-          </div>
-          <div className="magazine-detail-page__sub-meta-right">
-            {LIKEABLE_CATEGORIES.includes(post.category as LikeableCategory) && (
-              <button
-                className={`magazine-detail-page__like-btn${liked ? " magazine-detail-page__like-btn--liked" : ""}`}
-                onClick={handleLike}
-                disabled={likeLoading}
-                aria-pressed={liked}
-                aria-label={liked ? `좋아요 취소 (${likeCount})` : `좋아요 (${likeCount})`}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-                <span aria-hidden="true">{likeCount > 0 ? likeCount : "좋아요"}</span>
-              </button>
+          <h1 className="magazine-detail-page__title">{post.title}</h1>
+          <div className="magazine-detail-page__meta">
+            {post.author_bio_name && (
+              <span className="magazine-detail-page__meta-author">{post.author_bio_name}</span>
             )}
-            {post.category !== "공지" && (
-              <ShareButton title={post.title} />
-            )}
-            {user?.role === "admin" && (
-              <>
-                <button
-                  className="magazine-detail-page__action-btn"
-                  onClick={() => navigate(`/magazine/${id}/edit`)}
-                >
-                  수정
-                </button>
-                <button
-                  className="magazine-detail-page__action-btn magazine-detail-page__action-btn--delete"
-                  onClick={() => { setDeleteError(null); setShowDeleteConfirm(true); }}
-                >
-                  삭제
-                </button>
-              </>
+            {post.created_at && (
+              <span className="magazine-detail-page__meta-date">{formatDate(post.created_at)}</span>
             )}
           </div>
-        </div>
+        </header>
 
         <div
           ref={contentRef}
           className="magazine-detail-page__content tiptap-content"
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
         />
+
+        <div className="magazine-detail-page__actions">
+          {LIKEABLE_CATEGORIES.includes(post.category as LikeableCategory) && (
+            <button
+              className={`magazine-detail-page__like-btn${liked ? " magazine-detail-page__like-btn--liked" : ""}`}
+              onClick={handleLike}
+              disabled={likeLoading}
+              aria-pressed={liked}
+              aria-label={liked ? `좋아요 취소 (${likeCount})` : `좋아요 (${likeCount})`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              <span aria-hidden="true">{likeCount > 0 ? likeCount : "좋아요"}</span>
+            </button>
+          )}
+          {post.category !== "공지" && (
+            <ShareButton title={post.title} />
+          )}
+          {user?.role === "admin" && (
+            <>
+              <button
+                className="magazine-detail-page__action-btn"
+                onClick={() => navigate(`/magazine/${id}/edit`)}
+              >
+                수정
+              </button>
+              <button
+                className="magazine-detail-page__action-btn magazine-detail-page__action-btn--delete"
+                onClick={() => { setDeleteError(null); setShowDeleteConfirm(true); }}
+              >
+                삭제
+              </button>
+            </>
+          )}
+        </div>
 
         {concerts.length > 0 && (
           <div className="magazine-detail-page__concerts">
@@ -352,54 +328,44 @@ export default function MagazineDetail() {
         )}
 
         {(post.author_bio_name || post.author_bio_text) && (
-          <>
-            <h2 className="magazine-detail-page__author-bio-heading">필진 소개</h2>
-            <div className="magazine-detail-page__author-bio">
-              {post.author_bio_name && (
-                <p className="magazine-detail-page__author-bio-name">{post.author_bio_name}</p>
-              )}
-              {post.author_bio_text && (
-                <p className="magazine-detail-page__author-bio-text">{post.author_bio_text}</p>
-              )}
-              {post.author_bio_link_url && (
-                <a
-                  className="magazine-detail-page__author-bio-link"
-                  href={post.author_bio_link_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {post.author_bio_link_text || post.author_bio_link_url}
-                </a>
-              )}
-            </div>
-          </>
+          <div className="magazine-detail-page__author-bio">
+            <span className="magazine-detail-page__author-bio-label">written by</span>
+            {post.author_bio_name && (
+              <p className="magazine-detail-page__author-bio-name">{post.author_bio_name}</p>
+            )}
+            {post.author_bio_text && (
+              <p className="magazine-detail-page__author-bio-text">{post.author_bio_text}</p>
+            )}
+            {post.author_bio_link_url && (
+              <a
+                className="magazine-detail-page__author-bio-link"
+                href={post.author_bio_link_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {post.author_bio_link_text || post.author_bio_link_url}
+              </a>
+            )}
+          </div>
         )}
 
-        <div className="magazine-detail-page__nav">
-          <div className="magazine-detail-page__nav-row">
-            <span className="magazine-detail-page__nav-label">이전글</span>
-            {prevPost ? (
-              <Link to={`/magazine/${prevPost.id}`} className="magazine-detail-page__nav-link">
-                {prevPost.title}
-              </Link>
-            ) : (
-              <span className="magazine-detail-page__nav-empty">이전글이 없습니다.</span>
-            )}
-          </div>
-          <div className="magazine-detail-page__nav-row">
-            <span className="magazine-detail-page__nav-label">다음글</span>
-            {nextPost ? (
-              <Link to={`/magazine/${nextPost.id}`} className="magazine-detail-page__nav-link">
-                {nextPost.title}
-              </Link>
-            ) : (
-              <span className="magazine-detail-page__nav-empty">다음글이 없습니다.</span>
-            )}
-          </div>
+        <div className="magazine-detail-page__bottom-nav">
+          {prevPost ? (
+            <Link to={`/magazine/${prevPost.id}`} className="magazine-detail-page__nav-card">
+              <span className="magazine-detail-page__nav-dir">이전 글</span>
+              <span className="magazine-detail-page__nav-title">{prevPost.title}</span>
+            </Link>
+          ) : <div />}
+          {nextPost ? (
+            <Link to={`/magazine/${nextPost.id}`} className="magazine-detail-page__nav-card">
+              <span className="magazine-detail-page__nav-dir">다음 글</span>
+              <span className="magazine-detail-page__nav-title">{nextPost.title}</span>
+            </Link>
+          ) : <div />}
         </div>
 
         <div className="magazine-detail-page__footer">
-          <Link to="/magazine" className="magazine-detail-page__list-btn">목록</Link>
+          <Link to="/magazine" className="magazine-detail-page__list-btn">목록으로</Link>
         </div>
 
       </div>

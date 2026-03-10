@@ -10,6 +10,7 @@ interface MagazinePost {
   id: number;
   title: string;
   category: string;
+  author_bio_name: string | null;
   author_nickname: string;
   view_count: number | null;
   created_at: string | null;
@@ -49,13 +50,11 @@ export default function MagazineList() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // URL에서 파생된 값 (소스 오브 트루스)
   const activeCategory = (searchParams.get("category") as Category) ?? "전체";
   const page = Number(searchParams.get("page") || "1");
   const searchQuery = searchParams.get("q") ?? "";
   const activeField = (searchParams.get("field") as SearchField) ?? "title";
 
-  // 로컬 상태 (입력 중인 값)
   const [notices, setNotices] = useState<MagazinePost[]>([]);
   const [posts, setPosts] = useState<MagazinePost[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -69,11 +68,10 @@ export default function MagazineList() {
     const fetchPosts = async () => {
       setLoading(true);
 
-      // 공지 고정 (전체/공지 탭에서만, 검색 중엔 표시 안 함)
       if (!searchQuery && (activeCategory === "전체" || activeCategory === "공지")) {
         const { data: noticeData } = await supabase
           .from("magazine_posts")
-          .select("id, title, category, author_nickname, view_count, created_at")
+          .select("id, title, category, author_bio_name, author_nickname, view_count, created_at")
           .eq("category", "공지")
           .order("created_at", { ascending: false });
         setNotices((noticeData ?? []) as MagazinePost[]);
@@ -81,7 +79,6 @@ export default function MagazineList() {
         setNotices([]);
       }
 
-      // 공지 탭이면 일반 글 불필요
       if (activeCategory === "공지") {
         setPosts([]);
         setTotalCount(0);
@@ -92,7 +89,7 @@ export default function MagazineList() {
       let query = supabase
         .from("magazine_posts")
         .select(
-          "id, title, category, author_nickname, view_count, created_at",
+          "id, title, category, author_bio_name, author_nickname, view_count, created_at",
           { count: "exact" }
         )
         .neq("category", "공지")
@@ -130,7 +127,6 @@ export default function MagazineList() {
     return pages;
   };
 
-  // 페이지 이동 (카테고리·검색 상태 유지)
   const goToPage = (newPage: number) => {
     const params: Record<string, string> = {};
     if (activeCategory !== "전체") params.category = activeCategory;
@@ -139,32 +135,32 @@ export default function MagazineList() {
     setSearchParams(params);
   };
 
+  const renderPostCard = (post: MagazinePost, isNotice = false) => (
+    <Link
+      key={`${isNotice ? "notice-" : ""}${post.id}`}
+      to={`/magazine/${post.id}`}
+      className={`mag-card${isNotice ? " mag-card--notice" : ""}`}
+    >
+      <span className={`mag-card__badge mag-card__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
+        {post.category}
+      </span>
+      <h3 className="mag-card__title">{post.title}</h3>
+      <div className="mag-card__bottom">
+        <span className="mag-card__author">
+          {post.author_bio_name || post.author_nickname}
+        </span>
+        <span className="mag-card__date">
+          {post.created_at ? formatDate(post.created_at) : ""}
+        </span>
+      </div>
+    </Link>
+  );
+
   return (
     <div className="magazine-list-page">
-      <div className="wrap">
-        <h1 className="magazine-list-page__title">매거진</h1>
-
-        <div className="magazine-list-page__board">
-        <div className="magazine-list-page__toolbar">
-          <div className="magazine-list-page__tabs" role="tablist" aria-label="카테고리">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                role="tab"
-                aria-selected={activeCategory === cat}
-                className={`magazine-list-page__tab${activeCategory === cat ? " magazine-list-page__tab--active" : ""}`}
-                onClick={() => {
-                  const params: Record<string, string> = {};
-                  if (cat !== "전체") params.category = cat;
-                  setSearchParams(params);
-                  setSearchInput("");
-                  setPendingField("title");
-                }}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+      <div className="magazine-list-page__inner">
+        <div className="magazine-list-page__head">
+          <h1 className="magazine-list-page__title">매거진</h1>
           {user?.role === "admin" && (
             <button
               className="magazine-list-page__write-btn"
@@ -175,94 +171,45 @@ export default function MagazineList() {
           )}
         </div>
 
+        <div className="magazine-list-page__tabs" role="tablist" aria-label="카테고리">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              role="tab"
+              aria-selected={activeCategory === cat}
+              className={`magazine-list-page__tab${activeCategory === cat ? " magazine-list-page__tab--active" : ""}`}
+              onClick={() => {
+                const params: Record<string, string> = {};
+                if (cat !== "전체") params.category = cat;
+                setSearchParams(params);
+                setSearchInput("");
+                setPendingField("title");
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
-          <table className="magazine-table">
-            <thead>
-              <tr>
-                <th className="magazine-table__num">번호</th>
-                <th className="magazine-table__category">카테고리</th>
-                <th className="magazine-table__title">제목</th>
-                <th className="magazine-table__author">작성자</th>
-                <th className="magazine-table__date">작성일</th>
-                <th className="magazine-table__views">조회수</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.from({ length: 8 }).map((_, i) => (
-                <tr key={i} className="magazine-list-page__skeleton-row">
-                  <td className="magazine-table__num"><div className="magazine-list-page__skeleton-cell magazine-list-page__skeleton-cell--num" /></td>
-                  <td className="magazine-table__category"><div className="magazine-list-page__skeleton-cell magazine-list-page__skeleton-cell--badge" /></td>
-                  <td className="magazine-table__title"><div className="magazine-list-page__skeleton-cell magazine-list-page__skeleton-cell--title" /></td>
-                  <td className="magazine-table__author"><div className="magazine-list-page__skeleton-cell magazine-list-page__skeleton-cell--author" /></td>
-                  <td className="magazine-table__date"><div className="magazine-list-page__skeleton-cell magazine-list-page__skeleton-cell--date" /></td>
-                  <td className="magazine-table__views"><div className="magazine-list-page__skeleton-cell magazine-list-page__skeleton-cell--views" /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="mag-card-list">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="mag-card mag-card--skeleton">
+                <div className="mag-card__skeleton-badge" />
+                <div className="mag-card__skeleton-title" />
+                <div className="mag-card__skeleton-author" />
+              </div>
+            ))}
+          </div>
         ) : notices.length === 0 && posts.length === 0 ? (
           <div className="magazine-list-page__empty">
             {searchQuery ? `"${searchQuery}" 검색 결과가 없습니다.` : "등록된 글이 없습니다."}
           </div>
         ) : (
-          <table className="magazine-table">
-            <thead>
-              <tr>
-                <th className="magazine-table__num">번호</th>
-                <th className="magazine-table__category">카테고리</th>
-                <th className="magazine-table__title">제목</th>
-                <th className="magazine-table__author">작성자</th>
-                <th className="magazine-table__date">작성일</th>
-                <th className="magazine-table__views">조회수</th>
-              </tr>
-            </thead>
-            <tbody>
-              {notices.map((post) => (
-                <tr key={`notice-${post.id}`} className="magazine-table__row magazine-table__row--notice">
-                  <td className="magazine-table__num">{post.id}</td>
-                  <td className="magazine-table__category">
-                    <span className={`magazine-table__badge magazine-table__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
-                      {post.category}
-                    </span>
-                  </td>
-                  <td className="magazine-table__title">
-                    <Link to={`/magazine/${post.id}`}>{post.title}</Link>
-                  </td>
-                  <td className="magazine-table__author">{post.author_nickname}</td>
-                  <td className="magazine-table__date">
-                    {post.created_at ? formatDate(post.created_at) : ""}
-                  </td>
-                  <td className="magazine-table__views">
-                    {(post.view_count ?? 0).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-              {posts.map((post, idx) => (
-                <tr key={post.id} className="magazine-table__row">
-                  <td className="magazine-table__num">
-                    {totalCount - (page - 1) * PAGE_SIZE - idx}
-                  </td>
-                  <td className="magazine-table__category">
-                    <span className={`magazine-table__badge magazine-table__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
-                      {post.category}
-                    </span>
-                  </td>
-                  <td className="magazine-table__title">
-                    <Link to={`/magazine/${post.id}`}>{post.title}</Link>
-                  </td>
-                  <td className="magazine-table__author">
-                    {post.author_nickname}
-                  </td>
-                  <td className="magazine-table__date">
-                    {post.created_at ? formatDate(post.created_at) : ""}
-                  </td>
-                  <td className="magazine-table__views">
-                    {(post.view_count ?? 0).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="mag-card-list">
+            {notices.map((post) => renderPostCard(post, true))}
+            {posts.map((post) => renderPostCard(post))}
+          </div>
         )}
 
         <div className="magazine-list-page__bottom-bar">
@@ -358,7 +305,6 @@ export default function MagazineList() {
               </button>
             </div>
           </form>
-        </div>
         </div>
       </div>
     </div>
