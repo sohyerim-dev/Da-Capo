@@ -70,6 +70,16 @@ export default function ConcertInfoList() {
 
         </div>
 
+        {/* 광고 배너 */}
+        <a
+          className="concert-info__ad-banner"
+          href="mailto:contact@da-capo.co.kr"
+          rel="noopener noreferrer"
+        >
+          <span className="concert-info__ad-banner-text">이 자리에 광고하기</span>
+          <span className="concert-info__ad-banner-sub">contact@da-capo.co.kr</span>
+        </a>
+
         {!search && (
           <div className="concert-info__view-toggle" role="tablist" aria-label="보기 방식">
             <button
