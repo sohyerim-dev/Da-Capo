@@ -93,6 +93,7 @@ export default function MagazineDetail() {
 
     const fetchData = async () => {
       setLoading(true);
+      setConcerts([]);
 
       const { data: postData, error } = await supabase
         .from("magazine_posts")
