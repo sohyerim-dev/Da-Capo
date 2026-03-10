@@ -155,12 +155,16 @@ export default function MagazineNew() {
     setSubmitLoading(true);
     setError(null);
 
+    const thumbnailMatch = content.match(/<img[^>]+src="([^"]+)"/);
+    const thumbnailUrl = thumbnailMatch ? thumbnailMatch[1] : null;
+
     const { data: postData, error: insertError } = await supabase
       .from("magazine_posts")
       .insert({
         title: title.trim(),
         category,
         content,
+        thumbnail_url: thumbnailUrl,
         author_id: user.id,
         author_nickname: user.nickname,
         author_bio_name: bioName.trim() || null,

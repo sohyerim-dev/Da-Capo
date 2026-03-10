@@ -219,12 +219,16 @@ export default function MagazineEdit() {
     setSubmitLoading(true);
     setError(null);
 
+    const thumbnailMatch = content.match(/<img[^>]+src="([^"]+)"/);
+    const thumbnailUrl = thumbnailMatch ? thumbnailMatch[1] : null;
+
     const { error: updateError } = await supabase
       .from("magazine_posts")
       .update({
         title: title.trim(),
         category,
         content,
+        thumbnail_url: thumbnailUrl,
         author_bio_name: bioName.trim() || null,
         author_bio_text: bioText.trim() || null,
         author_bio_link_text: bioLinkText.trim() || null,

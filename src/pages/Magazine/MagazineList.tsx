@@ -14,6 +14,7 @@ interface MagazinePost {
   author_nickname: string;
   view_count: number | null;
   created_at: string | null;
+  thumbnail_url: string | null;
 }
 
 type SearchField = "title" | "content" | "author_nickname";
@@ -71,7 +72,7 @@ export default function MagazineList() {
       if (!searchQuery && (activeCategory === "전체" || activeCategory === "공지")) {
         const { data: noticeData } = await supabase
           .from("magazine_posts")
-          .select("id, title, category, author_bio_name, author_nickname, view_count, created_at")
+          .select("id, title, category, author_bio_name, author_nickname, view_count, created_at, thumbnail_url")
           .eq("category", "공지")
           .order("created_at", { ascending: false });
         setNotices((noticeData ?? []) as MagazinePost[]);
@@ -89,7 +90,7 @@ export default function MagazineList() {
       let query = supabase
         .from("magazine_posts")
         .select(
-          "id, title, category, author_bio_name, author_nickname, view_count, created_at",
+          "id, title, category, author_bio_name, author_nickname, view_count, created_at, thumbnail_url",
           { count: "exact" }
         )
         .neq("category", "공지")
@@ -139,20 +140,27 @@ export default function MagazineList() {
     <Link
       key={`${isNotice ? "notice-" : ""}${post.id}`}
       to={`/magazine/${post.id}`}
-      className={`mag-card${isNotice ? " mag-card--notice" : ""}`}
+      className={`mag-card${isNotice ? " mag-card--notice" : ""}${post.thumbnail_url ? " mag-card--has-thumb" : ""}`}
     >
-      <span className={`mag-card__badge mag-card__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
-        {post.category}
-      </span>
-      <h3 className="mag-card__title">{post.title}</h3>
-      <div className="mag-card__bottom">
-        <span className="mag-card__author">
-          {post.author_bio_name || post.author_nickname}
+      <div className="mag-card__text">
+        <span className={`mag-card__badge mag-card__badge--${CATEGORY_SLUG[post.category] ?? "etc"}`}>
+          {post.category}
         </span>
-        <span className="mag-card__date">
-          {post.created_at ? formatDate(post.created_at) : ""}
-        </span>
+        <h3 className="mag-card__title">{post.title}</h3>
+        <div className="mag-card__bottom">
+          <span className="mag-card__author">
+            {post.author_bio_name || post.author_nickname}
+          </span>
+          <span className="mag-card__date">
+            {post.created_at ? formatDate(post.created_at) : ""}
+          </span>
+        </div>
       </div>
+      {post.thumbnail_url && (
+        <div className="mag-card__thumb">
+          <img src={post.thumbnail_url} alt="" />
+        </div>
+      )}
     </Link>
   );
 

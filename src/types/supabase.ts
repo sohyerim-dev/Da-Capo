@@ -196,6 +196,7 @@ export type Database = {
           bookmark_count: number | null
           crew: string | null
           end_date: string | null
+          english_reviewed: boolean | null
           genre: string | null
           id: string
           intro_images: Json | null
@@ -203,6 +204,7 @@ export type Database = {
           open_run: string | null
           pending_foreign_tags: string[] | null
           performers: string | null
+          pieces_reviewed: boolean | null
           poster: string | null
           producer: string | null
           rank: number | null
@@ -227,6 +229,7 @@ export type Database = {
           bookmark_count?: number | null
           crew?: string | null
           end_date?: string | null
+          english_reviewed?: boolean | null
           genre?: string | null
           id: string
           intro_images?: Json | null
@@ -234,6 +237,7 @@ export type Database = {
           open_run?: string | null
           pending_foreign_tags?: string[] | null
           performers?: string | null
+          pieces_reviewed?: boolean | null
           poster?: string | null
           producer?: string | null
           rank?: number | null
@@ -258,6 +262,7 @@ export type Database = {
           bookmark_count?: number | null
           crew?: string | null
           end_date?: string | null
+          english_reviewed?: boolean | null
           genre?: string | null
           id?: string
           intro_images?: Json | null
@@ -265,6 +270,7 @@ export type Database = {
           open_run?: string | null
           pending_foreign_tags?: string[] | null
           performers?: string | null
+          pieces_reviewed?: boolean | null
           poster?: string | null
           producer?: string | null
           rank?: number | null
@@ -354,6 +360,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: number
+          thumbnail_url: string | null
           title: string
           updated_at: string | null
           view_count: number | null
@@ -369,6 +376,7 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: number
+          thumbnail_url?: string | null
           title: string
           updated_at?: string | null
           view_count?: number | null
@@ -384,6 +392,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: number
+          thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
           view_count?: number | null
@@ -445,6 +454,7 @@ export type Database = {
           era: string | null
           id: string
           instruments: string[] | null
+          sort_order: number | null
           title: string | null
           work_type: string | null
         }
@@ -455,6 +465,7 @@ export type Database = {
           era?: string | null
           id?: string
           instruments?: string[] | null
+          sort_order?: number | null
           title?: string | null
           work_type?: string | null
         }
@@ -465,6 +476,7 @@ export type Database = {
           era?: string | null
           id?: string
           instruments?: string[] | null
+          sort_order?: number | null
           title?: string | null
           work_type?: string | null
         }
