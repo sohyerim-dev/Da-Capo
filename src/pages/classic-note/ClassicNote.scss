@@ -9,6 +9,11 @@
 
   .wrap {
     max-width: 960px;
+
+    @media (max-width: 640px) {
+      width: 100%;
+      padding: 0 12px;
+    }
   }
 
   &__header {
@@ -18,9 +23,11 @@
     margin-bottom: 40px;
 
     @media (max-width: 640px) {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 12px;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 0 4px;
     }
   }
 
@@ -100,7 +107,10 @@
     }
 
     @media (max-width: 640px) {
-      align-self: flex-start;
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
     }
   }
 
@@ -114,11 +124,21 @@
     margin-bottom: 48px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     overflow: hidden;
+
+    @media (max-width: 640px) {
+      border-radius: 12px;
+      padding-bottom: 36px;
+      margin-bottom: 32px;
+    }
   }
 
   .react-calendar {
     width: 100%;
     padding: 24px 28px 0;
+
+    @media (max-width: 640px) {
+      padding: 16px 10px 0;
+    }
     border: none;
     font-family: inherit;
     background: transparent;
