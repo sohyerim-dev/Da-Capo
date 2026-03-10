@@ -88,7 +88,18 @@ export default function CommunityList() {
       .limit(50)
       .then(({ data }) => {
         if (data && data.length > 0) {
-          const shuffled = [...data].sort(() => Math.random() - 0.5).slice(0, 10);
+          // 날짜 기반 시드로 하루 동안 같은 순서 유지
+          const today = new Date();
+          const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+          const seededRandom = (i: number) => {
+            const x = Math.sin(seed + i) * 10000;
+            return x - Math.floor(x);
+          };
+          const shuffled = [...data]
+            .map((item, i) => ({ item, sort: seededRandom(i) }))
+            .sort((a, b) => a.sort - b.sort)
+            .map(({ item }) => item)
+            .slice(0, 10);
           setNoteProfiles(shuffled as NoteProfile[]);
         }
       });
