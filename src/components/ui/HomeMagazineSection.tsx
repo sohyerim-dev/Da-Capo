@@ -8,6 +8,7 @@ interface MagazineItem {
   category: string;
   title: string;
   author_bio_name: string | null;
+  thumbnail_url: string | null;
 }
 
 export default function HomeMagazineSection() {
@@ -18,13 +19,13 @@ export default function HomeMagazineSection() {
       const [curatorRes, readingRes] = await Promise.all([
         supabase
           .from("magazine_posts")
-          .select("id, category, title, author_bio_name")
+          .select("id, category, title, author_bio_name, thumbnail_url")
           .eq("category", "큐레이터 픽")
           .order("created_at", { ascending: false })
           .limit(2),
         supabase
           .from("magazine_posts")
-          .select("id, category, title, author_bio_name")
+          .select("id, category, title, author_bio_name, thumbnail_url")
           .eq("category", "클래식 읽기")
           .order("created_at", { ascending: false })
           .limit(2),
@@ -65,17 +66,24 @@ export default function HomeMagazineSection() {
                 to={`/magazine/${item.id}`}
                 className="home-magazine__link"
               >
-                <span
-                  className={`home-magazine__tag home-magazine__tag--${item.category === "큐레이터 픽" ? "curator" : "reading"}`}
-                >
-                  {item.category}
-                </span>
-                <span className="home-magazine__item-title">
-                  {item.title}
-                </span>
-                <span className="home-magazine__author">
-                  {item.author_bio_name}
-                </span>
+                <div className="home-magazine__link-text">
+                  <span
+                    className={`home-magazine__tag home-magazine__tag--${item.category === "큐레이터 픽" ? "curator" : "reading"}`}
+                  >
+                    {item.category}
+                  </span>
+                  <span className="home-magazine__item-title">
+                    {item.title}
+                  </span>
+                  <span className="home-magazine__author">
+                    {item.author_bio_name}
+                  </span>
+                </div>
+                {item.thumbnail_url && (
+                  <div className="home-magazine__thumb">
+                    <img src={item.thumbnail_url} alt="" />
+                  </div>
+                )}
               </Link>
             </li>
           ))}
