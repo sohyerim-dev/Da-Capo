@@ -74,12 +74,18 @@ export default function HomeMagazineSection() {
                   {item.title}
                 </span>
                 <span className="home-magazine__author">
-                  by. {item.author_bio_name}
+                  {item.author_bio_name}
                 </span>
               </Link>
             </li>
           ))}
         </ul>
+
+        <div className="home-magazine__footer">
+          <Link to="/magazine" className="home-magazine__more">
+            더보기
+          </Link>
+        </div>
       </div>
     </section>
   );
