@@ -92,8 +92,10 @@ export default function CommunityList() {
           const today = new Date();
           const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
           const seededRandom = (i: number) => {
-            const x = Math.sin(seed + i) * 10000;
-            return x - Math.floor(x);
+            let h = seed * 374761393 + i * 668265263;
+            h = (h ^ (h >>> 13)) * 1274126177;
+            h = h ^ (h >>> 16);
+            return (h >>> 0) / 4294967296;
           };
           const shuffled = [...data]
             .map((item, i) => ({ item, sort: seededRandom(i) }))
