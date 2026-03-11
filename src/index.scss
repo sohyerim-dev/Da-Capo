@@ -109,6 +109,10 @@ body {
     outline: 2px solid #5c6fff;
     outline-offset: 2px;
   }
+
+  img {
+    height: auto !important;
+  }
 }
 
 // TipTap 에디터 내 링크 스타일
