@@ -72,6 +72,7 @@
       display: flex;
       gap: 16px;
       overflow-x: scroll;
+      overscroll-behavior: contain;
       scrollbar-width: none;
       cursor: grab;
       flex: 0 0 calc(5 * 60px + 4 * 16px);
