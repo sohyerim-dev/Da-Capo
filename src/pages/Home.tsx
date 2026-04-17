@@ -3,9 +3,11 @@ import HeroSwiper from "@/components/ui/HeroSwiper";
 import HomeFeatureSection from "@/components/ui/HomeFeatureSection";
 import HomeConcertSection from "@/components/ui/HomeConcertSection";
 import HomeMagazineSection from "@/components/ui/HomeMagazineSection";
+import NoticeModal from "@/components/ui/NoticeModal";
 export default function Home() {
   return (
     <>
+      <NoticeModal />
       <Helmet>
         <title>Da Capo | 클래식 공연 중심 플랫폼</title>
         <meta
