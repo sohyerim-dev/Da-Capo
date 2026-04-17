@@ -22,13 +22,13 @@ export default function HomeMagazineSection() {
           .select("id, category, title, author_bio_name, thumbnail_url")
           .eq("category", "큐레이터 픽")
           .order("created_at", { ascending: false })
-          .limit(2),
+          .limit(1),
         supabase
           .from("magazine_posts")
           .select("id, category, title, author_bio_name, thumbnail_url")
           .eq("category", "클래식 읽기")
           .order("created_at", { ascending: false })
-          .limit(2),
+          .limit(1),
       ]);
       setItems([...(curatorRes.data ?? []), ...(readingRes.data ?? [])]);
     };
