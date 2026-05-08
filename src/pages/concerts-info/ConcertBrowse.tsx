@@ -22,6 +22,16 @@ function getChosungGroup(str: string): string {
   return "ㄱ~ㄹ"; // 영문 등 → 첫 그룹에 포함
 }
 
+interface ChipSelection {
+  tabIndex: number;
+  subIndex: number;
+  label: string;
+  tabLabel: string;
+  tag?: string;
+  tags?: string[];
+  usePerformers?: boolean;
+}
+
 interface Concert {
   id: string;
   title: string | null;
@@ -128,9 +138,7 @@ export default function ConcertBrowse() {
     navType === "POP" || location.state?.fromDetail === true;
   const saved = shouldRestore ? loadSession() : null;
   const [activeTab, setActiveTab] = useState<number>(saved?.activeTab ?? 0);
-  const [activeSubIndex, setActiveSubIndex] = useState<number | null>(
-    saved?.activeSubIndex ?? null
-  );
+  const [chips, setChips] = useState<ChipSelection[]>(saved?.chips ?? []);
   const [isPanelOpen, setIsPanelOpen] = useState<boolean>(saved?.isPanelOpen ?? false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [visibleCount, setVisibleCount] = useState<number>(saved?.visibleCount ?? PAGE_SIZE);
@@ -151,7 +159,7 @@ export default function ConcertBrowse() {
       SESSION_KEY,
       JSON.stringify({
         activeTab,
-        activeSubIndex,
+        chips,
         isPanelOpen,
         filterArea,
         filterDate,
@@ -161,7 +169,7 @@ export default function ConcertBrowse() {
         visibleCount,
       })
     );
-  }, [activeTab, activeSubIndex, isPanelOpen, filterArea, filterDate, filterSort, customFrom, customTo, visibleCount]);
+  }, [activeTab, chips, isPanelOpen, filterArea, filterDate, filterSort, customFrom, customTo, visibleCount]);
 
   useEffect(() => {
     if (concerts.length > 0 && shouldRestore && !scrollRestored.current) {
@@ -180,10 +188,22 @@ export default function ConcertBrowse() {
 
   const currentTab = concertTabData[activeTab];
   const currentItems = currentTab.items;
-  const activeItem =
-    currentTab.rankOnly || activeSubIndex === null
-      ? null
-      : currentItems[activeSubIndex];
+
+  const isChipActive = (tabIndex: number, subIndex: number) =>
+    chips.some((c) => c.tabIndex === tabIndex && c.subIndex === subIndex);
+  const hasChipsInCurrentTab = chips.some((c) => c.tabIndex === activeTab);
+
+  // pieces RPC를 사용할 조건: 출연진이 아닌 칩이 2개 이상
+  const PIECE_TAB_MAP: Record<string, "p_composers" | "p_eras" | "p_work_types" | "p_instruments"> = {
+    "작곡가": "p_composers",
+    "시대": "p_eras",
+    "작품 형태": "p_work_types",
+    "악기": "p_instruments",
+  };
+
+  const pieceChips = chips.filter((c) => !c.usePerformers && c.tabLabel in PIECE_TAB_MAP);
+  const performerChips = chips.filter((c) => c.usePerformers);
+  const usePiecesRpc = pieceChips.length >= 2;
 
   useEffect(() => {
     const fetchConcerts = async () => {
@@ -197,16 +217,52 @@ export default function ConcertBrowse() {
         .in("status", ["공연예정", "공연중"])
         .gte("end_date", todayDot);
 
-      if (currentTab.rankOnly) {
+      if (currentTab.rankOnly && chips.length === 0) {
         query = query.not("rank", "is", null).order("rank", { ascending: true });
       } else {
-        if (activeItem && !activeItem.isSeparator) {
-          if (currentTab.usePerformers && activeItem.tag) {
-            query = query.or(`title.ilike.%${activeItem.tag}%,performers.ilike.%${activeItem.tag}%,tags.cs.{${activeItem.tag}},ai_keywords.cs.{${activeItem.tag}}`);
-          } else if (activeItem.tags && activeItem.tags.length > 0) {
-            query = query.or(activeItem.tags.map((t) => `tags.cs.{${t}}`).join(","));
-          } else if (activeItem.tag) {
-            query = query.contains("tags", [activeItem.tag]);
+        // pieces RPC로 concert_id 먼저 조회
+        if (usePiecesRpc) {
+          const rpcParams: Record<string, string[] | null> = {
+            p_composers: null,
+            p_eras: null,
+            p_work_types: null,
+            p_instruments: null,
+          };
+
+          for (const chip of pieceChips) {
+            const param = PIECE_TAB_MAP[chip.tabLabel];
+            if (!param || !chip.tag) continue;
+            if (!rpcParams[param]) rpcParams[param] = [];
+            rpcParams[param]!.push(chip.tag);
+          }
+
+          const { data: ids } = await supabase.rpc("search_concerts_by_pieces", rpcParams);
+          const concertIds = (ids as string[] | null) ?? [];
+
+          if (concertIds.length === 0) {
+            setConcerts([]);
+            setLoading(false);
+            return;
+          }
+
+          query = query.in("id", concertIds);
+        } else {
+          // 칩 1개이거나 pieces RPC 불필요 → 기존 방식
+          for (const chip of pieceChips) {
+            if (chip.tags && chip.tags.length > 0) {
+              query = query.or(chip.tags.map((t) => `tags.cs.{${t}}`).join(","));
+            } else if (chip.tag) {
+              query = query.contains("tags", [chip.tag]);
+            }
+          }
+        }
+
+        // 출연진 칩은 항상 기존 방식
+        for (const chip of performerChips) {
+          if (chip.tag) {
+            query = query.or(
+              `title.ilike.%${chip.tag}%,performers.ilike.%${chip.tag}%,tags.cs.{${chip.tag}},ai_keywords.cs.{${chip.tag}}`
+            );
           }
         }
 
@@ -233,17 +289,13 @@ export default function ConcertBrowse() {
       const { data, error } = await query.limit(100);
 
       if (!error && data) {
-        let filtered: Concert[];
-
-        filtered = data as Concert[];
-
-        setConcerts(filtered);
+        setConcerts(data as Concert[]);
       }
       setLoading(false);
     };
 
     fetchConcerts();
-  }, [activeTab, activeSubIndex, filterArea, filterDate, customFrom, customTo]);
+  }, [chips, filterArea, filterDate, customFrom, customTo]);
 
   const sortedConcerts = useMemo(() => {
     if (filterSort !== "bookmark_count") return concerts;
@@ -261,13 +313,7 @@ export default function ConcertBrowse() {
     const tab = concertTabData[i];
     if (tab.rankOnly) {
       setActiveTab(i);
-      setActiveSubIndex(null);
       setVisibleCount(BOXOFFICE_PAGE_SIZE);
-      setFilterSort("start_date");
-      setFilterArea("");
-      setFilterDate("");
-      setCustomFrom("");
-      setCustomTo("");
       setIsPanelOpen(false);
       setOpenChosung(new Set());
       return;
@@ -276,55 +322,87 @@ export default function ConcertBrowse() {
       setIsPanelOpen((prev) => !prev);
     } else {
       setActiveTab(i);
-      setActiveSubIndex(null);
       setVisibleCount(PAGE_SIZE);
-      setFilterSort("start_date");
-      setFilterArea("");
-      setFilterDate("");
-      setCustomFrom("");
-      setCustomTo("");
       setIsPanelOpen(true);
       setOpenChosung(new Set());
     }
   };
 
-  const handleSubItemClick = (index: number | null) => {
-    const newIndex = index !== null && activeSubIndex === index ? null : index;
-    setActiveSubIndex(newIndex);
+  const handleSubItemClick = (index: number) => {
+    const item = currentItems[index];
+    if (!item || item.isSeparator) return;
+
+    const exists = isChipActive(activeTab, index);
+    if (exists) {
+      setChips((prev) => prev.filter((c) => !(c.tabIndex === activeTab && c.subIndex === index)));
+    } else {
+      const newChip: ChipSelection = {
+        tabIndex: activeTab,
+        subIndex: index,
+        label: item.label,
+        tabLabel: currentTab.label,
+        tag: item.tag,
+        tags: item.tags,
+        usePerformers: currentTab.usePerformers,
+      };
+      setChips((prev) => [...prev, newChip]);
+    }
     setVisibleCount(PAGE_SIZE);
-    setFilterSort("start_date");
-    setFilterArea("");
-    setFilterDate("");
-    setCustomFrom("");
-    setCustomTo("");
 
-    if (newIndex !== null) {
-      const item = currentItems[newIndex];
-      if (item && !item.isSeparator) {
-        let separator = "";
-        for (let j = newIndex - 1; j >= 0; j--) {
-          if (currentItems[j].isSeparator) {
-            separator = currentItems[j].label;
-            break;
-          }
-        }
-
-        if (currentTab.usePerformers) {
-          if (separator && separator !== "해외") {
-            const cho = getChosungGroup(item.label);
-            const key = `${separator}-${cho}`;
-            setOpenChosung((prev) => new Set(prev).add(key));
-          }
-        } else if (separator) {
-          const key = `${currentTab.label}-${separator}`;
-          setOpenChosung((prev) => new Set(prev).add(key));
-        }
+    // 아코디언 자동 열기
+    let separator = "";
+    for (let j = index - 1; j >= 0; j--) {
+      if (currentItems[j].isSeparator) {
+        separator = currentItems[j].label;
+        break;
       }
     }
+    if (currentTab.usePerformers) {
+      if (separator && separator !== "해외") {
+        const cho = getChosungGroup(item.label);
+        const key = `${separator}-${cho}`;
+        setOpenChosung((prev) => new Set(prev).add(key));
+      }
+    } else if (separator) {
+      const key = `${currentTab.label}-${separator}`;
+      setOpenChosung((prev) => new Set(prev).add(key));
+    }
+  };
+
+  const handleRemoveChip = (chip: ChipSelection) => {
+    setChips((prev) => prev.filter((c) => !(c.tabIndex === chip.tabIndex && c.subIndex === chip.subIndex)));
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const handleClearChips = () => {
+    setChips([]);
+    setVisibleCount(PAGE_SIZE);
   };
 
   return (
     <>
+      {/* 칩 바 */}
+      {chips.length > 0 && (
+        <div className="concert-info__chips">
+          {chips.map((chip) => (
+            <span key={`${chip.tabIndex}-${chip.subIndex}`} className="concert-info__chip">
+              <span className="concert-info__chip-tab">{chip.tabLabel}</span>
+              {chip.label}
+              <button
+                className="concert-info__chip-remove"
+                onClick={() => handleRemoveChip(chip)}
+                aria-label={`${chip.label} 제거`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          <button className="concert-info__chips-reset" onClick={handleClearChips}>
+            초기화
+          </button>
+        </div>
+      )}
+
       <hr className="concert-info__section-divider" />
 
       {/* 대분류 탭 */}
@@ -345,17 +423,6 @@ export default function ConcertBrowse() {
       {/* 소분류 패널 */}
       {isPanelOpen && !currentTab.rankOnly && (
         <div className="concert-info__panel">
-          <button
-            className={`concert-info__panel-item${activeSubIndex === null ? " concert-info__panel-item--active" : ""}`}
-            onClick={() => handleSubItemClick(null)}
-          >
-            {activeSubIndex === null && (
-              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-            전체
-          </button>
           {(() => {
             if (!currentTab.usePerformers) {
               // separator가 없는 탭: 기존 flat 렌더링
@@ -364,10 +431,10 @@ export default function ConcertBrowse() {
                 return currentItems.map((item, i) => (
                   <button
                     key={item.label}
-                    className={`concert-info__panel-item${activeSubIndex === i ? " concert-info__panel-item--active" : ""}`}
+                    className={`concert-info__panel-item${isChipActive(activeTab, i) ? " concert-info__panel-item--active" : ""}`}
                     onClick={() => handleSubItemClick(i)}
                   >
-                    {activeSubIndex === i && (
+                    {isChipActive(activeTab, i) && (
                       <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
@@ -391,7 +458,7 @@ export default function ConcertBrowse() {
               return groups.map((group) => {
                 const key = `${currentTab.label}-${group.separator}`;
                 const isOpen = openChosung.has(key);
-                const hasActive = group.items.some(({ idx }) => activeSubIndex === idx);
+                const hasActive = group.items.some(({ idx }) => isChipActive(activeTab, idx));
 
                 return (
                   <Fragment key={key}>
@@ -406,7 +473,9 @@ export default function ConcertBrowse() {
                           return next;
                         });
                         if (willClose && hasActive) {
-                          handleSubItemClick(null);
+                          // 이 그룹의 칩들 제거
+                          const groupIdxs = new Set(group.items.map(({ idx }) => idx));
+                          setChips((prev) => prev.filter((c) => !(c.tabIndex === activeTab && groupIdxs.has(c.subIndex))));
                         }
                       }}
                     >
@@ -419,10 +488,10 @@ export default function ConcertBrowse() {
                       group.items.map(({ item, idx }) => (
                         <button
                           key={item.label}
-                          className={`concert-info__panel-item${activeSubIndex === idx ? " concert-info__panel-item--active" : ""}`}
+                          className={`concert-info__panel-item${isChipActive(activeTab, idx) ? " concert-info__panel-item--active" : ""}`}
                           onClick={() => handleSubItemClick(idx)}
                         >
-                          {activeSubIndex === idx && (
+                          {isChipActive(activeTab, idx) && (
                             <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -455,10 +524,10 @@ export default function ConcertBrowse() {
                     {group.items.map(({ item, idx }) => (
                       <button
                         key={item.label}
-                        className={`concert-info__panel-item${activeSubIndex === idx ? " concert-info__panel-item--active" : ""}`}
+                        className={`concert-info__panel-item${isChipActive(activeTab, idx) ? " concert-info__panel-item--active" : ""}`}
                         onClick={() => handleSubItemClick(idx)}
                       >
-                        {activeSubIndex === idx && (
+                        {isChipActive(activeTab, idx) && (
                           <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
@@ -489,7 +558,7 @@ export default function ConcertBrowse() {
                     const key = `${group.separator}-${cho}`;
                     const isOpen = openChosung.has(key);
                     // 선택된 항목이 이 초성 그룹 안에 있으면 자동 열기
-                    const hasActive = entries.some(({ idx }) => activeSubIndex === idx);
+                    const hasActive = entries.some(({ idx }) => isChipActive(activeTab, idx));
 
                     return (
                       <Fragment key={key}>
@@ -504,7 +573,8 @@ export default function ConcertBrowse() {
                               return next;
                             });
                             if (willClose && hasActive) {
-                              handleSubItemClick(null);
+                              const entryIdxs = new Set(entries.map(({ idx }) => idx));
+                              setChips((prev) => prev.filter((c) => !(c.tabIndex === activeTab && entryIdxs.has(c.subIndex))));
                             }
                           }}
                         >
@@ -517,10 +587,10 @@ export default function ConcertBrowse() {
                           entries.map(({ item, idx }) => (
                             <button
                               key={item.label}
-                              className={`concert-info__panel-item${activeSubIndex === idx ? " concert-info__panel-item--active" : ""}`}
+                              className={`concert-info__panel-item${isChipActive(activeTab, idx) ? " concert-info__panel-item--active" : ""}`}
                               onClick={() => handleSubItemClick(idx)}
                             >
-                              {activeSubIndex === idx && (
+                              {isChipActive(activeTab, idx) && (
                                 <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                   <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
@@ -535,10 +605,13 @@ export default function ConcertBrowse() {
               );
             });
           })()}
-          {activeSubIndex !== null && (
+          {hasChipsInCurrentTab && (
             <button
               className="concert-info__panel-reset"
-              onClick={() => handleSubItemClick(null)}
+              onClick={() => {
+                setChips((prev) => prev.filter((c) => c.tabIndex !== activeTab));
+                setVisibleCount(PAGE_SIZE);
+              }}
             >
               <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" width="13" height="13">
                 <path d="M13.5 8A5.5 5.5 0 1 1 8 2.5c1.8 0 3.4.87 4.4 2.2L10.5 6h3.5V2.5l-1.38 1.38A6.5 6.5 0 1 0 14.5 8h-1z" fill="currentColor" />
@@ -673,7 +746,7 @@ export default function ConcertBrowse() {
       )}
 
       {/* 카드 그리드 */}
-      {!currentTab.rankOnly && activeSubIndex === null && !isPanelOpen ? (
+      {!currentTab.rankOnly && chips.length === 0 && !isPanelOpen ? (
         <div className="concert-info__guide">
           <p className="concert-info__guide-title">카테고리를 선택해 공연을 탐색해보세요</p>
           <p className="concert-info__guide-sub">탭을 클릭하면 세부 장르를 고를 수 있어요</p>

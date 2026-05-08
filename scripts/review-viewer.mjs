@@ -14,11 +14,16 @@ const PORT = 3456;
 const PAGE_SIZE = 50;
 
 async function fetchConcerts() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
   const { data, error } = await supabase
     .from("concerts")
     .select("id, title, poster, intro_images, tags, ai_keywords, performers, synopsis, status")
     .in("status", ["공연예정", "공연중"])
     .eq("re_review", true)
+    .gte("start_date", tomorrowStr)
     .order("title");
 
   if (error) throw error;
